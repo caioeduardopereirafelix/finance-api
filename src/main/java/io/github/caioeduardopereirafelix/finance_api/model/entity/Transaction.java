@@ -27,9 +27,11 @@ public class Transaction {
 
     // 🔗 Relacionamento com usuário
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn
     private User user;
 
     // 🔗 Relacionamento com categoria
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn
     private Category category;
 }
