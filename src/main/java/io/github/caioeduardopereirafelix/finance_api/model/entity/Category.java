@@ -12,6 +12,7 @@ public class Category {
 
     @Id
     @Column
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Enumerated(EnumType.STRING)
