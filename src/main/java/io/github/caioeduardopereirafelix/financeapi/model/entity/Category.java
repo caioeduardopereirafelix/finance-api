@@ -1,6 +1,6 @@
-package io.github.caioeduardopereirafelix.finance_api.model.entity;
+package io.github.caioeduardopereirafelix.financeapi.model.entity;
 
-import io.github.caioeduardopereirafelix.finance_api.model.CategoryName;
+import io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName;
 import jakarta.persistence.*;
 import lombok.Data;
 

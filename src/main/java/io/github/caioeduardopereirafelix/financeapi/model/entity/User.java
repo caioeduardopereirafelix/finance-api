@@ -1,8 +1,9 @@
-package io.github.caioeduardopereirafelix.finance_api.model.entity;
+package io.github.caioeduardopereirafelix.financeapi.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.antlr.v4.runtime.misc.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 

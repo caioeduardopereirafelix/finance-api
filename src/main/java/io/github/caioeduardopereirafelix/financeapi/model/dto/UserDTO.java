@@ -1,4 +1,4 @@
-package io.github.caioeduardopereirafelix.finance_api.model.dto;
+package io.github.caioeduardopereirafelix.financeapi.model.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;

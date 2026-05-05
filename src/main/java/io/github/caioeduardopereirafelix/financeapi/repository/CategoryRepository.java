@@ -1,6 +1,6 @@
-package io.github.caioeduardopereirafelix.finance_api.repository;
+package io.github.caioeduardopereirafelix.financeapi.repository;
 
-import io.github.caioeduardopereirafelix.finance_api.model.entity.Category;
+import io.github.caioeduardopereirafelix.financeapi.model.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
