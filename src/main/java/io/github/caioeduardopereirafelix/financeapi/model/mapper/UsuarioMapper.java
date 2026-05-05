@@ -1,10 +1,9 @@
-package io.github.caioeduardopereirafelix.finance_api.model.mapper;
+package io.github.caioeduardopereirafelix.financeapi.model.mapper;
 
-import io.github.caioeduardopereirafelix.finance_api.model.dto.UserDTO;
-import io.github.caioeduardopereirafelix.finance_api.model.entity.User;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.UserDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.stereotype.Component;
 
 @Mapper(componentModel = "spring")
 public interface UsuarioMapper {

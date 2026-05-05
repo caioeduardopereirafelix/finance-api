@@ -1,4 +1,4 @@
-package io.github.caioeduardopereirafelix.finance_api;
+package io.github.caioeduardopereirafelix.financeapi;
 
 import  org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,10 +1,9 @@
-package io.github.caioeduardopereirafelix.finance_api.model.entity;
+package io.github.caioeduardopereirafelix.financeapi.model.entity;
 
-import io.github.caioeduardopereirafelix.finance_api.model.TransactionalType;
+import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity

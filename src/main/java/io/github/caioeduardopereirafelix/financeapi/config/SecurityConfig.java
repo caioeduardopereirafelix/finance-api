@@ -1,4 +1,4 @@
-package io.github.caioeduardopereirafelix.finance_api.config;
+package io.github.caioeduardopereirafelix.financeapi.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package io.github.caioeduardopereirafelix.finance_api;
+package io.github.caioeduardopereirafelix.financeapi;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,6 +1,4 @@
-package io.github.caioeduardopereirafelix.finance_api.model;
-
-import lombok.Data;
+package io.github.caioeduardopereirafelix.financeapi.model.enums;
 
 
 public enum CategoryName {
