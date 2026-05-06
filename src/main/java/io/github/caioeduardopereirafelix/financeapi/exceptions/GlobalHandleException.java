@@ -1,22 +1,41 @@
 package io.github.caioeduardopereirafelix.financeapi.exceptions;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 @RestControllerAdvice
 public class GlobalHandleException {
 
-    @ExceptionHandler(EmailInvalidException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseError exception(EmailInvalidException exception){
-        return new ResponseError(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT, exception.getMessage(), LocalDateTime.now());
+    @ExceptionHandler(EmailAlreadyExistException.class)
+    public ResponseEntity<ResponseError> emailExcetionHandle(EmailAlreadyExistException exception){
+        var error=
+                new ResponseError(HttpStatus.CONFLICT.value(), exception.getMessage(), List.of());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(InvalidFieldException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    public ResponseError handleCampoInvalidoExceptions(InvalidFieldException e){
+        return new ResponseError(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Erro Validacacao", List.of(new FieldError(e.getCampo(),e.getMessage())));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    public ResponseError handleMethodArgumentNotValidException(MethodArgumentNotValidException erro){
+        List<org.springframework.validation.FieldError> fieldErrors = erro.getFieldErrors();
+        List<FieldError> listaDeErros = fieldErrors.stream()
+                .map(fl -> new FieldError(fl.getField(), fl.getDefaultMessage()))
+                .collect(Collectors.toList());
+        return new ResponseError(HttpStatus.UNPROCESSABLE_ENTITY.value(), "erro de validacao", listaDeErros);
     }
 }
 

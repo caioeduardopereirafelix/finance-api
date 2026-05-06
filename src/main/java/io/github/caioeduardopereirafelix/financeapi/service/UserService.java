@@ -1,10 +1,10 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
-import io.github.caioeduardopereirafelix.financeapi.exceptions.EmailInvalidException;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.UserDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import io.github.caioeduardopereirafelix.financeapi.model.mapper.UsuarioMapper;
 import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
+import io.github.caioeduardopereirafelix.financeapi.service.validator.UserValidator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,13 +18,16 @@ public class UserService {
     private final UserRepository repository;
     private final UsuarioMapper mapper;
     private final PasswordEncoder encoder;
+    private final UserValidator userValidator;
 
 
     public User createUser(@Valid @RequestBody UserDTO dto){
         //utilizar senha terminal, adicionado security para proteger endpoint
         var userMap = mapper.toUser(dto);
+        userValidator.validatePassword(dto.password());
+        userValidator.validateEmail(dto.email());
+        userValidator.validateName(dto.firstName());
         userMap.setPassword(encoder.encode(dto.password()));
-        if (repository.existsByEmail(dto.email())) throw new EmailInvalidException("Email already exists");
         return repository.save(userMap);
     }
 }
