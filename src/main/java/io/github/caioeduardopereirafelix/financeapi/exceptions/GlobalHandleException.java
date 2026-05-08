@@ -37,5 +37,12 @@ public class GlobalHandleException {
                 .collect(Collectors.toList());
         return new ResponseError(HttpStatus.UNPROCESSABLE_ENTITY.value(), "erro de validacao", listaDeErros);
     }
+
+    @ExceptionHandler(RegistrationDuplicated.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseError handleRegistrationDuplicated(RegistrationDuplicated e){
+        return new ResponseError(HttpStatus.BAD_REQUEST.value(), "", List.of());
+    }
+
 }
 

@@ -7,6 +7,7 @@ import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
 import io.github.caioeduardopereirafelix.financeapi.service.validator.UserValidator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,14 +28,20 @@ public class UserService {
     public User createUser(@Valid @RequestBody UserDTO dto){
         //utilizar senha terminal, adicionado security para proteger endpoint
         var userMap = mapper.toUser(dto);
-        userValidator.validatePassword(dto.password());
-        userValidator.validateEmail(dto.email());
-        userValidator.validateName(dto.name());
         userMap.setPassword(encoder.encode(dto.password()));
+        userValidator.validate(userMap);
         return repository.save(userMap);
+    }
+
+    public void save(User user){
+        repository.save(user);
     }
 
     public Optional<User> findById(UUID id){
         return repository.findById(id);
+    }
+
+    public void deleteUser(User user) {
+        repository.delete(user);
     }
 }
