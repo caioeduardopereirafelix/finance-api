@@ -6,10 +6,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
-public interface UsuarioMapper {
+public interface UserMapper {
 
 
-    @Mapping(source = "firstName", target = "firstName")
+    @Mapping(source = "name", target = "name")
     @Mapping(source = "email", target = "email")
     @Mapping(target = "password", ignore = true)
     User toUser(UserDTO dto);
