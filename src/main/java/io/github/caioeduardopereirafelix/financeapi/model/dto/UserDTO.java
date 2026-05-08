@@ -4,11 +4,12 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.hibernate.validator.constraints.UniqueElements;
 
 public record UserDTO(
         @NotNull
         @Size(max = 20, min = 1, message =  "Nome deve ter no máximo 100 caracteres e no minimo 1")
-        String firstName,
+        String name,
         @NotBlank(message = "Email nao pode ser vazio")
         @Email(message = "Email invalido")
         String email,
