@@ -1,6 +1,7 @@
 package io.github.caioeduardopereirafelix.financeapi.model.mapper;
 
-import io.github.caioeduardopereirafelix.financeapi.model.dto.UserDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.user.CreateUserDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.user.ResponseUserDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -12,9 +13,10 @@ public interface UserMapper {
     @Mapping(source = "name", target = "name")
     @Mapping(source = "email", target = "email")
     @Mapping(target = "password", ignore = true)
-    User toUser(UserDTO dto);
+    User toUser(CreateUserDTO dto);
 
-    UserDTO toUserDto(User user);
+    CreateUserDTO toUserDto(User user);
 
 
+    ResponseUserDTO toUserResponse (User dto);
 }

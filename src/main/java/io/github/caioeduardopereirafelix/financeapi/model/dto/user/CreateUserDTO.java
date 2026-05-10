@@ -1,12 +1,11 @@
-package io.github.caioeduardopereirafelix.financeapi.model.dto;
+package io.github.caioeduardopereirafelix.financeapi.model.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.UniqueElements;
 
-public record UserDTO(
+public record CreateUserDTO(
         @NotNull
         @Size(max = 20, min = 1, message =  "Nome deve ter no máximo 100 caracteres e no minimo 1")
         String name,

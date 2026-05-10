@@ -52,4 +52,7 @@ public class UserValidator {
 
         return !user.getId().equals(userFound.get().getId()) && userFound.isPresent();
     }
+
+    //melhorar essa validacao, pois nao esta lancando excecao personalizada e melhorar os metodos para validar
+    //usuario existe ou nao, password e email
 }
