@@ -1,15 +1,18 @@
 package io.github.caioeduardopereirafelix.financeapi.model.entity;
 
+import io.github.caioeduardopereirafelix.financeapi.config.AuditingClass;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
 @Table(name = "transactions")
-public class Transaction {
+@Data
+public class Transaction extends AuditingClass {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -30,8 +33,13 @@ public class Transaction {
     @JoinColumn
     private User user;
 
-    // 🔗 Relacionamento com categoria
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category")
     private CategoryName category;
+
+    @Column(name = "created_by")
+    private String createdBy;
+
+    @Column(name = "last_modified_by")
+    private String lastModifiedBy;
 }
