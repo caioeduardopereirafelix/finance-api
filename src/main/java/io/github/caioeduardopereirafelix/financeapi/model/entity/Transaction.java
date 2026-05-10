@@ -1,5 +1,6 @@
 package io.github.caioeduardopereirafelix.financeapi.model.entity;
 
+import io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
 import jakarta.persistence.*;
 
@@ -32,5 +33,5 @@ public class Transaction {
     // 🔗 Relacionamento com categoria
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn
-    private Category category;
+    private CategoryName category;
 }

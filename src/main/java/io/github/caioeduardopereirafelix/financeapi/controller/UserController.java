@@ -1,6 +1,8 @@
 package io.github.caioeduardopereirafelix.financeapi.controller;
 
-import io.github.caioeduardopereirafelix.financeapi.model.dto.UserDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.user.CreateUserDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.user.ResponseUserDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.user.UpdateUserDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import io.github.caioeduardopereirafelix.financeapi.model.mapper.UserMapper;
 import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
@@ -26,10 +28,13 @@ public class UserController {
     private final PasswordEncoder encoder;
 
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody UserDTO dto) {
+    public ResponseEntity<User> createUser(@Valid @RequestBody CreateUserDTO dto) {
 
-        userService.createUser(dto);
-        return new ResponseEntity(dto, HttpStatus.CREATED);
+        var user = userService.createUser(dto);
+
+        ResponseUserDTO responseUserDTO = mapper.toUserResponse(user);
+
+        return new ResponseEntity(responseUserDTO, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
@@ -39,8 +44,8 @@ public class UserController {
 
         if (userOptional.isPresent()){
             var userPresent = userOptional.get();
-            UserDTO userSearch = mapper.toUserDto(userPresent);
-            return ResponseEntity.ok(userSearch);
+            var response = mapper.toUserResponse(userPresent);
+            return ResponseEntity.ok(response);
         }
         return ResponseEntity.notFound().build();
     }
@@ -60,22 +65,14 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity updateUser(@PathVariable("id")String id, @RequestBody UserDTO userDTO){
+    public ResponseEntity updateUser(
+            @PathVariable("id")String id,
+            @RequestBody UpdateUserDTO updateUserDTO){
+
         var idUser = UUID.fromString(id);
 
-        Optional<User> optional = userService.findById(idUser);
+        User userUpdate = userService.updateUser(idUser, updateUserDTO);
 
-        if (optional.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-        var user = optional.get();
-        user.setEmail(userDTO.email());
-        user.setName(userDTO.name());
-        if (userDTO.password() != null && !userDTO.password().isBlank()){
-
-        user.setPassword(encoder.encode(userDTO.password()));
-        userService.save(user);
-        }
-        return ResponseEntity.accepted().build();
+        return ResponseEntity.ok(mapper.toUserResponse(userUpdate));
     }
 }

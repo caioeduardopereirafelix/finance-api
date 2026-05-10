@@ -11,14 +11,18 @@ public enum CategoryName {
     FOOD(TransactionalType.EXPENSES),
     LEISURE(TransactionalType.EXPENSES),
     HOUSING(TransactionalType.EXPENSES),
-    HEALT(TransactionalType.EXPENSES),
+    HEALTH(TransactionalType.EXPENSES),
     TRANSPORT(TransactionalType.EXPENSES),
     INVESTMENTS(TransactionalType.EXPENSES),
-    COUNTS(TransactionalType.EXPENSES);
+    BILLS(TransactionalType.EXPENSES);
 
-    private final TransactionalType categoryType;
+    private final TransactionalType transactionalType;
 
-    CategoryName(TransactionalType categoryType) {
-        this.categoryType = categoryType;
+    CategoryName(TransactionalType transactionalType) {
+        this.transactionalType = transactionalType;
+    }
+
+    public TransactionalType getTransactionalType() {
+        return transactionalType;
     }
 }
