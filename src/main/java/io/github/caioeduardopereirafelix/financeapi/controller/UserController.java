@@ -37,7 +37,7 @@ public class UserController {
         return new ResponseEntity(responseUserDTO, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{userId}")
     public ResponseEntity getDetails(@PathVariable("id") String id){
         var idUser = UUID.fromString(id);
         Optional<User> userOptional = userService.findById(idUser);
@@ -50,7 +50,7 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{userId}")
     public ResponseEntity deleteUser(@PathVariable("id") String id){
 
         var idUser = UUID.fromString(id);
@@ -64,7 +64,7 @@ public class UserController {
         return ResponseEntity.accepted().build();
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{userId}")
     public ResponseEntity updateUser(
             @PathVariable("id")String id,
             @RequestBody UpdateUserDTO updateUserDTO){
