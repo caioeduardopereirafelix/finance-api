@@ -50,7 +50,7 @@ public class UserService {
 
     public User updateUser(UUID id, UpdateUserDTO request) {
         var user = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setName(request.name());
         user.setEmail(request.email());

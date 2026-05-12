@@ -2,6 +2,7 @@ package io.github.caioeduardopereirafelix.financeapi.controller;
 
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CreateTransactionRequestDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.ResponseTransactionDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
 import io.github.caioeduardopereirafelix.financeapi.service.TransactionService;
 import lombok.RequiredArgsConstructor;
@@ -43,5 +44,22 @@ public class TransactionController {
         var response = new ResponseTransactionDTO(transactionFound.getId(), transactionFound.getDescription(), transactionFound.getAmount(), transactionFound.getCategory(), transactionFound.getType());
 
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseTransactionDTO> putTransaction
+            (@PathVariable("id") String id,
+             @RequestBody UpdateTransactionDTO transactionDTO){
+
+        var idTransaction = UUID.fromString(id);
+
+        Transaction transactionUpdate = service.updateTrasaction(idTransaction, transactionDTO);
+
+        return ResponseEntity.ok(new ResponseTransactionDTO(
+                transactionUpdate.getId(),
+                transactionUpdate.getDescription(),
+                transactionUpdate.getAmount(),
+                transactionUpdate.getCategory(),
+                transactionUpdate.getType()));
     }
 }

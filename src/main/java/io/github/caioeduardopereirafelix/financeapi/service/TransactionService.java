@@ -1,6 +1,7 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CreateTransactionRequestDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import io.github.caioeduardopereirafelix.financeapi.repository.TransactionRepository;
@@ -26,7 +27,7 @@ public class TransactionService {
         validator.validateAmount(transaction.amount());
 
         User user = userRepository.findById(transaction.id())
-                .orElseThrow(() -> new RuntimeException("Usuario nao encontrado"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         var transactionSave = new Transaction();
         transactionSave.setDescription(transaction.description());
@@ -46,5 +47,19 @@ public class TransactionService {
 
     public void deleteTransaction(Transaction transactionDelete){
         transactionRepository.delete(transactionDelete);
+    }
+
+    public Transaction updateTrasaction(UUID id, UpdateTransactionDTO transactionDTO) {
+        var transaction = transactionRepository.findById(id).orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        validator.validateAmount(transactionDTO.amount());
+        validator.validateCategoryByType(transaction.getCategory(), transaction.getType());
+
+        transaction.setType(transactionDTO.type());
+        transaction.setDescription(transactionDTO.description());
+        transaction.setCategory(transactionDTO.category());
+        transaction.setAmount(transactionDTO.amount());
+
+        return transactionRepository.save(transaction);
     }
 }
