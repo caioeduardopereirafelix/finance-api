@@ -26,7 +26,7 @@ public class TransactionService {
         validator.validateCategoryByType(transaction.category(), transaction.type());
         validator.validateAmount(transaction.amount());
 
-        User user = userRepository.findById(transaction.id())
+        User user = userRepository.findById(transaction.userId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         var transactionSave = new Transaction();

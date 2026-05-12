@@ -5,6 +5,7 @@ import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.Respon
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
 import io.github.caioeduardopereirafelix.financeapi.service.TransactionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class TransactionController {
     private final TransactionService service;
 
     @PostMapping
-    public ResponseEntity<ResponseTransactionDTO> create(@RequestBody CreateTransactionRequestDTO requestTransaction){
+    public ResponseEntity<ResponseTransactionDTO> create(@Valid @RequestBody CreateTransactionRequestDTO requestTransaction){
 
         var transaction = service.create(requestTransaction);
 
@@ -29,7 +30,7 @@ public class TransactionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{userId}")
     public ResponseEntity<ResponseTransactionDTO> delete(@PathVariable("id") String id){
 
         Optional<Transaction> findTransactional = service.findById(UUID.fromString(id));
@@ -46,7 +47,7 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{userId}")
     public ResponseEntity<ResponseTransactionDTO> putTransaction
             (@PathVariable("id") String id,
              @RequestBody UpdateTransactionDTO transactionDTO){
