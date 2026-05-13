@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -38,8 +38,8 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity getDetails(@PathVariable("id") String id){
-        var idUser = UUID.fromString(id);
+    public ResponseEntity getDetails(@PathVariable String userId){
+        var idUser = UUID.fromString(userId);
         Optional<User> userOptional = userService.findById(idUser);
 
         if (userOptional.isPresent()){
@@ -51,7 +51,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity deleteUser(@PathVariable("id") String id){
+    public ResponseEntity deleteUser(@PathVariable("userId") String id){
 
         var idUser = UUID.fromString(id);
 
