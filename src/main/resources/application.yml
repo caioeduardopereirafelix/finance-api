@@ -9,3 +9,8 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
+  api:
+    security:
+      token:
+        secret: lvWv5Z8dZoCCaNpQ9ApEIbytVDWZ2cvslyleCPOJrSMIdgVEPPJ095SCxZq5Ztl0
+        expiration: 86400000
