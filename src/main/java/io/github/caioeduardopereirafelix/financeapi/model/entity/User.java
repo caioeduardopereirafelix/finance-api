@@ -4,9 +4,7 @@ import io.github.caioeduardopereirafelix.financeapi.config.AuditingClass;
 import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import org.hibernate.mapping.Set;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,6 +18,9 @@ import java.util.UUID;
 
 @Entity(name = "users")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class User extends AuditingClass implements UserDetails {
 
     @Id
@@ -36,7 +37,7 @@ public class User extends AuditingClass implements UserDetails {
     @Column(name = "password")
     private String password;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))

@@ -1,22 +1,22 @@
 package io.github.caioeduardopereirafelix.financeapi.model.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 
 @Entity
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 @Builder
-@Table(name = "roles")
+@Table(name = "ROLES_USER")
 
 public class RolesUser implements GrantedAuthority {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
 

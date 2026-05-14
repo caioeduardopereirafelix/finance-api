@@ -24,6 +24,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final TokenProvider tokenProvider;
     private final UserDetailsService userDetailsService;
 
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return request.getServletPath().startsWith("/v1/auth");
+    }
+
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -46,4 +51,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     filterChain.doFilter(request, response);
     }
+
 }
