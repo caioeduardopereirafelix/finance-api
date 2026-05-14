@@ -12,11 +12,12 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Date;
 
-@ConfigurationProperties(prefix = "api.security.token")
 @Component
 public class TokenProvider {
 
+    @Value("${api.security.token.expiration}")
     private Long expirationTime;
+    @Value("${api.security.token.secret}")
     private String key;
 
     //gera o token
