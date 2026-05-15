@@ -53,7 +53,7 @@ public class TransactionService {
         var transaction = transactionRepository.findById(id).orElseThrow(() -> new RuntimeException("Transaction not found"));
 
         validator.validateAmount(transactionDTO.amount());
-        validator.validateCategoryByType(transaction.getCategory(), transaction.getType());
+        validator.validateCategoryByType(transactionDTO.category(), transactionDTO.type());
 
         transaction.setType(transactionDTO.type());
         transaction.setDescription(transactionDTO.description());
