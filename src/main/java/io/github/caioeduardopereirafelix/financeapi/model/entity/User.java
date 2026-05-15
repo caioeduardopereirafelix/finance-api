@@ -8,6 +8,7 @@ import lombok.*;
 
 import org.hibernate.mapping.Set;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
@@ -39,13 +40,15 @@ public class User extends AuditingClass implements UserDetails {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "users_roles",
-            joinColumns = @JoinColumn(name = "id"),
+            joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private List<RolesUser> roles;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles;
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .toList();
     }
 
     @Override
