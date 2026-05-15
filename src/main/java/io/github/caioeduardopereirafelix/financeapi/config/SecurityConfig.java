@@ -39,9 +39,14 @@ public class SecurityConfig {
                                     response.setStatus(HttpStatus.FORBIDDEN.value());
                                 }))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST,"/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/user/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/transaction/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.POST,"/v1/auth","/v1/auth/**")
+                        .permitAll()
+
+                        .requestMatchers(HttpMethod.POST,"/user","/user/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/transaction","/transaction/**")
+                        .hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

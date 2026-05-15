@@ -12,7 +12,6 @@ import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -57,7 +56,7 @@ public class AuthService {
 
             var autentication =
                     authenticationManager
-                            .authenticate(new UsernamePasswordAuthenticationToken(login.email(), login.senha()));
+                            .authenticate(new UsernamePasswordAuthenticationToken(login.email(), login.password()));
             var token = tokenProvider.generateToken(autentication);
 
             return new ResponseAuthDTO(token, expirationTime);
