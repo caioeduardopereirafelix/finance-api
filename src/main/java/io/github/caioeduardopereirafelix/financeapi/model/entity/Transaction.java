@@ -28,7 +28,7 @@ public class Transaction extends AuditingClass {
     @Column
     private TransactionalType type; // ENTRADA ou DESPESA
 
-    // 🔗 Relacionamento com usuário
+    //Relacionamento com usuário
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn
     private User user;
