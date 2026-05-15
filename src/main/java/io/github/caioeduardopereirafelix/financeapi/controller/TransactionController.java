@@ -4,6 +4,7 @@ import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.Create
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.ResponseTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
+import io.github.caioeduardopereirafelix.financeapi.model.mapper.TransactionMapper;
 import io.github.caioeduardopereirafelix.financeapi.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,6 +20,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RequestMapping("/transaction")
 public class TransactionController {
+
+    private final TransactionMapper transactionMapper;
     private final TransactionService service;
 
     @PostMapping
@@ -25,7 +29,7 @@ public class TransactionController {
 
         var transaction = service.create(requestTransaction);
 
-        var response = new ResponseTransactionDTO(transaction.getId(), transaction.getDescription(), transaction.getAmount(), transaction.getCategory(), transaction.getType());
+        var response = new ResponseTransactionDTO(transaction.getDescription(), transaction.getAmount(), transaction.getCategory(), transaction.getType());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -42,7 +46,7 @@ public class TransactionController {
         var transactionFound = findTransactional.get();
         service.deleteTransaction(transactionFound);
 
-        var response = new ResponseTransactionDTO(transactionFound.getId(), transactionFound.getDescription(), transactionFound.getAmount(), transactionFound.getCategory(), transactionFound.getType());
+        var response = new ResponseTransactionDTO(transactionFound.getDescription(), transactionFound.getAmount(), transactionFound.getCategory(), transactionFound.getType());
 
         return ResponseEntity.ok(response);
     }
@@ -57,10 +61,21 @@ public class TransactionController {
         Transaction transactionUpdate = service.updateTrasaction(idTransaction, transactionDTO);
 
         return ResponseEntity.ok(new ResponseTransactionDTO(
-                transactionUpdate.getId(),
                 transactionUpdate.getDescription(),
                 transactionUpdate.getAmount(),
                 transactionUpdate.getCategory(),
                 transactionUpdate.getType()));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ResponseTransactionDTO>> findAllTransactions(){
+        List<Transaction> transactions = service.findAllTransactionsForAuthenticatedUser();
+
+        List<ResponseTransactionDTO> response = transactions
+                .stream()
+                .map(transactionMapper::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(response);
     }
 }

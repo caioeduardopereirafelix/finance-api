@@ -1,5 +1,6 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
+import io.github.caioeduardopereirafelix.financeapi.config.SecurityUtils;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CreateTransactionRequestDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
@@ -8,8 +9,11 @@ import io.github.caioeduardopereirafelix.financeapi.repository.TransactionReposi
 import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
 import io.github.caioeduardopereirafelix.financeapi.service.validator.TransactionValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,14 +24,14 @@ public class TransactionService {
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
     private final TransactionValidator validator;
+    private final SecurityUtils securityUtils;
 
     public Transaction create(CreateTransactionRequestDTO transaction){
 
         validator.validateCategoryByType(transaction.category(), transaction.type());
         validator.validateAmount(transaction.amount());
 
-        User user = userRepository.findById(transaction.userId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = securityUtils.getAuthenticatedUser();
 
         var transactionSave = new Transaction();
         transactionSave.setDescription(transaction.description());
@@ -61,5 +65,11 @@ public class TransactionService {
         transaction.setAmount(transactionDTO.amount());
 
         return transactionRepository.save(transaction);
+    }
+
+    public List<Transaction> findAllTransactionsForAuthenticatedUser(){
+        User user = securityUtils.getAuthenticatedUser();
+
+        return transactionRepository.findByUser(user);
     }
 }

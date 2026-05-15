@@ -1,7 +1,9 @@
 package io.github.caioeduardopereirafelix.financeapi.exceptions;
 
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -25,15 +27,15 @@ public class GlobalHandleException {
     @ExceptionHandler(InvalidFieldException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     public ResponseError handleCampoInvalidoExceptions(InvalidFieldException e){
-        return new ResponseError(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Erro Validacacao", List.of(new FieldError(e.getCampo(),e.getMessage())));
+        return new ResponseError(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Erro Validacacao", List.of(new ErrorField(e.getCampo(),e.getMessage())));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    public ResponseError handleMethodArgumentNotValidException(MethodArgumentNotValidException erro){
-        List<org.springframework.validation.FieldError> fieldErrors = erro.getFieldErrors();
-        List<FieldError> listaDeErros = fieldErrors.stream()
-                .map(fl -> new FieldError(fl.getField(), fl.getDefaultMessage()))
+    public ResponseError handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
+        List<ErrorField> listaDeErros = e.getFieldErrors()
+                .stream()
+                .map(fl -> new ErrorField(fl.getField(), fl.getDefaultMessage()))
                 .collect(Collectors.toList());
         return new ResponseError(HttpStatus.UNPROCESSABLE_ENTITY.value(), "erro de validacao", listaDeErros);
     }
@@ -43,6 +45,14 @@ public class GlobalHandleException {
     public ResponseError handleRegistrationDuplicated(RegistrationDuplicated e){
         return new ResponseError(HttpStatus.BAD_REQUEST.value(), "", List.of());
     }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseError handleBadCredentialsException(BadCredentialsException e){
+        return new ResponseError(HttpStatus.UNAUTHORIZED.value(), "Invalid or Password Invalid", List.of());
+    }
+
+
 
 }
 
