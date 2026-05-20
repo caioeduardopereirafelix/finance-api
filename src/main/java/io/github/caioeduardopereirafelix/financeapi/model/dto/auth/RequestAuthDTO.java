@@ -13,5 +13,5 @@ public record RequestAuthDTO(
         String user,
         @NotBlank(message = "password it cannot  be empty")
         @Size(min = 5, max = 100, message = "password must contain at least 5 characters")
-        String senha) {
+        String password) {
 }

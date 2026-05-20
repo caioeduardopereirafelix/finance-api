@@ -46,7 +46,7 @@ public class AuthService {
                 .name(requestAuthDTO.user())
                 .email(requestAuthDTO.email())
                 .roles(List.of(role))
-                .password(passwordEncoder.encode(requestAuthDTO.senha()))
+                .password(passwordEncoder.encode(requestAuthDTO.password()))
                 .build());
     }
 

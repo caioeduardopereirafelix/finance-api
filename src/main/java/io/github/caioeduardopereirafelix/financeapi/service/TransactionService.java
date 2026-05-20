@@ -2,9 +2,11 @@ package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.config.SecurityUtils;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CreateTransactionRequestDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.SummaryResponseDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
+import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
 import io.github.caioeduardopereirafelix.financeapi.repository.TransactionRepository;
 import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
 import io.github.caioeduardopereirafelix.financeapi.service.validator.TransactionValidator;
@@ -13,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -71,5 +74,26 @@ public class TransactionService {
         User user = securityUtils.getAuthenticatedUser();
 
         return transactionRepository.findByUser(user);
+    }
+
+    public SummaryResponseDTO getSummary(){
+        User user = securityUtils.getAuthenticatedUser();
+
+        List<Transaction> transactions = transactionRepository.findByUser(user);
+
+        BigDecimal cashEntry = transactions.stream()
+                .filter(t -> t.getType() == TransactionalType.CASH_ENTRY)
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal expenses = transactions.stream()
+                .filter( t -> t.getType() == TransactionalType.EXPENSES)
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal balance = cashEntry.subtract(expenses);
+
+        return new SummaryResponseDTO(cashEntry, expenses, balance);
+
     }
 }
