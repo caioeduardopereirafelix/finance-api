@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record ResponseTransactionDTO(
+        UUID id,
         String description,
         BigDecimal amount,
         CategoryName category,

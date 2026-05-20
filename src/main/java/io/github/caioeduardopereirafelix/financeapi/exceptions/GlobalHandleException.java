@@ -49,7 +49,7 @@ public class GlobalHandleException {
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseError handleBadCredentialsException(BadCredentialsException e){
-        return new ResponseError(HttpStatus.UNAUTHORIZED.value(), "Invalid or Password Invalid", List.of());
+        return new ResponseError(HttpStatus.UNAUTHORIZED.value(), "Invalid Email or Password", List.of());
     }
 
 

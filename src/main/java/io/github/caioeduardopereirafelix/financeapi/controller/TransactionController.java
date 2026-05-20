@@ -2,6 +2,7 @@ package io.github.caioeduardopereirafelix.financeapi.controller;
 
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CreateTransactionRequestDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.ResponseTransactionDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.SummaryResponseDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
 import io.github.caioeduardopereirafelix.financeapi.model.mapper.TransactionMapper;
@@ -29,12 +30,12 @@ public class TransactionController {
 
         var transaction = service.create(requestTransaction);
 
-        var response = new ResponseTransactionDTO(transaction.getDescription(), transaction.getAmount(), transaction.getCategory(), transaction.getType());
+        var response = new ResponseTransactionDTO(transaction.getId(), transaction.getDescription(), transaction.getAmount(), transaction.getCategory(), transaction.getType());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ResponseTransactionDTO> delete(@PathVariable("id") String id){
 
         Optional<Transaction> findTransactional = service.findById(UUID.fromString(id));
@@ -46,12 +47,12 @@ public class TransactionController {
         var transactionFound = findTransactional.get();
         service.deleteTransaction(transactionFound);
 
-        var response = new ResponseTransactionDTO(transactionFound.getDescription(), transactionFound.getAmount(), transactionFound.getCategory(), transactionFound.getType());
+        var response = new ResponseTransactionDTO(transactionFound.getId(), transactionFound.getDescription(), transactionFound.getAmount(), transactionFound.getCategory(), transactionFound.getType());
 
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{userId}")
+    @PutMapping("/{id}")
     public ResponseEntity<ResponseTransactionDTO> putTransaction
             (@PathVariable("id") String id,
              @RequestBody UpdateTransactionDTO transactionDTO){
@@ -61,6 +62,7 @@ public class TransactionController {
         Transaction transactionUpdate = service.updateTrasaction(idTransaction, transactionDTO);
 
         return ResponseEntity.ok(new ResponseTransactionDTO(
+                transactionUpdate.getId(),
                 transactionUpdate.getDescription(),
                 transactionUpdate.getAmount(),
                 transactionUpdate.getCategory(),
@@ -77,5 +79,11 @@ public class TransactionController {
                 .toList();
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<SummaryResponseDTO> summary(){
+
+        return ResponseEntity.ok(service.getSummary());
     }
 }
