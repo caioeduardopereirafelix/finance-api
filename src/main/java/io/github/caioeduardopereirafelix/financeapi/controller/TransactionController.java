@@ -69,6 +69,8 @@ public class TransactionController {
                 transactionUpdate.getType()));
     }
 
+    //criar botao para editar transacao no front, ver porque mesmo sem despesas saldo nao atualiza
+
     @GetMapping
     public ResponseEntity<List<ResponseTransactionDTO>> findAllTransactions(){
         List<Transaction> transactions = service.findAllTransactionsForAuthenticatedUser();

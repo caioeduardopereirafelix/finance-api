@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public record SummaryResponseDTO(
         BigDecimal cashEntry,
-        BigDecimal expense,
+        BigDecimal expenses,
         BigDecimal balance
 ) {
 }
