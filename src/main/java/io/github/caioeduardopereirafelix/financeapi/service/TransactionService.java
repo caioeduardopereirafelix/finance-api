@@ -1,6 +1,7 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.config.SecurityUtils;
+import io.github.caioeduardopereirafelix.financeapi.exceptions.TransactionNotFound;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CreateTransactionRequestDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.SummaryResponseDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
@@ -53,11 +54,19 @@ public class TransactionService {
     }
 
     public void deleteTransaction(Transaction transactionDelete){
+
+        User user = securityUtils.getAuthenticatedUser();
+
+        var transaction = transactionRepository.findByIdAndUser(transactionDelete.getId(), user)
+                        .orElseThrow(() -> new TransactionNotFound("Transaction Not Found"));
         transactionRepository.delete(transactionDelete);
     }
 
     public Transaction updateTrasaction(UUID id, UpdateTransactionDTO transactionDTO) {
-        var transaction = transactionRepository.findById(id).orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        User user = securityUtils.getAuthenticatedUser();
+        var transaction = transactionRepository
+                .findByIdAndUser(id, user).orElseThrow(() -> new TransactionNotFound("Transaction not found"));
 
         validator.validateAmount(transactionDTO.amount());
         validator.validateCategoryByType(transactionDTO.category(), transactionDTO.type());
@@ -77,6 +86,7 @@ public class TransactionService {
     }
 
     public SummaryResponseDTO getSummary(){
+
         User user = securityUtils.getAuthenticatedUser();
 
         List<Transaction> transactions = transactionRepository.findByUser(user);
