@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -39,6 +40,9 @@ public class Transaction extends AuditingClass {
 
     @Column(name = "created_by")
     private String createdBy;
+
+    @Column(name = "created_at")
+    private LocalDate createdAt;
 
     @Column(name = "last_modified_by")
     private String lastModifiedBy;

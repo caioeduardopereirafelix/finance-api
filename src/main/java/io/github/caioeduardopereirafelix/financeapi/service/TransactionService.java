@@ -9,23 +9,21 @@ import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
 import io.github.caioeduardopereirafelix.financeapi.repository.TransactionRepository;
-import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
 import io.github.caioeduardopereirafelix.financeapi.service.validator.TransactionValidator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TransactionService {
 
-    private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
     private final TransactionValidator validator;
     private final SecurityUtils securityUtils;
@@ -44,25 +42,25 @@ public class TransactionService {
         transactionSave.setType(transaction.type());
         transactionSave.setUser(user);
         transactionSave.setCreatedBy(user.getId().toString());
+        transactionSave.setCreatedAt(LocalDate.now());
         transactionSave.setLastModifiedBy(user.getId().toString());
 
         return transactionRepository.save(transactionSave);
     }
 
-    public Optional<Transaction> findById(UUID id){
-        return transactionRepository.findById(id);
-    }
-
-    public void deleteTransaction(Transaction transactionDelete){
+    public Transaction deleteTransaction(UUID id){
 
         User user = securityUtils.getAuthenticatedUser();
 
-        var transaction = transactionRepository.findByIdAndUser(transactionDelete.getId(), user)
+        var transaction = transactionRepository.findByIdAndUser(id, user)
                         .orElseThrow(() -> new TransactionNotFound("Transaction Not Found"));
-        transactionRepository.delete(transactionDelete);
+
+        transactionRepository.delete(transaction);
+
+        return transaction;
     }
 
-    public Transaction updateTrasaction(UUID id, UpdateTransactionDTO transactionDTO) {
+    public Transaction updateTransaction(UUID id, UpdateTransactionDTO transactionDTO) {
 
         User user = securityUtils.getAuthenticatedUser();
         var transaction = transactionRepository
@@ -75,6 +73,7 @@ public class TransactionService {
         transaction.setDescription(transactionDTO.description());
         transaction.setCategory(transactionDTO.category());
         transaction.setAmount(transactionDTO.amount());
+        transaction.setLastModifiedBy(user.getId().toString());
 
         return transactionRepository.save(transaction);
     }
@@ -106,4 +105,5 @@ public class TransactionService {
         return new SummaryResponseDTO(cashEntry, expenses, balance);
 
     }
+
 }

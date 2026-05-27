@@ -51,6 +51,12 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.DELETE, "/transaction", "/transaction/**")
                         .hasAnyRole("ADMIN", "USER")
+
+                        .requestMatchers(HttpMethod.POST, "/transaction", "/transaction/**")
+                        .hasAnyRole("ADMIN", "USER")
+
+                        .requestMatchers(HttpMethod.PUT, "/transaction", "/transaction/**")
+                        .hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
