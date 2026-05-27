@@ -6,6 +6,7 @@ import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.Summar
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
 import io.github.caioeduardopereirafelix.financeapi.model.mapper.TransactionMapper;
+import io.github.caioeduardopereirafelix.financeapi.repository.TransactionRepository;
 import io.github.caioeduardopereirafelix.financeapi.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -24,6 +24,7 @@ public class TransactionController {
 
     private final TransactionMapper transactionMapper;
     private final TransactionService service;
+    private final TransactionRepository repository;
 
     @PostMapping
     public ResponseEntity<ResponseTransactionDTO> create(@Valid @RequestBody CreateTransactionRequestDTO requestTransaction){
@@ -36,20 +37,13 @@ public class TransactionController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseTransactionDTO> delete(@PathVariable("id") String id){
+    public ResponseEntity delete(@PathVariable("id") String id){
 
-        Optional<Transaction> findTransactional = service.findById(UUID.fromString(id));
+        var transaction = service.deleteTransaction(UUID.fromString(id));
 
-        if (findTransactional.isEmpty()){
-            throw new RuntimeException("transaction not found");
-        }
+        var response = new ResponseTransactionDTO(transaction.getId(), transaction.getDescription(), transaction.getAmount(), transaction.getCategory(), transaction.getType());
 
-        var transactionFound = findTransactional.get();
-        service.deleteTransaction(transactionFound);
-
-        var response = new ResponseTransactionDTO(transactionFound.getId(), transactionFound.getDescription(), transactionFound.getAmount(), transactionFound.getCategory(), transactionFound.getType());
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
@@ -59,7 +53,7 @@ public class TransactionController {
 
         var idTransaction = UUID.fromString(id);
 
-        Transaction transactionUpdate = service.updateTrasaction(idTransaction, transactionDTO);
+        Transaction transactionUpdate = service.updateTransaction(idTransaction, transactionDTO);
 
         return ResponseEntity.ok(new ResponseTransactionDTO(
                 transactionUpdate.getId(),
@@ -69,7 +63,6 @@ public class TransactionController {
                 transactionUpdate.getType()));
     }
 
-    //criar botao para editar transacao no front, ver porque mesmo sem despesas saldo nao atualiza
 
     @GetMapping
     public ResponseEntity<List<ResponseTransactionDTO>> findAllTransactions(){
