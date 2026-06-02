@@ -5,6 +5,8 @@ import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.Respon
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.SummaryResponseDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
+import io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName;
+import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
 import io.github.caioeduardopereirafelix.financeapi.model.mapper.TransactionMapper;
 import io.github.caioeduardopereirafelix.financeapi.repository.TransactionRepository;
 import io.github.caioeduardopereirafelix.financeapi.service.TransactionService;
@@ -14,10 +16,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -70,10 +76,42 @@ public class TransactionController {
 
     @GetMapping
     public ResponseEntity<Page<ResponseTransactionDTO>> findAllTransactions(
+            @RequestParam(required = false) TransactionalType type,
+            @RequestParam(required = false) CategoryName category,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) BigDecimal minAmount,
+            @RequestParam(required = false) BigDecimal maxAmount,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate,
+
             @PageableDefault(size = 10,
-                             sort = "createdBy",
+                             sort = "createdDate",
                              direction = Sort.Direction.DESC)Pageable pageable){
-        Page<Transaction> transactions = service.findAllTransactionsForAuthenticatedUser(pageable);
+
+        LocalDateTime startDateTime = startDate != null
+                ? startDate.atStartOfDay()
+                : null;
+
+        LocalDateTime endDateTime = endDate != null
+                ? endDate.atTime(23, 59, 59)
+                : null;
+
+        Page<Transaction> transactions = service.findTransactionsWithFilters(
+                type,
+                category,
+                description,
+                minAmount,
+                maxAmount,
+                startDateTime,
+                endDateTime,
+                pageable
+        );
 
         Page<ResponseTransactionDTO> response = transactions
                 .map(transactionMapper::toResponse);

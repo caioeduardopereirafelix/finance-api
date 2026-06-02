@@ -8,6 +8,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -38,12 +39,5 @@ public class Transaction extends AuditingClass {
     @Column(name = "category")
     private CategoryName category;
 
-    @Column(name = "created_by")
-    private String createdBy;
 
-    @Column(name = "created_at")
-    private LocalDate createdAt;
-
-    @Column(name = "last_modified_by")
-    private String lastModifiedBy;
 }
