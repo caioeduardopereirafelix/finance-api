@@ -14,3 +14,5 @@ api:
     token:
       secret: lvWv5Z8dZoCCaNpQ9ApEIbytVDWZ2cvslyleCPOJrSMIdgVEPPJ095SCxZq5Ztl0
       expiration: 86400000
+    refresh-token:
+      expiration: ${REFRESH_TOKEN_EXPIRATION:604800000}

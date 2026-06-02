@@ -10,6 +10,10 @@ import io.github.caioeduardopereirafelix.financeapi.repository.TransactionReposi
 import io.github.caioeduardopereirafelix.financeapi.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -65,13 +69,14 @@ public class TransactionController {
 
 
     @GetMapping
-    public ResponseEntity<List<ResponseTransactionDTO>> findAllTransactions(){
-        List<Transaction> transactions = service.findAllTransactionsForAuthenticatedUser();
+    public ResponseEntity<Page<ResponseTransactionDTO>> findAllTransactions(
+            @PageableDefault(size = 10,
+                             sort = "createdBy",
+                             direction = Sort.Direction.DESC)Pageable pageable){
+        Page<Transaction> transactions = service.findAllTransactionsForAuthenticatedUser(pageable);
 
-        List<ResponseTransactionDTO> response = transactions
-                .stream()
-                .map(transactionMapper::toResponse)
-                .toList();
+        Page<ResponseTransactionDTO> response = transactions
+                .map(transactionMapper::toResponse);
 
         return ResponseEntity.ok(response);
     }
