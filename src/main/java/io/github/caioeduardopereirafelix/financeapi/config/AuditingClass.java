@@ -27,7 +27,7 @@ public abstract class AuditingClass {
 
     @CreatedDate
     @Column(name = "created_date")
-    private Instant createdDate = Instant.now();
+    private Instant createdDate;
 
     @LastModifiedBy
     @Column(name = "last_modified_by")
@@ -35,6 +35,6 @@ public abstract class AuditingClass {
 
     @LastModifiedDate
     @Column(name = "last_modified_date")
-    private Instant lastModifiedDate = Instant.now();
+    private Instant lastModifiedDate;
 
 }

@@ -7,17 +7,22 @@ import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.Summar
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
+import io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
 import io.github.caioeduardopereirafelix.financeapi.repository.TransactionRepository;
 import io.github.caioeduardopereirafelix.financeapi.service.validator.TransactionValidator;
+import io.github.caioeduardopereirafelix.financeapi.specification.TransactionSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,7 +49,7 @@ public class TransactionService {
         transactionSave.setType(transaction.type());
         transactionSave.setUser(user);
         transactionSave.setCreatedBy(user.getId().toString());
-        transactionSave.setCreatedAt(LocalDate.now());
+        transactionSave.setCreatedDate(Instant.now());
         transactionSave.setLastModifiedBy(user.getId().toString());
 
         return transactionRepository.save(transactionSave);
@@ -106,6 +111,31 @@ public class TransactionService {
 
         return new SummaryResponseDTO(cashEntry, expenses, balance);
 
+    }
+
+    public Page<Transaction> findTransactionsWithFilters(
+            TransactionalType type,
+            CategoryName category,
+            String description,
+            BigDecimal minAmount,
+            BigDecimal maxAmount,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Pageable pageable
+    ) {
+        User user = securityUtils.getAuthenticatedUser();
+
+        Specification<Transaction> specification = Specification
+                .where(TransactionSpecification.belongsToUser(user))
+                .and(TransactionSpecification.hasType(type))
+                .and(TransactionSpecification.hasCategory(category))
+                .and(TransactionSpecification.descriptionContains(description))
+                .and(TransactionSpecification.amountGreaterThanOrEqual(minAmount))
+                .and(TransactionSpecification.amountLessThanOrEqual(maxAmount))
+                .and(TransactionSpecification.createdAtGreaterThanOrEqual(startDate))
+                .and(TransactionSpecification.createdAtLessThanOrEqual(endDate));
+
+        return transactionRepository.findAll(specification, pageable);
     }
 
 }

@@ -9,7 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public class TransactionSprecification {
+public class TransactionSpecification {
 
     public static Specification<Transaction> belongsToUser(User user) {
         return (root, query, criteriaBuilder) ->
@@ -75,7 +75,7 @@ public class TransactionSprecification {
                 return criteriaBuilder.conjunction();
             }
 
-            return criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), startDate);
+            return criteriaBuilder.greaterThanOrEqualTo(root.get("createdDate"), startDate);
         };
     }
 
@@ -85,7 +85,7 @@ public class TransactionSprecification {
                 return criteriaBuilder.conjunction();
             }
 
-            return criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), endDate);
+            return criteriaBuilder.lessThanOrEqualTo(root.get("createdDate"), endDate);
         };
     }
 }
