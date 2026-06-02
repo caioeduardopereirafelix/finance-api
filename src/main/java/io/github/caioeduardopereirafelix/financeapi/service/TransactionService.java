@@ -12,6 +12,8 @@ import io.github.caioeduardopereirafelix.financeapi.repository.TransactionReposi
 import io.github.caioeduardopereirafelix.financeapi.service.validator.TransactionValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -78,10 +80,10 @@ public class TransactionService {
         return transactionRepository.save(transaction);
     }
 
-    public List<Transaction> findAllTransactionsForAuthenticatedUser(){
+    public Page <Transaction> findAllTransactionsForAuthenticatedUser(Pageable pageable){
         User user = securityUtils.getAuthenticatedUser();
 
-        return transactionRepository.findByUser(user);
+        return transactionRepository.findByUser(user, pageable);
     }
 
     public SummaryResponseDTO getSummary(){
