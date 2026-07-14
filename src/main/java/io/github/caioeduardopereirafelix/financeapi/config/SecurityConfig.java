@@ -43,6 +43,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,"/v1/auth","/v1/auth/**")
                         .permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/v1/auth/**")
+                        .permitAll()
+
+                        .requestMatchers("/actuator/**")
+                        .permitAll()
+
                         .requestMatchers(HttpMethod.POST,"/user","/user/**")
                         .hasRole("ADMIN")
 
