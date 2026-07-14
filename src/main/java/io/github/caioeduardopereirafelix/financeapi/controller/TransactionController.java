@@ -41,7 +41,7 @@ public class TransactionController {
 
         var transaction = service.create(requestTransaction);
 
-        var response = new ResponseTransactionDTO(transaction.getId(), transaction.getDescription(), transaction.getAmount(), transaction.getCategory(), transaction.getType());
+        var response = new ResponseTransactionDTO(transaction.getDescription(), transaction.getAmount(), transaction.getCategory(), transaction.getType());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -51,7 +51,7 @@ public class TransactionController {
 
         var transaction = service.deleteTransaction(UUID.fromString(id));
 
-        var response = new ResponseTransactionDTO(transaction.getId(), transaction.getDescription(), transaction.getAmount(), transaction.getCategory(), transaction.getType());
+        var response = new ResponseTransactionDTO(transaction.getDescription(), transaction.getAmount(), transaction.getCategory(), transaction.getType());
 
         return ResponseEntity.noContent().build();
     }
@@ -66,7 +66,6 @@ public class TransactionController {
         Transaction transactionUpdate = service.updateTransaction(idTransaction, transactionDTO);
 
         return ResponseEntity.ok(new ResponseTransactionDTO(
-                transactionUpdate.getId(),
                 transactionUpdate.getDescription(),
                 transactionUpdate.getAmount(),
                 transactionUpdate.getCategory(),

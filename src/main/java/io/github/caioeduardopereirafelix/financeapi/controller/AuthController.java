@@ -9,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/auth")
@@ -30,5 +27,10 @@ public class AuthController {
     public ResponseAuthDTO login(@RequestBody @Valid LoginDTO login)throws Exception{
         return authService.login(login);
 
+    }
+
+    @GetMapping("/ping")
+    public String ping(){
+        return "API RODANDO";
     }
 }
