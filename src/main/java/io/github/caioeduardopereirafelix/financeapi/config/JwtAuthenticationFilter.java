@@ -1,6 +1,5 @@
 package io.github.caioeduardopereirafelix.financeapi.config;
 
-import ch.qos.logback.core.util.StringUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -36,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         String authorizationHeader = request.getHeader("Authorization");
 
-        if (StringUtils.hasText(authorizationHeader) && authorizationHeader.startsWith("Bearer")){
+        if (StringUtils.hasText(authorizationHeader) && authorizationHeader.startsWith("Bearer ")){
 
             //validar token
             String token = authorizationHeader.substring(7);

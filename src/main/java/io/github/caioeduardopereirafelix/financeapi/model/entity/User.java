@@ -18,7 +18,10 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity(name = "users")
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id", callSuper = false)
+@ToString(exclude = {"password", "roles"})
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

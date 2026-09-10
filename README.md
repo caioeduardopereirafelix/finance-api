@@ -50,6 +50,11 @@ Um dos principais pontos do projeto é a segurança dos dados: cada usuário aut
 * MapStruct
 * Bean Validation
 * Hibernate
+* Flyway
+* Docker / Docker Compose
+* Swagger / OpenAPI (springdoc)
+* Prometheus e Grafana
+* JUnit 5, Mockito e Spring Security Test
 
 ## Conceitos aplicados
 
@@ -78,8 +83,60 @@ src/main/java/io/github/caioeduardopereirafelix/financeapi
 │   ├── enums
 │   └── mapper
 ├── repository
+├── specification
 └── service
+    └── validator
 ```
+
+## Como rodar
+
+### Com Docker (recomendado)
+
+Sobe API, PostgreSQL, Prometheus e Grafana de uma vez:
+
+```bash
+cp .env.example .env
+# gere um segredo e coloque em JWT_SECRET no .env
+openssl rand -base64 48
+
+docker compose up --build
+```
+
+| Serviço    | URL                                |
+| ---------- | ---------------------------------- |
+| API        | http://localhost:8080              |
+| Swagger UI | http://localhost:8080/swagger-ui.html |
+| Prometheus | http://localhost:9090              |
+| Grafana    | http://localhost:3000              |
+
+A porta `9091` (actuator) **não é publicada** de propósito — ela fica acessível
+apenas dentro da rede do compose, para o Prometheus.
+
+### Localmente
+
+Precisa de um PostgreSQL rodando e das variáveis de ambiente configuradas:
+
+```bash
+./mvnw spring-boot:run
+```
+
+### Testes
+
+```bash
+./mvnw verify
+```
+
+## Documentação da API
+
+Com a aplicação rodando, a documentação interativa fica em:
+
+* Swagger UI: http://localhost:8080/swagger-ui.html
+* OpenAPI JSON: http://localhost:8080/v3/api-docs
+
+Para chamar os endpoints protegidos pela UI: faça login em `POST /v1/auth/login`,
+clique em **Authorize** e informe o token retornado.
+
+Para desligar a documentação (em produção, por exemplo), use `SWAGGER_ENABLED=false`.
 
 ## Principais endpoints
 
@@ -253,14 +310,22 @@ openssl rand -base64 48
 
 Projeto em desenvolvimento.
 
-A API já possui as principais funcionalidades de autenticação, segurança, CRUD de transações, resumo financeiro, validações e persistência com PostgreSQL.
+A API cobre autenticação com JWT e refresh token, isolamento de dados por
+usuário, CRUD de transações, resumo financeiro, filtros com paginação,
+validações, migrations versionadas com Flyway, documentação OpenAPI,
+métricas via Prometheus/Grafana e execução completa via Docker Compose.
 
 ## Próximas melhorias
 
-* Ampliar a cobertura de testes automatizados
-* Adicionar documentação com Swagger/OpenAPI
-* Adicionar relatórios mensais
-* Implementar Front-end
+* Testes de integração contra PostgreSQL real (Testcontainers), hoje a suíte
+  roda em H2
+* Relatórios mensais
+* Paginação por cursor no extrato
+* Front-end
+
+## Licença
+
+Distribuído sob a licença MIT. Veja [LICENSE](LICENSE).
 
 ## Autor
 

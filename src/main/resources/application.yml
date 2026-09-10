@@ -7,6 +7,9 @@ spring:
 
   jpa:
     show-sql: true
+    # Desligado para nao manter a sessao aberta durante a renderizacao da
+    # resposta: o lazy loading fica restrito a camada de servico.
+    open-in-view: false
     hibernate:
       ddl-auto: validate
 
@@ -27,6 +30,13 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:true}
+    path: /swagger-ui.html
 
 api:
   security:
