@@ -38,10 +38,6 @@ public class UserService {
         return repository.save(userMap);
     }
 
-    public void save(User user){
-        repository.save(user);
-    }
-
     public Optional<User> findById(UUID id){
 
         checkAccessTo(id);

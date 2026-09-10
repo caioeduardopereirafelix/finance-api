@@ -46,6 +46,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/v1/auth/**")
                         .permitAll()
 
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
+                        .permitAll()
+
                         // O actuator nao e mais publicado na porta da API: ele roda
                         // numa porta separada (management.server.port), que nao deve
                         // ser exposta fora da rede interna.

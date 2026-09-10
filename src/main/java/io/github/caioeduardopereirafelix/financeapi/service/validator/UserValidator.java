@@ -36,7 +36,7 @@ public class UserValidator {
 
     public void validate(User user) {
         if (existUser(user)){
-            throw new RegistrationDuplicated("Autor já cadastrado");
+            throw new RegistrationDuplicated("Email already registered for another user");
         }
     }
 
