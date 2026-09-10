@@ -1,0 +1,71 @@
+<div class="auth-page">
+  <div class="auth-card card">
+    <div class="auth-brand">
+      <span class="auth-mark" aria-hidden="true">₿</span>
+      <p class="auth-eyebrow">Finance</p>
+    </div>
+
+    <h1>Entrar na sua conta</h1>
+    <p class="auth-subtitle">Acompanhe suas entradas e despesas em um só lugar.</p>
+
+    <!-- Sumario de erros: recebe foco quando o envio falha -->
+    @if (errorList().length || serverError()) {
+      <div #errorSummary tabindex="-1" role="alert" class="error-summary">
+        <h2 class="error-summary-title">Não foi possível entrar</h2>
+        @if (serverError()) {
+          <p class="error-summary-text">{{ serverError() }}</p>
+        }
+        @if (errorList().length) {
+          <ul>
+            @for (item of errorList(); track item.id) {
+              <li><a href="#{{ item.id }}" (click)="focusField($event, item.id)">{{ item.label }}: {{ item.message }}</a></li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" formControlName="email"
+               autocomplete="email" inputmode="email" required
+               [attr.aria-invalid]="showError('email') ? 'true' : null"
+               [attr.aria-describedby]="showError('email') ? 'email-erro' : null" />
+        @if (showError('email')) {
+          <p id="email-erro" class="field-error">
+            {{ form.controls.email.hasError('required')
+                ? 'Informe seu e-mail.'
+                : 'Informe um e-mail válido, como nome@exemplo.com.' }}
+          </p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="password">Senha</label>
+        <input id="password" type="password" formControlName="password"
+               autocomplete="current-password" required
+               [attr.aria-invalid]="showError('password') ? 'true' : null"
+               [attr.aria-describedby]="showError('password') ? 'password-erro' : 'password-dica'" />
+        @if (showError('password')) {
+          <p id="password-erro" class="field-error">
+            {{ form.controls.password.hasError('required')
+                ? 'Informe sua senha.'
+                : 'A senha deve ter ao menos 5 caracteres.' }}
+          </p>
+        } @else {
+          <p id="password-dica" class="hint">Mínimo de 5 caracteres.</p>
+        }
+      </div>
+
+      <button type="submit" class="btn btn-primary auth-submit"
+              [disabled]="submitting()" [attr.aria-busy]="submitting()">
+        {{ submitting() ? 'Entrando…' : 'Entrar' }}
+      </button>
+    </form>
+
+    <p class="auth-alt">
+      Ainda não tem conta? <a routerLink="/criar-conta">Criar uma conta</a>
+    </p>
+  </div>
+</div>

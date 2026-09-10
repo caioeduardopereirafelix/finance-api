@@ -1,0 +1,96 @@
+<div class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Olá, {{ greetingName() }}</p>
+      <h1>Painel</h1>
+    </div>
+    <a routerLink="/transacoes" class="btn btn-primary">Ver transações</a>
+  </header>
+
+  <!-- Estado de carregamento anunciado, nao apenas visual -->
+  <div aria-live="polite" class="sr-only">
+    {{ loading() ? 'Carregando seus dados financeiros.' : '' }}
+  </div>
+
+  @if (loading()) {
+    <div class="summary-grid" aria-hidden="true">
+      @for (skeleton of [1, 2, 3]; track skeleton) {
+        <div class="card stat-card"><div class="skeleton"></div></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div role="alert" class="card error-panel">
+      <h2>Algo deu errado</h2>
+      <p>{{ error() }}</p>
+      <button type="button" class="btn btn-secondary" (click)="load()">Tentar de novo</button>
+    </div>
+  } @else if (summary(); as data) {
+
+    <h2 class="sr-only">Resumo financeiro</h2>
+    <div class="summary-grid">
+      <div class="card stat-card">
+        <p class="stat-label" id="stat-entradas">
+          <span class="stat-icon icon-income" aria-hidden="true">↑</span>
+          Entradas
+        </p>
+        <p class="stat-value tone-income" aria-labelledby="stat-entradas">{{ data.cashEntry | money }}</p>
+      </div>
+
+      <div class="card stat-card">
+        <p class="stat-label" id="stat-saidas">
+          <span class="stat-icon icon-expense" aria-hidden="true">↓</span>
+          Saídas
+        </p>
+        <p class="stat-value tone-expense" aria-labelledby="stat-saidas">{{ data.expenses | money }}</p>
+      </div>
+
+      <div class="card stat-card stat-balance">
+        <p class="stat-label" id="stat-saldo">
+          <span class="stat-icon" aria-hidden="true">=</span>
+          Saldo
+        </p>
+        <p class="stat-value" [class.tone-income]="balanceTone() === 'positive'"
+           [class.tone-expense]="balanceTone() === 'negative'"
+           aria-labelledby="stat-saldo">{{ data.balance | money }}</p>
+        <p class="stat-note">
+          {{ balanceTone() === 'negative' ? 'Suas saídas superam as entradas.' : 'Entradas menos saídas.' }}
+        </p>
+      </div>
+    </div>
+
+    <section class="recent" aria-labelledby="recentes-titulo">
+      <div class="section-head">
+        <h2 id="recentes-titulo">Últimas transações</h2>
+        <a routerLink="/transacoes">Ver todas<span class="sr-only"> as transações</span></a>
+      </div>
+
+      @if (recent().length === 0) {
+        <div class="card empty-state">
+          <p class="empty-title">Nenhuma transação ainda</p>
+          <p>Registre sua primeira entrada ou despesa para acompanhar seu saldo.</p>
+          <a routerLink="/transacoes" class="btn btn-primary">Adicionar transação</a>
+        </div>
+      } @else {
+        <ul class="recent-list">
+          @for (item of recent(); track item.id) {
+            <li class="card recent-item">
+              <div class="recent-main">
+                <p class="recent-description">{{ item.description }}</p>
+                <p class="recent-meta">
+                  {{ categoryLabel[item.category] }} · {{ item.createdDate | brDate }}
+                </p>
+              </div>
+              <p class="recent-amount"
+                 [class.tone-income]="item.type === 'CASH_ENTRY'"
+                 [class.tone-expense]="item.type === 'EXPENSES'">
+                <!-- sinal + rotulo textual: o tipo nao depende so da cor -->
+                <span aria-hidden="true">{{ item.type === 'CASH_ENTRY' ? '+' : '−' }}</span>{{ item.amount | money }}
+                <span class="sr-only">, {{ typeLabel[item.type] }}</span>
+              </p>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</div>

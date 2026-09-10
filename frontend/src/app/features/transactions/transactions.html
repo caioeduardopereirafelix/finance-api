@@ -1,0 +1,271 @@
+<div class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Seu extrato</p>
+      <h1>Transações</h1>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="openCreate()">
+      <span aria-hidden="true">+</span> Nova transação
+    </button>
+  </header>
+
+  <!-- ---------- Filtros ---------- -->
+  <section class="card filters" aria-labelledby="filtros-titulo">
+    <div class="filters-head">
+      <h2 id="filtros-titulo">Filtros</h2>
+      <button type="button" class="btn btn-ghost"
+              [attr.aria-expanded]="filtersOpen()" aria-controls="filtros-corpo"
+              (click)="filtersOpen.set(!filtersOpen())">
+        {{ filtersOpen() ? 'Ocultar' : 'Mostrar' }}
+        @if (activeFilterCount() > 0) {
+          <span class="filter-badge">{{ activeFilterCount() }}
+            <span class="sr-only">filtros ativos</span>
+          </span>
+        }
+      </button>
+    </div>
+
+    <div id="filtros-corpo" [hidden]="!filtersOpen()">
+      <form [formGroup]="filterForm" (ngSubmit)="applyFilters()">
+        <div class="filters-grid">
+          <div class="field">
+            <label for="f-descricao">Descrição contém</label>
+            <input id="f-descricao" type="search" formControlName="description" />
+          </div>
+
+          <div class="field">
+            <label for="f-tipo">Tipo</label>
+            <select id="f-tipo" formControlName="type">
+              <option value="">Todos</option>
+              <option value="CASH_ENTRY">Entrada</option>
+              <option value="EXPENSES">Saída</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="f-categoria">Categoria</label>
+            <select id="f-categoria" formControlName="category">
+              <option value="">Todas</option>
+              @for (category of allCategories; track category) {
+                <option [value]="category">{{ categoryLabel[category] }}</option>
+              }
+            </select>
+          </div>
+
+          <fieldset class="range">
+            <legend>Valor</legend>
+            <div class="range-inputs">
+              <div class="field">
+                <label for="f-min">Mínimo</label>
+                <input id="f-min" type="number" inputmode="decimal" min="0" step="0.01"
+                       formControlName="minAmount" />
+              </div>
+              <div class="field">
+                <label for="f-max">Máximo</label>
+                <input id="f-max" type="number" inputmode="decimal" min="0" step="0.01"
+                       formControlName="maxAmount" />
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="range">
+            <legend>Período</legend>
+            <div class="range-inputs">
+              <div class="field">
+                <label for="f-inicio">De</label>
+                <input id="f-inicio" type="date" formControlName="startDate" />
+              </div>
+              <div class="field">
+                <label for="f-fim">Até</label>
+                <input id="f-fim" type="date" formControlName="endDate" />
+              </div>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="filters-actions">
+          <button type="submit" class="btn btn-primary">Aplicar filtros</button>
+          <button type="button" class="btn btn-secondary" (click)="clearFilters()">Limpar</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Contador anunciado quando a lista muda (4.1.3) -->
+  <p class="result-count" aria-live="polite">
+    {{ loading() ? 'Carregando transações…' : resultSummary() }}
+  </p>
+
+  <!-- ---------- Lista ---------- -->
+  @if (error()) {
+    <div role="alert" class="card error-panel">
+      <h2>Algo deu errado</h2>
+      <p>{{ error() }}</p>
+      <button type="button" class="btn btn-secondary" (click)="load(0)">Tentar de novo</button>
+    </div>
+  } @else if (!loading() && page()?.totalElements === 0) {
+    <div class="card empty-state">
+      <p class="empty-title">Nenhuma transação encontrada</p>
+      <p>
+        {{ activeFilterCount() > 0
+            ? 'Tente ajustar ou limpar os filtros.'
+            : 'Adicione sua primeira entrada ou despesa.' }}
+      </p>
+      @if (activeFilterCount() > 0) {
+        <button type="button" class="btn btn-secondary" (click)="clearFilters()">Limpar filtros</button>
+      } @else {
+        <button type="button" class="btn btn-primary" (click)="openCreate()">Nova transação</button>
+      }
+    </div>
+  } @else if (page(); as data) {
+    <div class="table-wrap card" [attr.aria-busy]="loading()">
+      <table>
+        <caption class="sr-only">
+          Lista de transações. {{ resultSummary() }}
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Descrição</th>
+            <th scope="col">Categoria</th>
+            <th scope="col">Data</th>
+            <th scope="col" class="num">Valor</th>
+            <th scope="col"><span class="sr-only">Ações</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of data.content; track item.id) {
+            <tr>
+              <th scope="row" class="cell-description">
+                <span class="row-title">{{ item.description }}</span>
+                <span class="row-tag" [class.tag-income]="item.type === 'CASH_ENTRY'"
+                      [class.tag-expense]="item.type === 'EXPENSES'">
+                  {{ typeLabel[item.type] }}
+                </span>
+              </th>
+              <td data-label="Categoria">{{ categoryLabel[item.category] }}</td>
+              <td data-label="Data">{{ item.createdDate | brDate }}</td>
+              <td data-label="Valor" class="num">
+                <span [class.tone-income]="item.type === 'CASH_ENTRY'"
+                      [class.tone-expense]="item.type === 'EXPENSES'">
+                  <span aria-hidden="true">{{ item.type === 'CASH_ENTRY' ? '+' : '−' }}</span>{{ item.amount | money }}
+                </span>
+              </td>
+              <td class="cell-actions">
+                <button type="button" class="btn btn-ghost btn-sm" (click)="openEdit(item)">
+                  Editar<span class="sr-only"> transação {{ item.description }}</span>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" (click)="askDelete(item)">
+                  Excluir<span class="sr-only"> transação {{ item.description }}</span>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (data.totalPages > 1) {
+      <nav class="pagination" aria-label="Paginação das transações">
+        <button type="button" class="btn btn-secondary"
+                [disabled]="data.first" (click)="goToPage(data.number - 1)">
+          <span aria-hidden="true">←</span> Anterior
+        </button>
+
+        <p class="pagination-status">
+          Página {{ data.number + 1 }} de {{ data.totalPages }}
+        </p>
+
+        <button type="button" class="btn btn-secondary"
+                [disabled]="data.last" (click)="goToPage(data.number + 1)">
+          Próxima <span aria-hidden="true">→</span>
+        </button>
+      </nav>
+    }
+  }
+</div>
+
+<!-- ---------- Dialogo: criar / editar ---------- -->
+<dialog #formDialog class="dialog" aria-labelledby="form-dialog-titulo">
+  <form method="dialog" class="dialog-close-form">
+    <button type="submit" class="btn btn-ghost dialog-close" (click)="closeForm()">
+      <span aria-hidden="true">×</span><span class="sr-only">Fechar</span>
+    </button>
+  </form>
+
+  <h2 id="form-dialog-titulo">{{ editing() ? 'Editar transação' : 'Nova transação' }}</h2>
+
+  @if (formError()) {
+    <p role="alert" class="dialog-error">{{ formError() }}</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <div class="field">
+      <label for="t-descricao">Descrição</label>
+      <input #descriptionInput id="t-descricao" type="text" formControlName="description" required
+             [attr.aria-invalid]="showFieldError('description') ? 'true' : null"
+             [attr.aria-describedby]="showFieldError('description') ? 't-descricao-erro' : null" />
+      @if (showFieldError('description')) {
+        <p id="t-descricao-erro" class="field-error">Informe uma descrição.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="t-valor">Valor (R$)</label>
+      <input id="t-valor" type="text" inputmode="decimal" formControlName="amount" required
+             [attr.aria-invalid]="amountError() ? 'true' : null"
+             [attr.aria-describedby]="amountError() ? 't-valor-erro' : 't-valor-dica'" />
+      @if (amountError(); as message) {
+        <p id="t-valor-erro" class="field-error">{{ message }}</p>
+      } @else {
+        <p id="t-valor-dica" class="hint">Use vírgula para centavos. Exemplo: 1250,90</p>
+      }
+    </div>
+
+    <fieldset class="type-choice">
+      <legend>Tipo</legend>
+      <div class="radio-row">
+        <label class="radio-option">
+          <input type="radio" formControlName="type" value="CASH_ENTRY" />
+          <span>Entrada</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" formControlName="type" value="EXPENSES" />
+          <span>Saída</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <div class="field">
+      <label for="t-categoria">Categoria</label>
+      <select id="t-categoria" formControlName="category" aria-describedby="t-categoria-dica">
+        @for (category of categoriesForSelectedType(); track category) {
+          <option [value]="category">{{ categoryLabel[category] }}</option>
+        }
+      </select>
+      <p id="t-categoria-dica" class="hint">As opções mudam conforme o tipo escolhido.</p>
+    </div>
+
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancelar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="saving()" [attr.aria-busy]="saving()">
+        {{ saving() ? 'Salvando…' : 'Salvar' }}
+      </button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ---------- Dialogo: confirmar exclusao ---------- -->
+<dialog #deleteDialog class="dialog dialog-sm" aria-labelledby="delete-dialog-titulo"
+        aria-describedby="delete-dialog-texto">
+  <h2 id="delete-dialog-titulo">Excluir transação</h2>
+  <p id="delete-dialog-texto">
+    Tem certeza que deseja excluir
+    <strong>{{ pendingDelete()?.description }}</strong>? Esta ação não pode ser desfeita.
+  </p>
+  <div class="dialog-actions">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()">Cancelar</button>
+    <button type="button" class="btn btn-danger" [disabled]="saving()" (click)="confirmDelete()">
+      {{ saving() ? 'Excluindo…' : 'Excluir' }}
+    </button>
+  </div>
+</dialog>
