@@ -52,6 +52,12 @@ public class GlobalHandleException {
         return new ResponseError(HttpStatus.UNAUTHORIZED.value(), "Invalid Email or Password", List.of());
     }
 
+    @ExceptionHandler(InvalidRefreshToken.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseError invalidRefreshTokenHandle(InvalidRefreshToken e){
+        return new ResponseError(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), List.of());
+    }
+
     @ExceptionHandler(UserNotFound.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseError userNotFoundHandle(UserNotFound e){

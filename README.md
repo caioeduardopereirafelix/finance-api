@@ -16,7 +16,9 @@ Um dos principais pontos do projeto é a segurança dos dados: cada usuário aut
 
 * Cadastro de usuários
 * Login com autenticação JWT
+* Refresh token com rotação e revogação (logout)
 * Proteção de rotas com Spring Security
+* Isolamento de dados por usuário autenticado
 * Autorização baseada em roles
 * Criação de transações financeiras
 * Listagem das transações do usuário autenticado
@@ -93,7 +95,20 @@ Cadastro de novo usuário.
 POST /v1/auth/login
 ```
 
-Autenticação do usuário e geração do token JWT.
+Autenticação do usuário. Retorna o token JWT de acesso e um refresh token.
+
+```http
+POST /v1/auth/refresh
+```
+
+Troca um refresh token válido por um novo par de tokens. O refresh token
+apresentado é invalidado no processo (rotação de uso único).
+
+```http
+POST /v1/auth/logout
+```
+
+Revoga o refresh token informado.
 
 ### Transações
 
@@ -167,6 +182,33 @@ Retorna o resumo financeiro do usuário autenticado.
 }
 ```
 
+## Exemplo de resposta da autenticação
+
+```json
+{
+  "token": "eyJhbGciOiJIUzUxMiJ9...",
+  "expiresIn": 86400000,
+  "refreshToken": "SpBDPlDaixM8zBfCur4A..."
+}
+```
+
+O `token` é usado no header `Authorization: Bearer <token>`. Quando ele expira,
+chame `POST /v1/auth/refresh` com o `refreshToken` para obter um par novo — não
+é preciso pedir a senha ao usuário de novo.
+
+## Segurança
+
+* Cada usuário só enxerga e altera o **próprio** cadastro e as **próprias**
+  transações. Um `GET`/`PUT`/`DELETE` em `/user/{id}` de outro usuário responde
+  `403`, e o mesmo `403` vale para um id inexistente — assim não dá para
+  descobrir quais ids existem.
+* Perfis `ROLE_ADMIN` têm acesso a qualquer cadastro.
+* Refresh tokens são opacos e ficam no banco **apenas como hash SHA-256**. Cada
+  um vale para um único uso: ao ser trocado, é revogado.
+* O `/actuator` não responde mais na porta pública da API — ele fica numa porta
+  separada (`MANAGEMENT_PORT`, padrão `9091`), que **não deve ser exposta fora
+  da rede interna**.
+
 ## Banco de dados e migrations
 
 O schema é controlado pelo **Flyway** (`src/main/resources/db/migration`) e o Hibernate
@@ -176,10 +218,28 @@ apenas valida se o schema bate com as entidades.
 Variáveis de ambiente necessárias:
 
 ```bash
+# obrigatorias — a aplicacao nao sobe sem elas
 DB_URL=jdbc:postgresql://localhost:5432/finance
 DB_USER=postgres
 DB_PASSWORD=postgres
+JWT_SECRET=<64+ caracteres aleatorios>
+
+# opcionais (valores padrao entre parenteses)
+JWT_EXPIRATION=86400000              # 24h
+REFRESH_TOKEN_EXPIRATION=604800000   # 7 dias
+CORS_ALLOWED_ORIGINS=http://localhost:5173
+MANAGEMENT_PORT=9091
 ```
+
+Para gerar um `JWT_SECRET`:
+
+```bash
+openssl rand -base64 48
+```
+
+> **Importante:** o segredo que ficava fixo no `application.yml` está no
+> histórico do Git e deve ser considerado comprometido. Gere um novo em vez de
+> reaproveitá-lo.
 
 > **Atenção:** se você já tem um banco local criado pela versão antiga
 > (que usava `ddl-auto: update`), apague o schema antes de subir a aplicação,
@@ -197,7 +257,7 @@ A API já possui as principais funcionalidades de autenticação, segurança, CR
 
 ## Próximas melhorias
 
-* Implementar testes automatizados
+* Ampliar a cobertura de testes automatizados
 * Adicionar documentação com Swagger/OpenAPI
 * Adicionar relatórios mensais
 * Implementar Front-end

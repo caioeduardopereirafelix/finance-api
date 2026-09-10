@@ -5,16 +5,13 @@ import io.github.caioeduardopereirafelix.financeapi.model.dto.user.ResponseUserD
 import io.github.caioeduardopereirafelix.financeapi.model.dto.user.UpdateUserDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import io.github.caioeduardopereirafelix.financeapi.model.mapper.UserMapper;
-import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
 import io.github.caioeduardopereirafelix.financeapi.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -23,55 +20,39 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
-    private final UserRepository repository;
     private final UserMapper mapper;
-    private final PasswordEncoder encoder;
 
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody CreateUserDTO dto) {
+    public ResponseEntity<ResponseUserDTO> createUser(@Valid @RequestBody CreateUserDTO dto) {
 
         var user = userService.createUser(dto);
 
-        ResponseUserDTO responseUserDTO = mapper.toUserResponse(user);
-
-        return new ResponseEntity(responseUserDTO, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toUserResponse(user));
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity getDetails(@PathVariable String userId){
-        var idUser = UUID.fromString(userId);
-        Optional<User> userOptional = userService.findById(idUser);
+    public ResponseEntity<ResponseUserDTO> getDetails(@PathVariable("userId") UUID userId){
 
-        if (userOptional.isPresent()){
-            var userPresent = userOptional.get();
-            var response = mapper.toUserResponse(userPresent);
-            return ResponseEntity.ok(response);
-        }
-        return ResponseEntity.notFound().build();
+        return userService.findById(userId)
+                .map(mapper::toUserResponse)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity deleteUser(@PathVariable("userId") String id){
+    public ResponseEntity<Void> deleteUser(@PathVariable("userId") UUID userId){
 
-        var idUser = UUID.fromString(id);
+        userService.deleteById(userId);
 
-        Optional<User> optionalUser = userService.findById(idUser);
-
-        if (optionalUser.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-        userService.deleteUser(optionalUser.get());
-        return ResponseEntity.accepted().build();
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{userId}")
     public ResponseEntity<ResponseUserDTO> updateUser(
-            @PathVariable("userId") String userId,
+            @PathVariable("userId") UUID userId,
             @RequestBody UpdateUserDTO updateUserDTO){
 
-        var idUser = UUID.fromString(userId);
-
-        User userUpdate = userService.updateUser(idUser, updateUserDTO);
+        User userUpdate = userService.updateUser(userId, updateUserDTO);
 
         return ResponseEntity.ok(mapper.toUserResponse(userUpdate));
     }
