@@ -13,3 +13,16 @@ spring:
 
   flyway:
     enabled: false
+
+api:
+  security:
+    token:
+      # segredo exclusivo de teste, sem valor fora da suite
+      secret: test-secret-test-secret-test-secret-test-secret-test-secret-0123
+      expiration: 3600000
+
+    refresh-token:
+      expiration: 604800000
+
+  cors:
+    allowed-origins: http://localhost:5173

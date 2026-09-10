@@ -4,11 +4,14 @@ import io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 public record ResponseTransactionDTO(
+        UUID id,
         String description,
         BigDecimal amount,
         CategoryName category,
-        TransactionalType type) {
+        TransactionalType type,
+        Instant createdDate) {
 }

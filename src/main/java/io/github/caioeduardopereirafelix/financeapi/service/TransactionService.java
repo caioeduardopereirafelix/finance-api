@@ -10,6 +10,7 @@ import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
 import io.github.caioeduardopereirafelix.financeapi.repository.TransactionRepository;
+import io.github.caioeduardopereirafelix.financeapi.repository.TransactionSummaryProjection;
 import io.github.caioeduardopereirafelix.financeapi.service.validator.TransactionValidator;
 import io.github.caioeduardopereirafelix.financeapi.specification.TransactionSpecification;
 import jakarta.transaction.Transactional;
@@ -20,11 +21,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,11 +49,16 @@ public class TransactionService {
         transactionSave.setAmount(transaction.amount());
         transactionSave.setType(transaction.type());
         transactionSave.setUser(user);
-        transactionSave.setCreatedBy(user.getId().toString());
-        transactionSave.setCreatedDate(Instant.now());
-        transactionSave.setLastModifiedBy(user.getId().toString());
 
         return transactionRepository.save(transactionSave);
+    }
+
+    public Transaction findByIdForAuthenticatedUser(UUID id){
+
+        User user = securityUtils.getAuthenticatedUser();
+
+        return transactionRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new TransactionNotFound("Transaction not found"));
     }
 
     public Transaction deleteTransaction(UUID id){
@@ -80,37 +86,24 @@ public class TransactionService {
         transaction.setDescription(transactionDTO.description());
         transaction.setCategory(transactionDTO.category());
         transaction.setAmount(transactionDTO.amount());
-        transaction.setLastModifiedBy(user.getId().toString());
 
         return transactionRepository.save(transaction);
-    }
-
-    public Page <Transaction> findAllTransactionsForAuthenticatedUser(Pageable pageable){
-        User user = securityUtils.getAuthenticatedUser();
-
-        return transactionRepository.findByUser(user, pageable);
     }
 
     public SummaryResponseDTO getSummary(){
 
         User user = securityUtils.getAuthenticatedUser();
 
-        List<Transaction> transactions = transactionRepository.findByUser(user);
+        Map<TransactionalType, BigDecimal> totals = transactionRepository.summarizeByType(user)
+                .stream()
+                .collect(Collectors.toMap(
+                        TransactionSummaryProjection::getType,
+                        TransactionSummaryProjection::getTotal));
 
-        BigDecimal cashEntry = transactions.stream()
-                .filter(t -> t.getType() == TransactionalType.CASH_ENTRY)
-                .map(Transaction::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal cashEntry = totals.getOrDefault(TransactionalType.CASH_ENTRY, BigDecimal.ZERO);
+        BigDecimal expenses = totals.getOrDefault(TransactionalType.EXPENSES, BigDecimal.ZERO);
 
-        BigDecimal expenses = transactions.stream()
-                .filter( t -> t.getType() == TransactionalType.EXPENSES)
-                .map(Transaction::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal balance = cashEntry.subtract(expenses);
-
-        return new SummaryResponseDTO(cashEntry, expenses, balance);
-
+        return new SummaryResponseDTO(cashEntry, expenses, cashEntry.subtract(expenses));
     }
 
     public Page<Transaction> findTransactionsWithFilters(

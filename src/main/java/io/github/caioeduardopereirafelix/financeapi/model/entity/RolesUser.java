@@ -5,11 +5,12 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 
 @Entity
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
+@EqualsAndHashCode(of = "id")
+@ToString
 @Builder
 @Table(name = "ROLES_USER")
 

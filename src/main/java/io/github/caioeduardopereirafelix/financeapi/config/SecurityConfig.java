@@ -46,11 +46,28 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/v1/auth/**")
                         .permitAll()
 
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
+                        .permitAll()
+
+                        // O actuator nao e mais publicado na porta da API: ele roda
+                        // numa porta separada (management.server.port), que nao deve
+                        // ser exposta fora da rede interna.
                         .requestMatchers("/actuator/**")
                         .permitAll()
 
                         .requestMatchers(HttpMethod.POST,"/user","/user/**")
                         .hasRole("ADMIN")
+
+                        // GET/PUT/DELETE de usuario exigem autenticacao aqui e, no
+                        // UserService, que o solicitante seja o dono do cadastro ou ADMIN.
+                        .requestMatchers(HttpMethod.GET, "/user", "/user/**")
+                        .hasAnyRole("ADMIN", "USER")
+
+                        .requestMatchers(HttpMethod.PUT, "/user", "/user/**")
+                        .hasAnyRole("ADMIN", "USER")
+
+                        .requestMatchers(HttpMethod.DELETE, "/user", "/user/**")
+                        .hasAnyRole("ADMIN", "USER")
 
                         .requestMatchers(HttpMethod.GET, "/transaction","/transaction/**")
                         .hasAnyRole("ADMIN", "USER")

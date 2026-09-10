@@ -4,7 +4,10 @@ import io.github.caioeduardopereirafelix.financeapi.config.AuditingClass;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,7 +16,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "transactions")
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id", callSuper = false)
+@ToString(exclude = "user")
 public class Transaction extends AuditingClass {
 
     @Id
