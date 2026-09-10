@@ -36,7 +36,7 @@ public class UserValidator {
 
     public void validate(User user) {
         if (existUser(user)){
-            throw new RegistrationDuplicated("Autor já cadastrado");
+            throw new RegistrationDuplicated("Email already registered for another user");
         }
     }
 
@@ -46,11 +46,15 @@ public class UserValidator {
         Optional<User> userFound =
                 repository.findByEmail(user.getEmail());
 
-        if (user.getId() == null){
-            return userFound.isPresent();
+        if (userFound.isEmpty()){
+            return false;
         }
 
-        return !user.getId().equals(userFound.get().getId()) && userFound.isPresent();
+        if (user.getId() == null){
+            return true;
+        }
+
+        return !user.getId().equals(userFound.get().getId());
     }
 
     //melhorar essa validacao, pois nao esta lancando excecao personalizada e melhorar os metodos para validar

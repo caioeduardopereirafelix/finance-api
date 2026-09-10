@@ -7,7 +7,7 @@ scrape_configs:
 
     static_configs:
       - targets:
-          - "host.docker.internal:8080"
+          - "api:9091"
 
         labels:
           application: "api-finance"

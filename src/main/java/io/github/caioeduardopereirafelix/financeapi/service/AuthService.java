@@ -1,7 +1,9 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.config.TokenProvider;
+import io.github.caioeduardopereirafelix.financeapi.exceptions.EmailAlreadyExistException;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.LoginDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.RefreshTokenRequestDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.RequestAuthDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.ResponseAuthDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.RolesUser;
@@ -27,15 +29,14 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final TokenProvider tokenProvider;
+    private final RefreshTokenService refreshTokenService;
     @Value("${api.security.token.expiration}")
     private long expirationTime;
 
-    public void registerUser(RequestAuthDTO requestAuthDTO) throws RuntimeException{
-        var user = userRepository.findByEmail(requestAuthDTO.email())
-                .orElse(null);
+    public void registerUser(RequestAuthDTO requestAuthDTO){
 
-        if (user != null){
-            throw new RuntimeException("User already register with email ");
+        if (userRepository.findByEmail(requestAuthDTO.email()).isPresent()){
+            throw new EmailAlreadyExistException("Email already registered");
         }
 
         var role = rolesUserRepository.findByName(RolesTypeEnum.ROLE_USER.name())
@@ -51,21 +52,34 @@ public class AuthService {
     }
 
 
-    public ResponseAuthDTO login(LoginDTO login) throws Exception{
-        //try{
+    public ResponseAuthDTO login(LoginDTO login){
 
-            var autentication =
-                    authenticationManager
-                            .authenticate(new UsernamePasswordAuthenticationToken(login.email(), login.password()));
-            var token = tokenProvider.generateToken(autentication);
+        var authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(login.email(), login.password()));
 
-            return new ResponseAuthDTO(token, expirationTime);
+        var user = (User) authentication.getPrincipal();
 
-            //authentication provider -> userdetailsservice -> passwordEncoder.matches() -> authenticated
-        //}catch (BadCredentialsException e){
-        //    throw new BadCredentialsException("Credentials invalid");
-       // } catch (Exception e) {
-        //    throw new RuntimeException(e);
-      //  }
+        return new ResponseAuthDTO(
+                tokenProvider.generateToken(authentication),
+                expirationTime,
+                refreshTokenService.generate(user));
+    }
+
+    /**
+     * Troca um refresh token valido por um novo par de tokens. O refresh token
+     * apresentado e invalidado no processo.
+     */
+    public ResponseAuthDTO refresh(RefreshTokenRequestDTO request){
+
+        User user = refreshTokenService.consume(request.refreshToken());
+
+        return new ResponseAuthDTO(
+                tokenProvider.generateToken(user),
+                expirationTime,
+                refreshTokenService.generate(user));
+    }
+
+    public void logout(RefreshTokenRequestDTO request){
+        refreshTokenService.revoke(request.refreshToken());
     }
 }
