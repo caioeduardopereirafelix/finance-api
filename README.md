@@ -107,7 +107,13 @@ Cria uma nova transação para o usuário autenticado.
 GET /transaction
 ```
 
-Lista as transações do usuário autenticado.
+Lista as transações do usuário autenticado (paginada, com filtros).
+
+```http
+GET /transaction/{id}
+```
+
+Retorna uma transação específica do usuário autenticado.
 
 ```http
 PUT /transaction/{id}
@@ -143,10 +149,45 @@ Retorna o resumo financeiro do usuário autenticado.
 ```json
 {
   "cashEntry": 5000.00,
-  "expense": 2300.00,
+  "expenses": 2300.00,
   "balance": 2700.00
 }
 ```
+
+## Exemplo de resposta de transação
+
+```json
+{
+  "id": "cf0d4b6e-69f6-4b28-86d3-4c95c6795ff3",
+  "description": "Salário mensal",
+  "amount": 3500.00,
+  "category": "WAGE",
+  "type": "CASH_ENTRY",
+  "createdDate": "2026-09-10T16:39:38.108341Z"
+}
+```
+
+## Banco de dados e migrations
+
+O schema é controlado pelo **Flyway** (`src/main/resources/db/migration`) e o Hibernate
+roda com `ddl-auto: validate` — ou seja, a aplicação não cria nem altera tabelas,
+apenas valida se o schema bate com as entidades.
+
+Variáveis de ambiente necessárias:
+
+```bash
+DB_URL=jdbc:postgresql://localhost:5432/finance
+DB_USER=postgres
+DB_PASSWORD=postgres
+```
+
+> **Atenção:** se você já tem um banco local criado pela versão antiga
+> (que usava `ddl-auto: update`), apague o schema antes de subir a aplicação,
+> para que o Flyway assuma o controle a partir da V1:
+>
+> ```sql
+> DROP SCHEMA public CASCADE; CREATE SCHEMA public;
+> ```
 
 ## Status do projeto
 

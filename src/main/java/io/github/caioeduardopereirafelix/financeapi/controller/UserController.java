@@ -65,11 +65,11 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity updateUser(
-            @PathVariable("id")String id,
+    public ResponseEntity<ResponseUserDTO> updateUser(
+            @PathVariable("userId") String userId,
             @RequestBody UpdateUserDTO updateUserDTO){
 
-        var idUser = UUID.fromString(id);
+        var idUser = UUID.fromString(userId);
 
         User userUpdate = userService.updateUser(idUser, updateUserDTO);
 

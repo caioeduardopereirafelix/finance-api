@@ -1,6 +1,7 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.config.TokenProvider;
+import io.github.caioeduardopereirafelix.financeapi.exceptions.EmailAlreadyExistException;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.LoginDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.RequestAuthDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.ResponseAuthDTO;
@@ -30,12 +31,10 @@ public class AuthService {
     @Value("${api.security.token.expiration}")
     private long expirationTime;
 
-    public void registerUser(RequestAuthDTO requestAuthDTO) throws RuntimeException{
-        var user = userRepository.findByEmail(requestAuthDTO.email())
-                .orElse(null);
+    public void registerUser(RequestAuthDTO requestAuthDTO){
 
-        if (user != null){
-            throw new RuntimeException("User already register with email ");
+        if (userRepository.findByEmail(requestAuthDTO.email()).isPresent()){
+            throw new EmailAlreadyExistException("Email already registered");
         }
 
         var role = rolesUserRepository.findByName(RolesTypeEnum.ROLE_USER.name())
