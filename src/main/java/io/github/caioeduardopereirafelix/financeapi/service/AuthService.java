@@ -30,6 +30,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final TokenProvider tokenProvider;
     private final RefreshTokenService refreshTokenService;
+
     @Value("${api.security.token.expiration}")
     private long expirationTime;
 
@@ -65,10 +66,7 @@ public class AuthService {
                 refreshTokenService.generate(user));
     }
 
-    /**
-     * Troca um refresh token valido por um novo par de tokens. O refresh token
-     * apresentado e invalidado no processo.
-     */
+
     public ResponseAuthDTO refresh(RefreshTokenRequestDTO request){
 
         User user = refreshTokenService.consume(request.refreshToken());

@@ -1,0 +1,51 @@
+<a class="skip-link" href="#conteudo">Pular para o conteúdo principal</a>
+
+@if (auth.isLoggedIn()) {
+  <header class="app-header">
+    <div class="app-header-inner">
+      <a routerLink="/painel" class="brand">
+        <span class="brand-mark" aria-hidden="true">₿</span>
+        <span>Finance</span>
+      </a>
+
+      <nav aria-label="Navegação principal">
+        <ul class="nav-list">
+          <li>
+            <a routerLink="/painel" routerLinkActive="is-active"
+               [routerLinkActiveOptions]="{ exact: true }"
+               ariaCurrentWhenActive="page">Painel</a>
+          </li>
+          <li>
+            <a routerLink="/transacoes" routerLinkActive="is-active"
+               ariaCurrentWhenActive="page">Transações</a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <button type="button" class="btn btn-ghost" (click)="toggleTheme()"
+                [attr.aria-pressed]="theme.resolved() === 'dark'">
+          <span aria-hidden="true">{{ theme.resolved() === 'dark' ? '☾' : '☀' }}</span>
+          <span class="sr-only">Tema escuro</span>
+          <span aria-hidden="true" class="action-label">Tema</span>
+        </button>
+
+        <button type="button" class="btn btn-secondary" (click)="logout()">
+          Sair
+          @if (auth.email(); as email) {
+            <span class="sr-only">da conta {{ email }}</span>
+          }
+        </button>
+      </div>
+    </div>
+  </header>
+}
+
+<!-- Anuncio de navegacao para leitores de tela -->
+<div aria-live="polite" aria-atomic="true" class="sr-only">{{ routeAnnouncement() }}</div>
+
+<main id="conteudo" #mainRegion tabindex="-1">
+  <router-outlet />
+</main>
+
+<app-toast-region />

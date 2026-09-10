@@ -1,0 +1,188 @@
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.eyebrow { color: var(--muted); margin: 0 0 0.15rem; font-weight: 600; }
+
+/* ---------- Filtros ---------- */
+.filters { margin-bottom: 1.25rem; padding: 1rem 1.25rem; }
+
+.filters-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.filters-head h2 { font-size: 1.05rem; margin: 0; }
+
+.filter-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5rem; height: 1.5rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0 1rem;
+  margin-top: 1rem;
+}
+
+.range { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.9rem 0.1rem; margin: 0 0 1.1rem; }
+.range legend { font-weight: 600; font-size: 0.94rem; padding: 0 0.35rem; }
+.range-inputs { display: flex; gap: 0.75rem; }
+.range-inputs .field { flex: 1; }
+
+.filters-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+.result-count { color: var(--muted); margin: 0 0 0.75rem; font-size: 0.94rem; }
+
+/* ---------- Tabela ---------- */
+.table-wrap { padding: 0; overflow-x: auto; }
+
+table { width: 100%; border-collapse: collapse; }
+
+th, td { text-align: left; padding: 0.85rem 1rem; }
+
+thead th {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+tbody tr + tr { border-top: 1px solid var(--border); }
+tbody tr:hover { background: var(--surface-2); }
+
+.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+thead .num { text-align: right; }
+
+.cell-description { font-weight: 600; }
+.row-title { display: block; overflow-wrap: anywhere; }
+
+/* Etiqueta de tipo: texto + fundo, nunca so cor (1.4.1) */
+.row-tag {
+  display: inline-block;
+  margin-top: 0.2rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.tag-income { background: var(--income-bg); color: var(--income); }
+.tag-expense { background: var(--expense-bg); color: var(--expense); }
+
+.tone-income { color: var(--income); font-weight: 700; }
+.tone-expense { color: var(--expense); font-weight: 700; }
+
+.cell-actions { white-space: nowrap; text-align: right; }
+.btn-sm { min-height: 40px; padding: 0.35rem 0.7rem; font-size: 0.9rem; }
+
+/* Em telas estreitas a tabela vira lista, sem rolagem horizontal (1.4.10) */
+@media (max-width: 46rem) {
+  .table-wrap { overflow-x: visible; }
+  table, thead, tbody, tr, th, td { display: block; }
+  thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  tbody tr {
+    padding: 0.9rem 1rem;
+    border-top: 1px solid var(--border);
+  }
+  tbody th, tbody td { padding: 0.15rem 0; }
+  td[data-label]::before {
+    content: attr(data-label) ': ';
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .num, .cell-actions { text-align: left; }
+  .cell-actions { margin-top: 0.6rem; display: flex; gap: 0.5rem; }
+}
+
+/* ---------- Paginacao ---------- */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+.pagination-status { margin: 0; color: var(--muted); font-weight: 600; }
+
+/* ---------- Estados ---------- */
+.empty-state { text-align: center; padding: 2.5rem 1.5rem; }
+.empty-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem; }
+.error-panel { border-color: var(--expense); }
+.error-panel h2 { color: var(--expense); font-size: 1.1rem; }
+
+/* ---------- Dialogos ---------- */
+.dialog {
+  width: min(32rem, calc(100vw - 2rem));
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.dialog-sm { width: min(26rem, calc(100vw - 2rem)); }
+
+.dialog::backdrop { background: rgb(8 12 20 / 55%); }
+
+.dialog h2 { margin-top: 0; padding-right: 2.5rem; }
+
+.dialog-close-form { position: absolute; inset-block-start: 0.75rem; inset-inline-end: 0.75rem; margin: 0; }
+.dialog-close { min-width: 44px; font-size: 1.35rem; line-height: 1; }
+
+.dialog-error {
+  border: 2px solid var(--expense);
+  background: var(--expense-bg);
+  color: var(--expense);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.9rem;
+  margin: 0 0 1rem;
+  font-weight: 600;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.type-choice { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.9rem 0.9rem; margin: 0 0 1.1rem; }
+.type-choice legend { font-weight: 600; font-size: 0.94rem; padding: 0 0.35rem; }
+.radio-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+.radio-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+}
+.radio-option input { width: auto; min-height: auto; margin: 0; accent-color: var(--primary); }
+.radio-option:has(input:checked) {
+  border-color: var(--primary);
+  border-width: 2px;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+.radio-option:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }

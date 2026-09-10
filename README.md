@@ -87,45 +87,6 @@ src/main/java/io/github/caioeduardopereirafelix/financeapi
 └── service
     └── validator
 ```
-
-## Como rodar
-
-### Com Docker (recomendado)
-
-Sobe API, PostgreSQL, Prometheus e Grafana de uma vez:
-
-```bash
-cp .env.example .env
-# gere um segredo e coloque em JWT_SECRET no .env
-openssl rand -base64 48
-
-docker compose up --build
-```
-
-| Serviço    | URL                                |
-| ---------- | ---------------------------------- |
-| API        | http://localhost:8080              |
-| Swagger UI | http://localhost:8080/swagger-ui.html |
-| Prometheus | http://localhost:9090              |
-| Grafana    | http://localhost:3000              |
-
-A porta `9091` (actuator) **não é publicada** de propósito — ela fica acessível
-apenas dentro da rede do compose, para o Prometheus.
-
-### Localmente
-
-Precisa de um PostgreSQL rodando e das variáveis de ambiente configuradas:
-
-```bash
-./mvnw spring-boot:run
-```
-
-### Testes
-
-```bash
-./mvnw verify
-```
-
 ## Documentação da API
 
 Com a aplicação rodando, a documentação interativa fica em:
@@ -272,7 +233,30 @@ O schema é controlado pelo **Flyway** (`src/main/resources/db/migration`) e o H
 roda com `ddl-auto: validate` — ou seja, a aplicação não cria nem altera tabelas,
 apenas valida se o schema bate com as entidades.
 
-Variáveis de ambiente necessárias:
+### Configuração local: use um `.env`
+
+Na raiz do projeto:
+
+```bash
+cp .env.example .env      # Linux/macOS
+copy .env.example .env    # Windows
+```
+
+Depois abra o `.env` e preencha o `JWT_SECRET` com um valor gerado:
+
+```bash
+openssl rand -base64 48
+```
+
+A aplicação lê esse arquivo automaticamente ao subir — pela IDE ou por
+`./mvnw spring-boot:run` —, então **não é preciso configurar variável de
+ambiente na mão**. Variáveis de ambiente, quando existirem, têm precedência
+sobre o `.env`, que é como o Docker Compose injeta a configuração.
+
+> Não coloque comentário na mesma linha de um valor no `.env`: o `#` passaria
+> a fazer parte do valor.
+
+Variáveis reconhecidas:
 
 ```bash
 # obrigatorias — a aplicacao nao sobe sem elas
@@ -315,17 +299,6 @@ usuário, CRUD de transações, resumo financeiro, filtros com paginação,
 validações, migrations versionadas com Flyway, documentação OpenAPI,
 métricas via Prometheus/Grafana e execução completa via Docker Compose.
 
-## Próximas melhorias
-
-* Testes de integração contra PostgreSQL real (Testcontainers), hoje a suíte
-  roda em H2
-* Relatórios mensais
-* Paginação por cursor no extrato
-* Front-end
-
-## Licença
-
-Distribuído sob a licença MIT. Veja [LICENSE](LICENSE).
 
 ## Autor
 

@@ -1,4 +1,10 @@
 spring:
+  # Le o .env da raiz do projeto quando ele existir, para rodar local (IDE ou
+  # ./mvnw) sem precisar exportar variavel de ambiente na mao. Sem o arquivo,
+  # valem as variaveis de ambiente normais — que e como o Docker fornece.
+  config:
+    import: optional:file:.env[.properties]
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}
@@ -43,7 +49,7 @@ api:
     token:
       # Sem valor padrao de proposito: a aplicacao nao sobe sem JWT_SECRET,
       # em vez de rodar com um segredo conhecido.
-      secret: ${JWT_SECRET}
+      secret: "${JWT_SECRET:}"
       expiration: ${JWT_EXPIRATION:86400000}
 
     refresh-token:

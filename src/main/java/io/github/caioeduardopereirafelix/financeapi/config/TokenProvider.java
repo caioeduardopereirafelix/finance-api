@@ -3,6 +3,8 @@ package io.github.caioeduardopereirafelix.financeapi.config;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.springframework.util.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.core.Authentication;
@@ -18,8 +20,25 @@ public class TokenProvider {
 
     @Value("${api.security.token.expiration}")
     private Long expirationTime;
-    @Value("${api.security.token.secret}")
+    @Value("${api.security.token.secret:}")
     private String key;
+
+
+    private static final int MIN_SECRET_BYTES = 32;
+
+    @PostConstruct
+    void validateSecret() {
+        if (!StringUtils.hasText(key)) {
+            throw new IllegalStateException();
+        }
+
+        int bytes = key.getBytes(StandardCharsets.UTF_8).length;
+        if (bytes < MIN_SECRET_BYTES) {
+            throw new IllegalStateException(
+                    "JWT_SECRET tem %d bytes, mas o minimo e %d (recomendado: 64). Gere outro com: openssl rand -base64 48"
+                            .formatted(bytes, MIN_SECRET_BYTES));
+        }
+    }
 
     //gera o token
     public String generateToken(Authentication authentication){

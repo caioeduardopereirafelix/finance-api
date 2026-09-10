@@ -29,10 +29,6 @@ public class RefreshTokenService {
     @Value("${api.security.refresh-token.expiration}")
     private long expirationTime;
 
-    /**
-     * Gera um token opaco novo e persiste apenas o hash dele.
-     * O valor retornado e a unica copia em claro.
-     */
     @Transactional
     public String generate(User user) {
 
@@ -53,11 +49,6 @@ public class RefreshTokenService {
         return token;
     }
 
-    /**
-     * Valida o token e o invalida no mesmo passo (rotacao): cada refresh token
-     * vale por um unico uso, entao um token capturado deixa de servir assim que
-     * o dono legitimo o utiliza.
-     */
     @Transactional
     public User consume(String token) {
 
