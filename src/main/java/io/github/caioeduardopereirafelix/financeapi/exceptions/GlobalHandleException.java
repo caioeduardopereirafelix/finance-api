@@ -52,10 +52,16 @@ public class GlobalHandleException {
         return new ResponseError(HttpStatus.UNAUTHORIZED.value(), "Invalid Email or Password", List.of());
     }
 
+    @ExceptionHandler(UserNotFound.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseError userNotFoundHandle(UserNotFound e){
+        return new ResponseError(HttpStatus.NOT_FOUND.value(), e.getMessage(), List.of());
+    }
+
     @ExceptionHandler(TransactionNotFound.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public  ResponseError transactionNotFoundHandle(TransactionNotFound e){
-        return new ResponseError(HttpStatus.NOT_FOUND.value(), "Trnsaction not found", List.of());
+        return new ResponseError(HttpStatus.NOT_FOUND.value(), e.getMessage(), List.of());
     }
 
 

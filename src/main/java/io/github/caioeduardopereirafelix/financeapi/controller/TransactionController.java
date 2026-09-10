@@ -8,7 +8,6 @@ import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
 import io.github.caioeduardopereirafelix.financeapi.model.mapper.TransactionMapper;
-import io.github.caioeduardopereirafelix.financeapi.repository.TransactionRepository;
 import io.github.caioeduardopereirafelix.financeapi.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,42 +33,40 @@ public class TransactionController {
 
     private final TransactionMapper transactionMapper;
     private final TransactionService service;
-    private final TransactionRepository repository;
 
     @PostMapping
     public ResponseEntity<ResponseTransactionDTO> create(@Valid @RequestBody CreateTransactionRequestDTO requestTransaction){
 
         var transaction = service.create(requestTransaction);
 
-        var response = new ResponseTransactionDTO(transaction.getDescription(), transaction.getAmount(), transaction.getCategory(), transaction.getType());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(transactionMapper.toResponse(transaction));
+    }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseTransactionDTO> findById(@PathVariable("id") UUID id){
+
+        var transaction = service.findByIdForAuthenticatedUser(id);
+
+        return ResponseEntity.ok(transactionMapper.toResponse(transaction));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity delete(@PathVariable("id") String id){
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id){
 
-        var transaction = service.deleteTransaction(UUID.fromString(id));
-
-        var response = new ResponseTransactionDTO(transaction.getDescription(), transaction.getAmount(), transaction.getCategory(), transaction.getType());
+        service.deleteTransaction(id);
 
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ResponseTransactionDTO> putTransaction
-            (@PathVariable("id") String id,
-             @RequestBody UpdateTransactionDTO transactionDTO){
+            (@PathVariable("id") UUID id,
+             @Valid @RequestBody UpdateTransactionDTO transactionDTO){
 
-        var idTransaction = UUID.fromString(id);
+        Transaction transactionUpdate = service.updateTransaction(id, transactionDTO);
 
-        Transaction transactionUpdate = service.updateTransaction(idTransaction, transactionDTO);
-
-        return ResponseEntity.ok(new ResponseTransactionDTO(
-                transactionUpdate.getDescription(),
-                transactionUpdate.getAmount(),
-                transactionUpdate.getCategory(),
-                transactionUpdate.getType()));
+        return ResponseEntity.ok(transactionMapper.toResponse(transactionUpdate));
     }
 
 

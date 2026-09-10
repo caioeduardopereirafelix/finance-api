@@ -55,6 +55,14 @@ public class TransactionService {
         return transactionRepository.save(transactionSave);
     }
 
+    public Transaction findByIdForAuthenticatedUser(UUID id){
+
+        User user = securityUtils.getAuthenticatedUser();
+
+        return transactionRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new TransactionNotFound("Transaction not found"));
+    }
+
     public Transaction deleteTransaction(UUID id){
 
         User user = securityUtils.getAuthenticatedUser();

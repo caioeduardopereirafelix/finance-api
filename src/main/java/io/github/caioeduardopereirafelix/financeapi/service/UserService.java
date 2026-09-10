@@ -1,5 +1,6 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
+import io.github.caioeduardopereirafelix.financeapi.exceptions.UserNotFound;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.user.CreateUserDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.user.UpdateUserDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
@@ -50,7 +51,7 @@ public class UserService {
 
     public User updateUser(UUID id, UpdateUserDTO request) {
         var user = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFound("User not found"));
 
         user.setName(request.name());
         user.setEmail(request.email());
