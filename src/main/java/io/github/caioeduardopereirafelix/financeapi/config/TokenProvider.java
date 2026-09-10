@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
@@ -27,6 +28,10 @@ public class TokenProvider {
         return buildToken(userLog.getUsername());
     }
 
+    public String generateToken(UserDetails userDetails){
+        return buildToken(userDetails.getUsername());
+    }
+
     private String buildToken(String username) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationTime);
@@ -40,7 +45,7 @@ public class TokenProvider {
     }
 
     private SecretKey getSigninKey() {
-        return Keys.hmacShaKeyFor(key.getBytes());
+        return Keys.hmacShaKeyFor(key.getBytes(StandardCharsets.UTF_8));
     }
 
     //validar o token

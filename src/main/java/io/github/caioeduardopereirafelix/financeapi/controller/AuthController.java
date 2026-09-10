@@ -1,14 +1,13 @@
 package io.github.caioeduardopereirafelix.financeapi.controller;
 
 import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.LoginDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.RefreshTokenRequestDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.RequestAuthDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.ResponseAuthDTO;
 import io.github.caioeduardopereirafelix.financeapi.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
-import org.apache.coyote.BadRequestException;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,14 +18,25 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public void register(@RequestBody @Valid RequestAuthDTO authDTO) throws BadRequestException {
+    @ResponseStatus(HttpStatus.CREATED)
+    public void register(@RequestBody @Valid RequestAuthDTO authDTO) {
         authService.registerUser(authDTO);
     }
 
     @PostMapping("/login")
-    public ResponseAuthDTO login(@RequestBody @Valid LoginDTO login)throws Exception{
+    public ResponseAuthDTO login(@RequestBody @Valid LoginDTO login){
         return authService.login(login);
+    }
 
+    @PostMapping("/refresh")
+    public ResponseAuthDTO refresh(@RequestBody @Valid RefreshTokenRequestDTO request){
+        return authService.refresh(request);
+    }
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void logout(@RequestBody @Valid RefreshTokenRequestDTO request){
+        authService.logout(request);
     }
 
     @GetMapping("/ping")

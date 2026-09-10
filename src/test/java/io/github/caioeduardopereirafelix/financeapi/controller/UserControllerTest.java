@@ -4,7 +4,6 @@ import io.github.caioeduardopereirafelix.financeapi.model.dto.user.ResponseUserD
 import io.github.caioeduardopereirafelix.financeapi.model.dto.user.UpdateUserDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import io.github.caioeduardopereirafelix.financeapi.model.mapper.UserMapper;
-import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
 import io.github.caioeduardopereirafelix.financeapi.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +11,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.UUID;
@@ -30,11 +28,7 @@ class UserControllerTest {
     @Mock
     private UserService userService;
     @Mock
-    private UserRepository repository;
-    @Mock
     private UserMapper mapper;
-    @Mock
-    private PasswordEncoder encoder;
 
     @InjectMocks
     private UserController controller;
