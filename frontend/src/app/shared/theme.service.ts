@@ -15,11 +15,10 @@ export class ThemeService {
 
   set(theme: Theme) {
     this.theme.set(theme);
-    try { localStorage.setItem(KEY, theme); } catch { /* modo privado */ }
+    try { localStorage.setItem(KEY, theme); } catch { }
     this.apply(theme);
   }
 
-  /** Alterna claro <-> escuro partindo do que o sistema indica. */
   toggle() {
     this.set(this.resolved() === 'dark' ? 'light' : 'dark');
   }

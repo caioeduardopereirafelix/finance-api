@@ -2,14 +2,7 @@ import { Component, inject } from '@angular/core';
 
 import { NotificationService } from '../core/notification.service';
 
-/**
- * Regiao de status (WCAG 4.1.3).
- *
- * Sao duas regioes de proposito: `polite` para sucesso/informacao, que espera
- * o leitor de tela terminar a frase atual, e `assertive` para erro, que
- * interrompe. Misturar os dois numa regiao so faria o erro ser anunciado
- * tarde demais.
- */
+
 @Component({
   selector: 'app-toast-region',
   template: `

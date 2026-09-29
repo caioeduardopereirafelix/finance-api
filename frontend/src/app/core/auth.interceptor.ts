@@ -5,7 +5,6 @@ import { catchError, switchMap } from 'rxjs/operators';
 
 import { AuthService } from './auth.service';
 
-/** Endpoints que nao levam token e nunca disparam renovacao. */
 const PUBLIC_PATHS = ['/v1/auth/login', '/v1/auth/register', '/v1/auth/refresh', '/v1/auth/logout'];
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
@@ -23,7 +22,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Access token expirado: renova uma vez e repete a requisicao original.
       if (error.status === 401 && auth.refreshToken()) {
         return auth.refresh().pipe(
           switchMap(res => next(withToken(res.token))),

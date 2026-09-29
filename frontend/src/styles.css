@@ -1,9 +1,3 @@
-/* =========================================================================
-   Finance API - estilos globais
-   Paleta verificada contra WCAG 2.2 AA: texto >= 4.5:1, bordas de controle
-   e anel de foco >= 3:1, nos dois temas.
-   ========================================================================= */
-
 :root {
   color-scheme: light dark;
 
@@ -79,7 +73,6 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
-  /* 1.4.12 Espacamento de texto: leitura confortavel sem quebrar o layout */
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -88,16 +81,12 @@ h1, h2, h3 { line-height: 1.25; margin: 0 0 0.5em; }
 h1 { font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); letter-spacing: -0.02em; }
 h2 { font-size: clamp(1.15rem, 1rem + 0.6vw, 1.4rem); }
 p { margin: 0 0 1em; }
-
-/* ---- Foco: sempre visivel, nunca removido (2.4.7 / 2.4.11) ---- */
 :focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
   border-radius: 4px;
 }
 :focus:not(:focus-visible) { outline: none; }
-
-/* ---- Conteudo so para leitor de tela ---- */
 .sr-only {
   position: absolute;
   width: 1px; height: 1px;
@@ -108,7 +97,6 @@ p { margin: 0 0 1em; }
   border: 0;
 }
 
-/* ---- Link "pular para o conteudo" (2.4.1) ---- */
 .skip-link {
   position: absolute;
   left: 0.5rem;
@@ -125,7 +113,6 @@ p { margin: 0 0 1em; }
 }
 .skip-link:focus { top: 0.5rem; }
 
-/* ---- Formularios ---- */
 .field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1.1rem; }
 
 .field > label { font-weight: 600; font-size: 0.94rem; }
@@ -139,7 +126,7 @@ input, select, textarea {
   border: 1px solid var(--field-border);
   border-radius: var(--radius);
   padding: 0.65rem 0.75rem;
-  min-height: 44px;                 /* 2.5.8: alvo confortavel */
+  min-height: 44px;
   width: 100%;
 }
 
@@ -148,7 +135,6 @@ input[aria-invalid='true'], select[aria-invalid='true'] {
   border-width: 2px;
 }
 
-/* Erro do campo: icone + texto, nunca so cor (1.4.1) */
 .field-error {
   color: var(--expense);
   font-size: 0.88rem;
@@ -157,9 +143,9 @@ input[aria-invalid='true'], select[aria-invalid='true'] {
   gap: 0.35rem;
   align-items: flex-start;
 }
-.field-error::before { content: '\26A0'; }   /* triangulo de atencao */
+.field-error::before { content: '\26A0'; }
 
-/* ---- Botoes ---- */
+
 .btn {
   font: inherit;
   font-weight: 600;
@@ -189,7 +175,6 @@ input[aria-invalid='true'], select[aria-invalid='true'] {
 .btn-ghost { background: transparent; color: var(--text); border-color: transparent; }
 .btn-ghost:hover:not(:disabled) { background: var(--surface-2); }
 
-/* ---- Superficies ---- */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -200,7 +185,6 @@ input[aria-invalid='true'], select[aria-invalid='true'] {
 
 .page { max-width: 68rem; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
 
-/* ---- Movimento reduzido (2.3.3) ---- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -210,7 +194,6 @@ input[aria-invalid='true'], select[aria-invalid='true'] {
   }
 }
 
-/* ---- Alto contraste forcado ---- */
 @media (forced-colors: active) {
   .btn, .card, input, select { border: 1px solid ButtonBorder; }
   :focus-visible { outline: 3px solid Highlight; }

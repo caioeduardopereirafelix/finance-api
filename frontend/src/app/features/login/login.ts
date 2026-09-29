@@ -31,7 +31,6 @@ export class LoginPage {
     password: ['', [Validators.required]],
   });
 
-  /** Erros mostrados no sumario do topo, cada um com link para o campo. */
   errorList(): { id: string; label: string; message: string }[] {
     if (!this.submitted()) return [];
 
@@ -63,8 +62,6 @@ export class LoginPage {
     this.serverError.set(null);
 
     if (this.form.invalid) {
-      // Leva o foco ao sumario: quem usa teclado ou leitor de tela
-      // descobre o que falta sem varrer o formulario.
       this.focusErrorSummary();
       return;
     }
@@ -86,14 +83,10 @@ export class LoginPage {
     });
   }
 
-  /** O sumario so existe no DOM depois que o Angular renderiza o bloco @if,
-   *  o que acontece apos o ciclo atual — dai o setTimeout em vez de microtask. */
   private focusErrorSummary() {
     setTimeout(() => this.errorSummary()?.nativeElement.focus(), 0);
   }
 
-  /** Leva o foco ao campo com erro. Sem o preventDefault, o href de ancora
-   *  seria tratado como rota pelo Router e a tela se perderia. */
   focusField(event: Event, id: string) {
     event.preventDefault();
     document.getElementById(id)?.focus();

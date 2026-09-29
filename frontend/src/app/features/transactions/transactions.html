@@ -9,7 +9,6 @@
     </button>
   </header>
 
-  <!-- ---------- Filtros ---------- -->
   <section class="card filters" aria-labelledby="filtros-titulo">
     <div class="filters-head">
       <h2 id="filtros-titulo">Filtros</h2>
@@ -91,12 +90,10 @@
     </div>
   </section>
 
-  <!-- Contador anunciado quando a lista muda (4.1.3) -->
   <p class="result-count" aria-live="polite">
     {{ loading() ? 'Carregando transações…' : resultSummary() }}
   </p>
 
-  <!-- ---------- Lista ---------- -->
   @if (error()) {
     <div role="alert" class="card error-panel">
       <h2>Algo deu errado</h2>
@@ -187,7 +184,6 @@
   }
 </div>
 
-<!-- ---------- Dialogo: criar / editar ---------- -->
 <dialog #formDialog class="dialog" aria-labelledby="form-dialog-titulo">
   <form method="dialog" class="dialog-close-form">
     <button type="submit" class="btn btn-ghost dialog-close" (click)="closeForm()">
@@ -257,7 +253,6 @@
   </form>
 </dialog>
 
-<!-- ---------- Dialogo: confirmar exclusao ---------- -->
 <dialog #deleteDialog class="dialog dialog-sm" aria-labelledby="delete-dialog-titulo"
         aria-describedby="delete-dialog-texto">
   <h2 id="delete-dialog-titulo">Excluir transação</h2>

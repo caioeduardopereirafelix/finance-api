@@ -1,9 +1,7 @@
 import { Injectable, InjectionToken, inject } from '@angular/core';
 
-/** Bancos de teste (sandbox) aparecem no widget. Ponha false em producao. */
 export const PLUGGY_INCLUDE_SANDBOX = true;
 
-/** O que usamos do widget (pacote oficial `pluggy-connect-sdk`). */
 export interface PluggyWidgetOptions {
   connectToken: string;
   includeSandbox?: boolean;
@@ -18,11 +16,6 @@ export interface PluggyWidget {
 
 export type PluggyWidgetFactory = new (options: PluggyWidgetOptions) => PluggyWidget;
 
-/**
- * Como carregar o SDK. O import dinamico deixa o pacote (e o zoid que ele
- * traz) fora do bundle inicial: so baixa quando a pessoa clica em conectar.
- * Nos testes, um fake entra no lugar.
- */
 export const PLUGGY_SDK_LOADER = new InjectionToken<() => Promise<PluggyWidgetFactory>>('PLUGGY_SDK_LOADER', {
   providedIn: 'root',
   factory: () => async () => {
@@ -33,17 +26,11 @@ export const PLUGGY_SDK_LOADER = new InjectionToken<() => Promise<PluggyWidgetFa
   },
 });
 
-/** Abre o widget da Pluggy. As credenciais bancarias ficam la dentro; a gente so recebe o id do item. */
 @Injectable({ providedIn: 'root' })
 export class PluggyConnectService {
 
   private readonly loadSdk = inject(PLUGGY_SDK_LOADER);
 
-  /**
-   * Abre o widget.
-   *
-   * @returns o id do item conectado, ou null se a pessoa fechou o widget sem concluir
-   */
   async open(connectToken: string): Promise<string | null> {
     let Widget: PluggyWidgetFactory;
     try {

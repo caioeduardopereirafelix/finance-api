@@ -79,7 +79,6 @@ export class RegisterPage {
 
     this.auth.register(email, name, password).subscribe({
       next: () => {
-        // Cadastro feito: ja entra, para o usuario nao digitar tudo de novo.
         this.auth.login(email, password).subscribe({
           next: () => {
             this.notifications.success('Conta criada. Boas-vindas!');
@@ -100,14 +99,9 @@ export class RegisterPage {
     });
   }
 
-  /** O sumario so existe no DOM depois que o Angular renderiza o bloco @if,
-   *  o que acontece apos o ciclo atual — dai o setTimeout em vez de microtask. */
   private focusErrorSummary() {
     setTimeout(() => this.errorSummary()?.nativeElement.focus(), 0);
   }
-
-  /** Leva o foco ao campo com erro. Sem o preventDefault, o href de ancora
-   *  seria tratado como rota pelo Router e a tela se perderia. */
   focusField(event: Event, id: string) {
     event.preventDefault();
     document.getElementById(id)?.focus();

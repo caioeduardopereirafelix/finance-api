@@ -45,8 +45,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # a porta 9091 (actuator) NAO e publicada de proposito: ela fica
-    # acessivel so de dentro da rede, para o Prometheus
     ports:
       - "8080:8080"
     networks:

@@ -1,7 +1,4 @@
 spring:
-  # Le o .env da raiz do projeto quando ele existir, para rodar local (IDE ou
-  # ./mvnw) sem precisar exportar variavel de ambiente na mao. Sem o arquivo,
-  # valem as variaveis de ambiente normais — que e como o Docker fornece.
   config:
     import: optional:file:.env[.properties]
 
@@ -12,10 +9,7 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   jpa:
-    # Imprime cada SQL no log: util para depurar, ruim em producao (barulho e dados nos logs).
     show-sql: ${JPA_SHOW_SQL:false}
-    # Desligado para nao manter a sessao aberta durante a renderizacao da
-    # resposta: o lazy loading fica restrito a camada de servico.
     open-in-view: false
     hibernate:
       ddl-auto: validate
@@ -24,8 +18,6 @@ spring:
     baseline-on-migrate: true
 
 management:
-  # O actuator sai da porta publica da API e passa a responder numa porta
-  # separada, que deve ficar restrita a rede interna (Prometheus, probes).
   server:
     port: ${MANAGEMENT_PORT:9091}
 
@@ -48,8 +40,6 @@ springdoc:
 api:
   security:
     token:
-      # Sem valor padrao de proposito: a aplicacao nao sobe sem JWT_SECRET,
-      # em vez de rodar com um segredo conhecido.
       secret: "${JWT_SECRET:}"
       expiration: ${JWT_EXPIRATION:86400000}
 
@@ -57,16 +47,12 @@ api:
       expiration: ${REFRESH_TOKEN_EXPIRATION:604800000}
 
     login:
-      # senhas erradas seguidas para o mesmo e-mail antes de travar o login
       max-attempts: ${LOGIN_MAX_ATTEMPTS:5}
       lock-minutes: ${LOGIN_LOCK_MINUTES:15}
 
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
 
-# Integracao bancaria. Os placeholders sao explicitos de proposito: o .env e lido
-# como arquivo de propriedades, e la o nome BANK_MOCK_ENABLED nao vira
-# bank.mock.enabled sozinho (so acontece com variavel de ambiente de verdade).
 bank:
   provider: ${BANK_PROVIDER:mock}
   mock:

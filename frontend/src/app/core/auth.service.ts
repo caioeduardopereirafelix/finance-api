@@ -24,8 +24,6 @@ export class AuthService {
 
   readonly isLoggedIn = computed(() => this.accessToken() !== null);
 
-  /** Refresh em voo, compartilhado: varias requisicoes que tomam 401 ao mesmo
-   *  tempo aguardam a mesma renovacao em vez de gastarem o token cada uma. */
   private refreshInFlight: Observable<AuthResponse> | null = null;
 
   register(email: string, name: string, password: string): Observable<void> {
@@ -78,12 +76,10 @@ export class AuthService {
       return;
     }
 
-    // Revoga no servidor; mesmo se falhar, a sessao local termina.
     this.http.post<void>(`${this.baseUrl}/v1/auth/logout`, { refreshToken: token })
       .subscribe({ next: finish, error: finish });
   }
 
-  /** Sessao encerrada pelo interceptor quando a renovacao nao e possivel. */
   forceLogout(): void {
     this.clear();
     this.router.navigate(['/entrar']);

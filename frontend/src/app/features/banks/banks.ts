@@ -56,8 +56,6 @@ export class BanksPage {
     });
   }
 
-  // ---------- conectar ----------
-
   connect() {
     this.connecting.set(true);
 
@@ -80,7 +78,6 @@ export class BanksPage {
     });
   }
 
-  /** O widget da Pluggy cuida do login no banco; aqui so recebemos o id do item conectado. */
   private async openPluggy(token: string) {
     try {
       const itemId = await this.pluggy.open(token);
@@ -95,7 +92,6 @@ export class BanksPage {
     }
   }
 
-  /** Registra a conexao no backend e ja faz a primeira importacao. */
   private registerAndSync(externalId: string) {
     this.banks.connect(externalId).subscribe({
       next: (connection) => {
@@ -121,8 +117,6 @@ export class BanksPage {
     });
   }
 
-  // ---------- sincronizar ----------
-
   sync(connection: BankConnection) {
     this.syncingId.set(connection.id);
 
@@ -139,8 +133,6 @@ export class BanksPage {
       },
     });
   }
-
-  // ---------- desconectar ----------
 
   askDisconnect(connection: BankConnection) {
     this.pendingDisconnect.set(connection);
@@ -165,8 +157,6 @@ export class BanksPage {
           ? `${this.name(target)} desconectado e as transações importadas foram apagadas.`
           : `${this.name(target)} desconectado. As transações importadas continuam no seu extrato.`);
         this.load();
-        // O botao "Desconectar" some da tela junto com a conexao; sem isso o foco
-        // cairia no <body> e quem usa teclado ou leitor de tela perderia o lugar.
         queueMicrotask(() => this.heading()?.nativeElement.focus());
       },
       error: (err) => {
@@ -177,7 +167,6 @@ export class BanksPage {
     });
   }
 
-  // ---------- apresentacao ----------
 
   name(connection: BankConnection): string {
     return connection.institutionName ?? 'Banco';
@@ -188,7 +177,6 @@ export class BanksPage {
     return count === 1 ? '1 transação nova importada.' : `${count} transações novas importadas.`;
   }
 
-  /** 503 aqui significa "nenhum provedor habilitado", que merece uma frase propria. */
   private friendly(err: unknown, fallback: string): string {
     if (err instanceof HttpErrorResponse && err.status === 503) {
       return 'A integração bancária não está habilitada neste servidor.';
@@ -197,7 +185,6 @@ export class BanksPage {
   }
 }
 
-/** crypto.randomUUID so existe em contexto seguro (https ou localhost). */
 function randomId(): string {
   return globalThis.crypto?.randomUUID?.()
     ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;

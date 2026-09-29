@@ -24,8 +24,6 @@ ALTER TABLE transactions
     ADD CONSTRAINT fk_transactions_bank_connection
         FOREIGN KEY (bank_connection_id) REFERENCES bank_connections (id) ON DELETE SET NULL;
 
--- Impede importar duas vezes a mesma transacao do banco. Parcial de proposito:
--- lancamentos manuais nao tem external_id e nao entram na regra.
 CREATE UNIQUE INDEX uk_transactions_user_external
     ON transactions (user_id, external_id)
     WHERE external_id IS NOT NULL;

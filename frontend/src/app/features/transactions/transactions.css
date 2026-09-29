@@ -9,7 +9,6 @@
 
 .eyebrow { color: var(--muted); margin: 0 0 0.15rem; font-weight: 600; }
 
-/* ---------- Filtros ---------- */
 .filters { margin-bottom: 1.25rem; padding: 1rem 1.25rem; }
 
 .filters-head {
@@ -48,7 +47,6 @@
 
 .result-count { color: var(--muted); margin: 0 0 0.75rem; font-size: 0.94rem; }
 
-/* ---------- Tabela ---------- */
 .table-wrap { padding: 0; overflow-x: auto; }
 
 table { width: 100%; border-collapse: collapse; }
@@ -73,7 +71,6 @@ thead .num { text-align: right; }
 .cell-description { font-weight: 600; }
 .row-title { display: block; overflow-wrap: anywhere; }
 
-/* Etiqueta de tipo: texto + fundo, nunca so cor (1.4.1) */
 .row-tag {
   display: inline-block;
   margin-top: 0.2rem;
@@ -84,7 +81,6 @@ thead .num { text-align: right; }
 }
 .tag-income { background: var(--income-bg); color: var(--income); }
 .tag-expense { background: var(--expense-bg); color: var(--expense); }
-/* Contorno + texto, para nao depender so de cor (1.4.1) */
 .tag-bank {
   margin-left: 0.35rem;
   background: transparent;
@@ -98,7 +94,6 @@ thead .num { text-align: right; }
 .cell-actions { white-space: nowrap; text-align: right; }
 .btn-sm { min-height: 40px; padding: 0.35rem 0.7rem; font-size: 0.9rem; }
 
-/* Em telas estreitas a tabela vira lista, sem rolagem horizontal (1.4.10) */
 @media (max-width: 46rem) {
   .table-wrap { overflow-x: visible; }
   table, thead, tbody, tr, th, td { display: block; }
@@ -117,7 +112,6 @@ thead .num { text-align: right; }
   .cell-actions { margin-top: 0.6rem; display: flex; gap: 0.5rem; }
 }
 
-/* ---------- Paginacao ---------- */
 .pagination {
   display: flex;
   align-items: center;
@@ -128,13 +122,11 @@ thead .num { text-align: right; }
 }
 .pagination-status { margin: 0; color: var(--muted); font-weight: 600; }
 
-/* ---------- Estados ---------- */
 .empty-state { text-align: center; padding: 2.5rem 1.5rem; }
 .empty-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem; }
 .error-panel { border-color: var(--expense); }
 .error-panel h2 { color: var(--expense); font-size: 1.1rem; }
 
-/* ---------- Dialogos ---------- */
 .dialog {
   width: min(32rem, calc(100vw - 2rem));
   padding: 1.5rem;

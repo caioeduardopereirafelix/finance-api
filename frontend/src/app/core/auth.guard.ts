@@ -11,11 +11,9 @@ export const authGuard: CanActivateFn = (_route, state) => {
     return true;
   }
 
-  // Guarda o destino para voltar a ele depois do login.
   return router.createUrlTree(['/entrar'], { queryParams: { redirect: state.url } });
 };
 
-/** Impede que quem ja esta autenticado veja login/cadastro de novo. */
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);

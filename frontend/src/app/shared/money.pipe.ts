@@ -1,6 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-/** Formata em real brasileiro. Valor nulo vira traco, nao "NaN". */
 @Pipe({ name: 'money' })
 export class MoneyPipe implements PipeTransform {
 

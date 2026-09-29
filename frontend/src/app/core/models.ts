@@ -18,10 +18,8 @@ export interface Transaction {
   amount: number;
   category: CategoryName;
   type: TransactionalType;
-  /** Quando o gasto ocorreu: a data que a tela mostra. */
   occurredAt: string;
   source: TransactionSource;
-  /** Quando o registro entrou no sistema. Nao e a data do gasto. */
   createdDate: string;
 }
 
@@ -71,7 +69,6 @@ export interface TransactionFilters {
   size?: number;
 }
 
-/** Rotulos em portugues, usados em telas e em textos lidos por leitor de tela. */
 export const TYPE_LABEL: Record<TransactionalType, string> = {
   CASH_ENTRY: 'Entrada',
   EXPENSES: 'Saída',
@@ -91,7 +88,6 @@ export const CATEGORY_LABEL: Record<CategoryName, string> = {
   OTHER_EXPENSE: 'Outras despesas',
 };
 
-/** O backend recusa categoria que nao pertence ao tipo, entao a UI espelha a regra. */
 export const CATEGORIES_BY_TYPE: Record<TransactionalType, CategoryName[]> = {
   CASH_ENTRY: ['WAGE', 'EXTRA_INCOME', 'OTHER_INCOME'],
   EXPENSES: ['FOOD', 'LEISURE', 'HOUSING', 'HEALTH', 'TRANSPORT', 'INVESTMENTS', 'BILLS', 'OTHER_EXPENSE'],
@@ -110,7 +106,6 @@ export interface BankConnection {
 
 export interface ConnectToken {
   token: string;
-  /** Nome do provedor ativo: define qual widget abrir ("mock" = modo demonstracao). */
   provider: string;
 }
 
@@ -119,8 +114,6 @@ export interface BankSyncResult {
   skipped: number;
 }
 
-/** Provedor de demonstracao do backend: nao tem widget, conecta direto. */
 export const MOCK_PROVIDER = 'mock';
 
-/** Pluggy: a conexao e feita pelo widget deles. */
 export const PLUGGY_PROVIDER = 'pluggy';

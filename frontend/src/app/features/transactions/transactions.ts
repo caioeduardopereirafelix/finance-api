@@ -78,8 +78,6 @@ export class TransactionsPage {
     return CATEGORIES_BY_TYPE[this.form.controls.type.value];
   }
 
-  // ---------- listagem ----------
-
   load(pageIndex: number) {
     this.currentPage = pageIndex;
     this.loading.set(true);
@@ -124,7 +122,6 @@ export class TransactionsPage {
 
   goToPage(index: number) { this.load(index); }
 
-  /** Texto do contador, tambem lido pela regiao de status. */
   resultSummary(): string {
     const page = this.page();
     if (!page) return '';
@@ -134,7 +131,6 @@ export class TransactionsPage {
     return `Mostrando ${from} a ${to} de ${page.totalElements} transações.`;
   }
 
-  // ---------- criar / editar ----------
 
   openCreate() {
     this.editing.set(null);
@@ -209,7 +205,6 @@ export class TransactionsPage {
     });
   }
 
-  // ---------- excluir ----------
 
   askDelete(transaction: Transaction) {
     this.pendingDelete.set(transaction);
@@ -240,7 +235,6 @@ export class TransactionsPage {
     });
   }
 
-  /** showModal ja prende o foco e fecha no Esc; so falta apontar o foco inicial. */
   private openDialog(ref: ElementRef<HTMLDialogElement> | undefined) {
     const dialog = ref?.nativeElement;
     if (!dialog) return;

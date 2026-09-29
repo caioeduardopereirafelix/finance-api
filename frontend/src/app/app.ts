@@ -22,14 +22,8 @@ export class App {
 
   private readonly mainRegion = viewChild<ElementRef<HTMLElement>>('mainRegion');
 
-  /** Anuncio de troca de rota: numa SPA o leitor de tela nao percebe a
-   *  navegacao sozinho, entao dizemos qual pagina abriu. */
   readonly routeAnnouncement = signal('');
 
-  /** No primeiro carregamento o navegador ja posiciona o foco no topo do
-   *  documento e o leitor de tela le o titulo sozinho. Mexer no foco aqui
-   *  passaria por cima do link "pular para o conteudo", que e justamente
-   *  o primeiro ponto de tabulacao (WCAG 2.4.1). */
   private firstNavigation = true;
 
   constructor() {
@@ -43,10 +37,6 @@ export class App {
 
         const pageTitle = this.title.getTitle().split(' · ')[0];
         this.routeAnnouncement.set(`${pageTitle}. Página carregada.`);
-
-        // Nas navegacoes seguintes o foco continuaria no link clicado, que
-        // pode nem existir mais na tela nova. Levamos ele ao inicio do
-        // conteudo; o link de pular fica um Shift+Tab atras.
         this.mainRegion()?.nativeElement.focus();
       });
   }

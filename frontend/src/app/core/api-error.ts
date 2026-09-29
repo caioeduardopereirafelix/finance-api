@@ -2,7 +2,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { ApiError, FieldError } from './models';
 
-/** Traduz a falha HTTP numa frase util para quem esta usando a tela. */
 export function messageOf(error: unknown, fallback = 'Não foi possível concluir a operação.'): string {
   if (!(error instanceof HttpErrorResponse)) {
     return fallback;
@@ -31,7 +30,6 @@ export function messageOf(error: unknown, fallback = 'Não foi possível conclui
   }
 }
 
-/** Erros por campo, para marcar o input correspondente. */
 export function fieldErrorsOf(error: unknown): FieldError[] {
   if (error instanceof HttpErrorResponse) {
     return (error.error as ApiError | undefined)?.fieldsError ?? [];

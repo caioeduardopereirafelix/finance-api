@@ -51,8 +51,6 @@ export class DashboardPage {
       },
     });
   }
-
-  /** Primeiro nome, para a saudacao. */
   greetingName(): string {
     const email = this.auth.email();
     return email ? email.split('@')[0] : 'por aqui';

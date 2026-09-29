@@ -8,13 +8,6 @@ export interface Notice {
   text: string;
 }
 
-/**
- * Mensagens de status da aplicacao.
- *
- * Sao renderizadas numa regiao aria-live (ver ToastRegion), o que atende ao
- * criterio 4.1.3 do WCAG: o leitor de tela anuncia o resultado da acao sem
- * que o foco precise sair de onde esta.
- */
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
 

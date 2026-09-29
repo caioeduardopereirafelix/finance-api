@@ -1,6 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-/** Data e hora no formato brasileiro, no fuso do navegador. */
 @Pipe({ name: 'brDateTime' })
 export class BrDateTimePipe implements PipeTransform {
 
