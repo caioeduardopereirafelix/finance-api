@@ -5,6 +5,7 @@ import io.github.caioeduardopereirafelix.financeapi.bank.BankIntegrationExceptio
 import io.github.caioeduardopereirafelix.financeapi.bank.BankProvider;
 import io.github.caioeduardopereirafelix.financeapi.bank.ExternalConnection;
 import io.github.caioeduardopereirafelix.financeapi.bank.ExternalTransaction;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
@@ -37,6 +38,7 @@ import java.util.regex.Pattern;
  * - Valor em moeda estrangeira: usa amountInAccountCurrency; sem ele, ignora,
  *   porque gravar 10 USD como R$ 10 seria um valor errado.
  */
+@Slf4j
 public class PluggyBankProvider implements BankProvider {
 
     public static final String NAME = "pluggy";
@@ -78,6 +80,8 @@ public class PluggyBankProvider implements BankProvider {
     public String createConnectToken(String userReference) {
         try {
             return client.createConnectToken(userReference);
+        } catch (BankIntegrationException e) {
+            throw e;   // ja traz o que a Pluggy respondeu
         } catch (RuntimeException e) {
             throw new BankIntegrationException(HttpStatus.BAD_GATEWAY,
                     "Nao foi possivel iniciar a conexao com a Pluggy", e);
@@ -85,9 +89,10 @@ public class PluggyBankProvider implements BankProvider {
     }
 
     @Override
-    public ExternalConnection describeConnection(String externalId) {
+    public ExternalConnection describeConnection(String externalId, String userReference) {
         String itemId = requireItemId(externalId);
         JsonNode item = client.item(itemId);
+        requireOwnedBy(item, userReference);
         String institution = item.path("connector").path("name").asText(null);
         return new ExternalConnection(itemId, truncate(institution, INSTITUTION_MAX));
     }
@@ -117,6 +122,24 @@ public class PluggyBankProvider implements BankProvider {
             }
         }
         return result;
+    }
+
+    /**
+     * O connect token foi criado com clientUserId = id do nosso usuario, e a Pluggy
+     * grava isso no item. Um item de outro usuario e recusado.
+     *
+     * Se a Pluggy nao devolver o clientUserId, nao da para conferir: aceita e avisa
+     * no log. [confirmar no sandbox que o campo vem preenchido]
+     */
+    private static void requireOwnedBy(JsonNode item, String userReference) {
+        String owner = item.path("clientUserId").asText(null);
+        if (owner == null || owner.isBlank()) {
+            log.warn("Item {} veio sem clientUserId; nao foi possivel conferir o dono", item.path("id").asText());
+            return;
+        }
+        if (!owner.equals(userReference)) {
+            throw new BankIntegrationException(HttpStatus.FORBIDDEN, "Esta conexao bancaria pertence a outro usuario");
+        }
     }
 
     // ---------- traducao ----------

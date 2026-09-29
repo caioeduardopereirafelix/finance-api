@@ -46,15 +46,11 @@
         <input id="password" type="password" formControlName="password"
                autocomplete="current-password" required
                [attr.aria-invalid]="showError('password') ? 'true' : null"
-               [attr.aria-describedby]="showError('password') ? 'password-erro' : 'password-dica'" />
+               [attr.aria-describedby]="showError('password') ? 'password-erro' : null" />
         @if (showError('password')) {
           <p id="password-erro" class="field-error">
-            {{ form.controls.password.hasError('required')
-                ? 'Informe sua senha.'
-                : 'A senha deve ter ao menos 5 caracteres.' }}
+            Informe sua senha.
           </p>
-        } @else {
-          <p id="password-dica" class="hint">Mínimo de 5 caracteres.</p>
         }
       </div>
 

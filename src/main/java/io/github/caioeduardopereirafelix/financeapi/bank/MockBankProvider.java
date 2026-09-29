@@ -33,7 +33,7 @@ public class MockBankProvider implements BankProvider {
     }
 
     @Override
-    public ExternalConnection describeConnection(String externalId) {
+    public ExternalConnection describeConnection(String externalId, String userReference) {
         return new ExternalConnection(externalId, "Banco Demo");
     }
 

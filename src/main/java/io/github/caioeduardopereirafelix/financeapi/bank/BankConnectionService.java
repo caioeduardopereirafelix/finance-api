@@ -6,6 +6,7 @@ import io.github.caioeduardopereirafelix.financeapi.model.enums.BankConnectionSt
 import io.github.caioeduardopereirafelix.financeapi.repository.BankConnectionRepository;
 import io.github.caioeduardopereirafelix.financeapi.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BankConnectionService {
@@ -41,10 +43,12 @@ public class BankConnectionService {
 
         ExternalConnection described;
         try {
-            described = provider.describeConnection(externalId);
+            described = provider.describeConnection(externalId, user.getId().toString());
         } catch (BankIntegrationException e) {
+            log.warn("Conexao {} recusada: {}", externalId, e.getMessage());
             throw e;   // o provedor ja disse o que houve (ex.: identificador invalido)
         } catch (RuntimeException e) {
+            log.warn("Nao foi possivel confirmar a conexao {}: {}", externalId, e.toString());
             throw new BankIntegrationException(HttpStatus.BAD_GATEWAY,
                     "Nao foi possivel confirmar a conexao no provedor bancario", e);
         }

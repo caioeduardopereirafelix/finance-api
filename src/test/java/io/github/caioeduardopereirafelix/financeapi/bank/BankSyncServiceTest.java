@@ -121,6 +121,17 @@ class BankSyncServiceTest {
     }
 
     @Test
+    void deveManterAMensagemQueOProvedorDeuEMarcarErro() {
+        when(provider.fetchTransactions(anyString(), any())).thenThrow(new BankIntegrationException(
+                org.springframework.http.HttpStatus.BAD_GATEWAY, "A Pluggy recusou a operacao (HTTP 403): sem permissao"));
+
+        var ex = assertThrows(BankIntegrationException.class, () -> service.syncById(connection.getId()));
+
+        assertEquals("A Pluggy recusou a operacao (HTTP 403): sem permissao", ex.getMessage());
+        assertEquals(BankConnectionStatus.ERROR, connection.getStatus());
+    }
+
+    @Test
     void deveRegistrarASincronizacaoEReativarAConexao() {
         connection.setStatus(BankConnectionStatus.ERROR);
         when(provider.fetchTransactions(anyString(), any())).thenReturn(List.of());

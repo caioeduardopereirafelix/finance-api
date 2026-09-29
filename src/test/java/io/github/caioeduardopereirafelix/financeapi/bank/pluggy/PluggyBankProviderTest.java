@@ -69,15 +69,38 @@ class PluggyBankProviderTest {
     void descreverConexaoDeveUsarONomeDoConector() {
         when(client.item(ITEM)).thenReturn(json("{\"id\":\"" + ITEM + "\",\"connector\":{\"name\":\"Nubank\"}}"));
 
-        ExternalConnection c = provider.describeConnection(ITEM);
+        ExternalConnection c = provider.describeConnection(ITEM, "user-1");
 
         assertEquals(ITEM, c.externalId());
         assertEquals("Nubank", c.institutionName());
     }
 
     @Test
+    void itemDeOutroUsuarioDeveSerRecusado() {
+        when(client.item(ITEM)).thenReturn(json("{\"id\":\"" + ITEM + "\",\"clientUserId\":\"outro-usuario\",\"connector\":{\"name\":\"Nubank\"}}"));
+
+        var e = assertThrows(BankIntegrationException.class, () -> provider.describeConnection(ITEM, "user-1"));
+
+        assertEquals(403, e.getStatus().value());
+    }
+
+    @Test
+    void itemDoProprioUsuarioDeveSerAceito() {
+        when(client.item(ITEM)).thenReturn(json("{\"id\":\"" + ITEM + "\",\"clientUserId\":\"user-1\",\"connector\":{\"name\":\"Nubank\"}}"));
+
+        assertEquals("Nubank", provider.describeConnection(ITEM, "user-1").institutionName());
+    }
+
+    @Test
+    void itemSemClientUserIdEAceitoPoisNaoHaComoConferir() {
+        when(client.item(ITEM)).thenReturn(json("{\"id\":\"" + ITEM + "\",\"connector\":{\"name\":\"Nubank\"}}"));
+
+        assertEquals("Nubank", provider.describeConnection(ITEM, "user-1").institutionName());
+    }
+
+    @Test
     void identificadorQueNaoEUuidNaoDeveChegarNaPluggy() {
-        var e = assertThrows(BankIntegrationException.class, () -> provider.describeConnection("../accounts"));
+        var e = assertThrows(BankIntegrationException.class, () -> provider.describeConnection("../accounts", "user-1"));
         assertEquals(400, e.getStatus().value());
         verify(client, never()).item(any());
     }

@@ -28,7 +28,7 @@ export class LoginPage {
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(5)]],
+    password: ['', [Validators.required]],
   });
 
   /** Erros mostrados no sumario do topo, cada um com link para o campo. */
@@ -49,13 +49,7 @@ export class LoginPage {
       });
     }
     if (password.invalid) {
-      errors.push({
-        id: 'password',
-        label: 'Senha',
-        message: password.hasError('required')
-          ? 'Informe sua senha.'
-          : 'A senha deve ter ao menos 5 caracteres.',
-      });
+      errors.push({ id: 'password', label: 'Senha', message: 'Informe sua senha.' });
     }
     return errors;
   }

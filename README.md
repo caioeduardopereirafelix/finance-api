@@ -254,6 +254,13 @@ CORS_ALLOWED_ORIGINS=http://localhost:4200
 MANAGEMENT_PORT=9091
 SWAGGER_ENABLED=true
 
+# seguranca (opcional) — os valores abaixo ja sao os padroes
+# senhas erradas seguidas para o mesmo e-mail antes de travar o login, e por quantos minutos
+LOGIN_MAX_ATTEMPTS=5
+LOGIN_LOCK_MINUTES=15
+# imprime cada SQL no log (util so para depurar)
+JPA_SHOW_SQL=false
+
 # integracao bancaria (opcional) — veja docs/integracao-bancaria.md
 BANK_MOCK_ENABLED=false
 BANK_PROVIDER=mock

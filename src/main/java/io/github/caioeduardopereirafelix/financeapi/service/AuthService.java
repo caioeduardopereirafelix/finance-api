@@ -14,7 +14,9 @@ import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +32,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final TokenProvider tokenProvider;
     private final RefreshTokenService refreshTokenService;
+    private final LoginAttemptService loginAttempts;
 
     @Value("${api.security.token.expiration}")
     private long expirationTime;
@@ -55,8 +58,17 @@ public class AuthService {
 
     public ResponseAuthDTO login(LoginDTO login){
 
-        var authentication = authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(login.email(), login.password()));
+        loginAttempts.checkAllowed(login.email());
+
+        Authentication authentication;
+        try {
+            authentication = authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(login.email(), login.password()));
+        } catch (BadCredentialsException e) {
+            loginAttempts.recordFailure(login.email());
+            throw e;
+        }
+        loginAttempts.recordSuccess(login.email());
 
         var user = (User) authentication.getPrincipal();
 

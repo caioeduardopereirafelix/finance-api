@@ -13,6 +13,14 @@ class BankCategoryMapperTest {
     private final BankCategoryMapper mapper = new BankCategoryMapper();
 
     @Test
+    void categoriaEmInglesDaDocumentacaoDaPluggyViraInvestimento() {
+        var mapped = mapper.map(new java.math.BigDecimal("-212.45"), "Fixed Income Investment");
+
+        org.junit.jupiter.api.Assertions.assertEquals(
+                io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName.INVESTMENTS, mapped.category());
+    }
+
+    @Test
     void valorNegativoEhSaidaEUsaACategoriaConhecida() {
         var mapped = mapper.map(new BigDecimal("-50"), "Groceries");
 

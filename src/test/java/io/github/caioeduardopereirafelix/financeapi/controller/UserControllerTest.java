@@ -45,7 +45,7 @@ class UserControllerTest {
         MockMvcBuilders.standaloneSetup(controller).build()
                 .perform(put("/user/" + id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Caio\",\"email\":\"caio@test.com\",\"password\":\"123456\"}"))
+                        .content("{\"name\":\"Caio\",\"email\":\"caio@test.com\",\"password\":\"senha-segura-1\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id.toString()))
                 .andExpect(jsonPath("$.email").value("caio@test.com"));

@@ -131,13 +131,22 @@ para a API. Sem `PLUGGY_CLIENT_ID`, a Pluggy nem é carregada.
 
 **Conferido com a documentação da Pluggy:** `POST /auth`, `POST /connect_token`
 (`options.clientUserId`), o widget (`pluggy-connect-sdk`: `onSuccess({ item })`,
-`onError({ message })`, `onClose`, `includeSandbox`), o formato de contas e
-transações, a paginação (`page`/`totalPages`, `pageSize` máximo 500) e o filtro `from`.
-O widget vem do pacote npm, carregado só quando a pessoa clica em conectar.
+`onError({ message })`, `onClose`, `includeSandbox`), o formato de contas e o de
+transações e a listagem **v2** de transações. O widget vem do pacote npm, carregado só
+quando a pessoa clica em conectar.
+
+**Transações: use a v2.** O `GET /transactions` foi desativado e responde 410. O
+`GET /v2/transactions` recebe `accountId` e `dateFrom` e pagina por cursor: cada
+resposta traz `results` e `next`, uma query string pronta (`?accountId=...&after=...`)
+que é anexada **como veio** ao caminho (o cursor é base64: recodificar mudaria o valor).
+`next` nulo é a última página. O cliente também acrescenta `dateFrom` se o cursor não o
+trouxer, recusa um `next` que não comece com `?` e não gira em círculo se o cursor não
+avançar.
 
 **Ainda não conferido:** a validade da `apiKey` (assumido 2h; o cliente também renova
 sozinho se a Pluggy responder 401/403) e o comportamento com dados reais (datas,
-categorias, cartões).
+categorias, cartões). Note que a categoria vem em inglês em alguns exemplos da
+documentação ("Fixed Income Investment") e em português em outros ("Transferência").
 
 **Limitações conhecidas**
 
@@ -153,9 +162,10 @@ categorias, cartões).
 **Antes de produção**
 
 - `PLUGGY_INCLUDE_SANDBOX` em `frontend/src/app/core/pluggy-connect.ts` deve ser `false`.
-- A conexão não confere se o item pertence ao usuário que o registra. O id é um UUID
-  impossível de adivinhar, mas o correto é comparar o `clientUserId` do item com o
-  usuário.
+- A conexão só recusa item de outro usuário se a Pluggy devolver o `clientUserId` no
+  item (o connect token é criado com o id do nosso usuário). Sem o campo, aceita e
+  registra um aviso no log. **Confirme no sandbox que o campo vem preenchido**: procure
+  `veio sem clientUserId` nos logs da API.
 - Item com `LOGIN_ERROR`/`OUTDATED` (o usuário precisa reautorizar) hoje só falha na
   sincronização; falta um fluxo de "renovar consentimento".
 

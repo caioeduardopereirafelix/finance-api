@@ -68,6 +68,7 @@ public class BankCategoryMapper {
             Map.entry("contas", CategoryName.BILLS),
 
             Map.entry("investments", CategoryName.INVESTMENTS),
+            Map.entry("fixed income investment", CategoryName.INVESTMENTS),
             Map.entry("investimentos", CategoryName.INVESTMENTS),
 
             Map.entry("salary", CategoryName.WAGE),

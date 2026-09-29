@@ -8,6 +8,7 @@ import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionSourc
 import io.github.caioeduardopereirafelix.financeapi.repository.BankConnectionRepository;
 import io.github.caioeduardopereirafelix.financeapi.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ import java.util.UUID;
  * Nao usa o usuario autenticado: tambem roda pelo agendador, onde nao existe
  * requisicao nem SecurityContext.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BankSyncService {
@@ -63,6 +65,12 @@ public class BankSyncService {
         return sync(connection);
     }
 
+    private void markError(BankConnection connection, RuntimeException cause) {
+        log.warn("Falha ao sincronizar a conexao {} ({}): {}", connection.getId(), connection.getProvider(), cause.toString());
+        connection.setStatus(BankConnectionStatus.ERROR);
+        connections.save(connection);
+    }
+
     private Result sync(BankConnection connection) {
         BankProvider provider = providers.named(connection.getProvider());
         Instant startedAt = Instant.now();
@@ -73,9 +81,11 @@ public class BankSyncService {
         List<ExternalTransaction> fetched;
         try {
             fetched = provider.fetchTransactions(connection.getExternalId(), since);
+        } catch (BankIntegrationException e) {
+            markError(connection, e);
+            throw e;   // ja traz o que o provedor respondeu
         } catch (RuntimeException e) {
-            connection.setStatus(BankConnectionStatus.ERROR);
-            connections.save(connection);
+            markError(connection, e);
             throw new BankIntegrationException(HttpStatus.BAD_GATEWAY,
                     "Nao foi possivel buscar as movimentacoes no provedor bancario", e);
         }

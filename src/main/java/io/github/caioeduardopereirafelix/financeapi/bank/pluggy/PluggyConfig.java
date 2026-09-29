@@ -30,7 +30,7 @@ public class PluggyConfig {
         factory.setReadTimeout(Duration.ofSeconds(30));
 
         RestClient http = builder.baseUrl(baseUrl).requestFactory(factory).build();
-        return new PluggyClient(http, clientId, clientSecret, Clock.systemUTC());
+        return new PluggyClient(http, baseUrl, clientId, clientSecret, Clock.systemUTC());
     }
 
     @Bean

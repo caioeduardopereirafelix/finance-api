@@ -1,5 +1,6 @@
 package io.github.caioeduardopereirafelix.financeapi.model.dto.auth;
 
+import io.github.caioeduardopereirafelix.financeapi.config.PasswordPolicy;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,6 +13,7 @@ public record RequestAuthDTO(
         @NotNull(message = "user it cannot be empty")
         String user,
         @NotBlank(message = "password it cannot  be empty")
-        @Size(min = 5, max = 100, message = "password must contain at least 5 characters")
+        @Size(min = PasswordPolicy.MIN_LENGTH, max = PasswordPolicy.MAX_LENGTH,
+                message = "password must contain at least 8 characters")
         String password) {
 }

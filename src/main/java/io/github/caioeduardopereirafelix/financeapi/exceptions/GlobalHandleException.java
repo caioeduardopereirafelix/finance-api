@@ -1,6 +1,7 @@
 package io.github.caioeduardopereirafelix.financeapi.exceptions;
 
 import io.github.caioeduardopereirafelix.financeapi.bank.BankIntegrationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -48,6 +49,13 @@ public class GlobalHandleException {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseError handleBadCredentialsException(BadCredentialsException e){
         return new ResponseError(HttpStatus.UNAUTHORIZED.value(), "Invalid Email or Password", List.of());
+    }
+
+    @ExceptionHandler(TooManyLoginAttemptsException.class)
+    public ResponseEntity<ResponseError> tooManyLoginAttemptsHandle(TooManyLoginAttemptsException e){
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(e.getRetryAfterSeconds()))
+                .body(new ResponseError(HttpStatus.TOO_MANY_REQUESTS.value(), e.getMessage(), List.of()));
     }
 
     @ExceptionHandler(InvalidRefreshToken.class)

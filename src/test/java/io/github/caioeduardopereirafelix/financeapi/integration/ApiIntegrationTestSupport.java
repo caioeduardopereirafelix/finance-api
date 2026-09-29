@@ -39,7 +39,7 @@ abstract class ApiIntegrationTestSupport {
     protected Account registerAndLogin() throws Exception {
 
         String email = "user-" + UUID.randomUUID() + "@test.com";
-        String password = "123456";
+        String password = "senha-segura-1";
 
         mockMvc.perform(post("/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)

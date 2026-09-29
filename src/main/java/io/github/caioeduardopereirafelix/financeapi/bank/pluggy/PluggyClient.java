@@ -3,12 +3,17 @@ package io.github.caioeduardopereirafelix.financeapi.bank.pluggy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.caioeduardopereirafelix.financeapi.bank.BankIntegrationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.util.UriUtils;
 
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -31,12 +36,13 @@ public class PluggyClient {
     /** A apiKey vale 2h na Pluggy; renovamos com folga. [confirmar na documentacao] */
     static final Duration API_KEY_TTL = Duration.ofMinutes(100);
 
-    private static final int PAGE_SIZE = 500;
     private static final int MAX_PAGES = 200;   // trava de seguranca contra paginacao infinita
+    private static final String TRANSACTIONS_PATH = "/v2/transactions";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final RestClient http;
+    private final String baseUrl;
     private final String clientId;
     private final String clientSecret;
     private final Clock clock;
@@ -44,12 +50,13 @@ public class PluggyClient {
     private String apiKey;
     private Instant apiKeyExpiresAt = Instant.MIN;
 
-    public PluggyClient(RestClient http, String clientId, String clientSecret, Clock clock) {
+    public PluggyClient(RestClient http, String baseUrl, String clientId, String clientSecret, Clock clock) {
         if (clientId == null || clientId.isBlank() || clientSecret == null || clientSecret.isBlank()) {
             throw new IllegalStateException(
                     "PLUGGY_CLIENT_ID e PLUGGY_CLIENT_SECRET precisam estar definidos para usar a Pluggy");
         }
         this.http = http;
+        this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.clock = clock;
@@ -84,27 +91,40 @@ public class PluggyClient {
         return results(response);
     }
 
-    /** Todas as paginas de movimentacoes da conta a partir de {@code from}. */
+    /**
+     * Todas as movimentacoes da conta a partir de {@code from}, pela API v2 (a v1,
+     * GET /transactions, foi desativada e responde 410).
+     *
+     * A v2 pagina por cursor: cada resposta traz "next", uma query string pronta
+     * (?accountId=...&after=...) que se anexa como esta ao caminho do endpoint, ou
+     * null na ultima pagina. O "next" e usado sem recodificar, porque o cursor e
+     * base64 e recodifica-lo mudaria o valor.
+     */
     public List<JsonNode> transactions(String accountId, LocalDate from) {
         List<JsonNode> all = new ArrayList<>();
-        int page = 1;
-        int totalPages = 1;
+        String query = "?accountId=" + UriUtils.encodeQueryParam(accountId, StandardCharsets.UTF_8) + "&dateFrom=" + from;
+        String previous = null;
 
-        while (page <= totalPages && page <= MAX_PAGES) {
-            int current = page;
+        for (int page = 1; page <= MAX_PAGES; page++) {
+            URI uri = URI.create(baseUrl + TRANSACTIONS_PATH + query);
             JsonNode response = authenticated(key -> http.get()
-                    .uri(uri -> uri.path("/transactions")
-                            .queryParam("accountId", accountId)
-                            .queryParam("from", from)
-                            .queryParam("pageSize", PAGE_SIZE)
-                            .queryParam("page", current)
-                            .build())
+                    .uri(uri)
                     .header("X-API-KEY", key)
                     .retrieve()
                     .body(JsonNode.class));
             all.addAll(results(response));
-            totalPages = response == null ? 1 : response.path("totalPages").asInt(1);
-            page++;
+
+            String next = response == null || response.path("next").isNull() ? null : response.path("next").asText(null);
+            if (next == null || next.isBlank() || next.equals(previous)) {
+                break;   // ultima pagina (ou o cursor nao andou: nao deixa girar em circulo)
+            }
+            if (!next.startsWith("?")) {
+                // Sem isso, um "next" estranho poderia mudar o caminho ou o servidor da chamada.
+                throw new IllegalStateException("Cursor de paginacao da Pluggy em formato inesperado");
+            }
+            previous = next;
+            // o filtro de data pode nao vir dentro do cursor; sem ele voltaria ate 12 meses
+            query = next.contains("dateFrom=") ? next : next + "&dateFrom=" + from;
         }
         return all;
     }
@@ -113,15 +133,46 @@ public class PluggyClient {
 
     private <T> T authenticated(Function<String, T> call) {
         try {
-            return call.apply(currentApiKey());
-        } catch (HttpClientErrorException e) {
-            HttpStatusCode status = e.getStatusCode();
-            if (status.isSameCodeAs(HttpStatus.UNAUTHORIZED) || status.isSameCodeAs(HttpStatus.FORBIDDEN)) {
-                invalidateApiKey();
+            try {
                 return call.apply(currentApiKey());
+            } catch (HttpClientErrorException e) {
+                HttpStatusCode status = e.getStatusCode();
+                if (status.isSameCodeAs(HttpStatus.UNAUTHORIZED) || status.isSameCodeAs(HttpStatus.FORBIDDEN)) {
+                    invalidateApiKey();
+                    return call.apply(currentApiKey());
+                }
+                throw e;
             }
-            throw e;
+        } catch (RestClientResponseException e) {
+            throw new BankIntegrationException(HttpStatus.BAD_GATEWAY,
+                    "A Pluggy recusou a operacao (HTTP " + e.getStatusCode().value() + ")" + detail(e), e);
         }
+    }
+
+    /**
+     * O que a Pluggy disse, para quem usa a tela (e quem le o log) saber o motivo em
+     * vez de um "falhou" generico. So o campo "message" do erro, sem cabecalhos nem
+     * o que enviamos, entao nao carrega credencial.
+     */
+    private static String detail(RestClientResponseException e) {
+        String body = e.getResponseBodyAsString();
+        if (body == null || body.isBlank()) {
+            return "";
+        }
+        String message = body;
+        try {
+            JsonNode parsed = MAPPER.readTree(body);
+            if (parsed.path("message").isTextual()) {
+                message = parsed.path("message").asText();
+            }
+        } catch (JsonProcessingException notJson) {
+            // corpo que nao e JSON: usa o texto como veio
+        }
+        message = message.replaceAll("\\s+", " ").trim();
+        if (message.length() > 200) {
+            message = message.substring(0, 200) + "…";
+        }
+        return message.isEmpty() ? "" : ": " + message;
     }
 
     private synchronized String currentApiKey() {

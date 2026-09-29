@@ -28,7 +28,7 @@ export class RegisterPage {
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(20)]],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   private readonly messages: Record<string, { label: string; required: string; invalid: string }> = {
@@ -45,7 +45,7 @@ export class RegisterPage {
     password: {
       label: 'Senha',
       required: 'Crie uma senha.',
-      invalid: 'A senha deve ter ao menos 6 caracteres.',
+      invalid: 'A senha deve ter ao menos 8 caracteres.',
     },
   };
 

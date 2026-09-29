@@ -21,8 +21,13 @@ public interface BankProvider {
      */
     String createConnectToken(String userReference);
 
-    /** Confirma que a conexao existe no provedor e devolve os dados dela. */
-    ExternalConnection describeConnection(String externalId);
+    /**
+     * Confirma que a conexao existe no provedor e devolve os dados dela.
+     *
+     * @param userReference o mesmo valor passado a {@link #createConnectToken}; o provedor
+     *                      deve recusar (403) uma conexao que ele sabe ser de outro usuario
+     */
+    ExternalConnection describeConnection(String externalId, String userReference);
 
     /** Movimentacoes da conexao a partir de {@code since}. */
     List<ExternalTransaction> fetchTransactions(String externalId, Instant since);
