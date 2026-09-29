@@ -25,10 +25,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * A API inteira com a Pluggy ligada (so pela configuracao) e o HTTP para ela
- * simulado: token, conexao, importacao e classificacao.
- */
 @TestPropertySource(properties = {
         "bank.provider=pluggy",
         "bank.pluggy.client-id=id-teste",
@@ -36,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class BankPluggyIntegrationTest extends ApiIntegrationTestSupport {
 
-    /** Um por teste (o JUnit cria uma instancia por metodo): o banco de testes e compartilhado e o id nao pode repetir. */
+
     private final String item = java.util.UUID.randomUUID().toString();
 
     @MockBean
@@ -130,8 +126,6 @@ class BankPluggyIntegrationTest extends ApiIntegrationTestSupport {
         mockMvc.perform(delete("/bank/connections/" + id).header(HttpHeaders.AUTHORIZATION, a.bearer()))
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.error").value("A Pluggy recusou a operacao (HTTP 500)"));
-
-        // nada local mudou: da para tentar de novo
         mockMvc.perform(get("/bank/connections").header(HttpHeaders.AUTHORIZATION, a.bearer()))
                 .andExpect(jsonPath("$.length()").value(1));
     }

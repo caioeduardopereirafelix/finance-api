@@ -1,6 +1,9 @@
 package io.github.caioeduardopereirafelix.financeapi.bank;
 
+import io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.BankConnection;
+import io.github.caioeduardopereirafelix.financeapi.service.CategoryRuleService;
+import io.github.caioeduardopereirafelix.financeapi.service.DescriptionKey;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.BankConnectionStatus;
@@ -16,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -46,6 +50,7 @@ public class BankSyncService {
     private final TransactionRepository transactions;
     private final BankProviders providers;
     private final BankCategoryMapper categoryMapper;
+    private final CategoryRuleService categoryRules;
 
     // noRollbackFor: a falha do provedor e uma excecao, e sem isso a transacao
     // voltaria atras e desfaria a marcacao de status ERROR feita em sync().
@@ -93,6 +98,7 @@ public class BankSyncService {
         int imported = 0;
         int skipped = 0;
         User user = connection.getUser();
+        Map<String, CategoryName> userRules = categoryRules.rulesOf(user);
 
         for (ExternalTransaction external : fetched) {
             String externalId = connection.getProvider() + ":" + external.id();
@@ -104,6 +110,9 @@ public class BankSyncService {
             }
 
             BankCategoryMapper.Mapped mapped = categoryMapper.map(external.amount(), external.category());
+            CategoryName category = userRules.getOrDefault(
+                    CategoryRuleService.lookupKey(mapped.type(), DescriptionKey.of(external.description())),
+                    mapped.category());
 
             Transaction transaction = new Transaction();
             transaction.setUser(user);
@@ -113,7 +122,7 @@ public class BankSyncService {
             transaction.setDescription(external.description());
             transaction.setAmount(external.amount().abs());
             transaction.setType(mapped.type());
-            transaction.setCategory(mapped.category());
+            transaction.setCategory(category);
             transaction.setSource(TransactionSource.BANK);
             transaction.setExternalId(externalId);
             transaction.setOccurredAt(external.date());

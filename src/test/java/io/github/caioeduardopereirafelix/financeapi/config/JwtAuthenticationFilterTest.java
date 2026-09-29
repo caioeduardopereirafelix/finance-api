@@ -43,7 +43,7 @@ class JwtAuthenticationFilterTest {
 
         new JwtAuthenticationFilter(tokenProvider, userDetailsService).doFilter(request, response, chain);
 
-        assertNull(SecurityContextHolder.getContext().getAuthentication());   // sem autenticacao: o Spring responde 401
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(chain).doFilter(request, response);
     }
 }

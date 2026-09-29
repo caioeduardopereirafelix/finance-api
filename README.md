@@ -155,16 +155,41 @@ PUT /transaction/{id}
 Atualiza uma transação existente.
 
 ```http
+PATCH /transaction/{id}/category
+```
+
+Troca só a categoria (corpo: `{ "category": "BILLS", "applyToSimilar": true }`). Serve a qualquer
+transação do usuário e é o único ajuste que uma transação **importada do banco** aceita: o `PUT`
+recusa (422) mudar valor, descrição ou tipo dela. Com `applyToSimilar`, a categoria vale também
+para as transações importadas do mesmo estabelecimento e para as próximas importações. A resposta
+traz a transação e `updated`, o total de transações que mudaram. Categoria de outro tipo (uma
+entrada numa saída) responde 422.
+
+"Mesmo estabelecimento" são as primeiras quatro palavras da descrição, sem acento, número nem
+símbolo (`Uber *Viagem 1234` e `UBER *TRIP 9F3K` se aproximam). Cada escolha vira uma regra do
+usuário (tabela `category_rules`): escolher de novo atualiza a regra, e outro usuário nunca é
+afetado.
+
+```http
 DELETE /transaction/{id}
 ```
 
 Remove uma transação existente.
 
 ```http
-GET /transaction/summary
+GET /transaction/summary?startDate=2026-09-01&endDate=2026-09-29
 ```
 
-Retorna o resumo financeiro do usuário autenticado.
+Retorna o resumo financeiro (entradas, saídas e saldo) do usuário autenticado. As datas são
+opcionais e valem sobre o dia em que o gasto ocorreu, no fuso `America/Sao_Paulo`, com o dia final
+incluído. Sem datas, o resumo cobre tudo. Data inicial depois da final responde 422.
+
+```http
+GET /transaction/summary/by-category?startDate=2026-09-01&endDate=2026-09-29
+```
+
+Retorna o total por categoria no período, do maior para o menor, com a quantidade de
+transações de cada uma: `[{ "category": "FOOD", "type": "EXPENSES", "total": 812.40, "count": 12 }]`.
 
 ## Exemplo de criação de transação
 
@@ -233,6 +258,18 @@ O schema é controlado pelo **Flyway** (`src/main/resources/db/migration`) e o H
 roda com `ddl-auto: validate` — ou seja, a aplicação não cria nem altera tabelas,
 apenas valida se o schema bate com as entidades.
 
+### Migration que já rodou nunca se edita
+
+O Flyway guarda o checksum de cada migration no banco e se recusa a subir se o arquivo mudou
+depois — **mesmo que seja só um comentário ou um espaço no fim da linha** (trocar quebra de
+linha, LF por CRLF, não conta). O teste `MigrationImmutabilityTest` trava isso no build: ele guarda o
+checksum de cada migration e falha se alguma foi alterada ou apagada.
+
+Para mudar o schema, crie sempre uma migration nova (`V7__...`, `V8__...`). Antes de commitar,
+rode `./mvnw test`: o teste diz o checksum da nova migration e a linha exata para acrescentar em
+`APPLIED`, no próprio teste. Se alguma ferramenta remove comentários dos arquivos do projeto, exclua
+`src/main/resources/db/migration/` dela.
+
 ### Configuração local: use um `.env`
 
 Crie um arquivo chamado `.env` na raiz do projeto com o conteúdo abaixo,
@@ -283,6 +320,11 @@ ambiente na mão**. Variáveis de ambiente, quando existirem, têm precedência
 sobre o `.env`, que é como o Docker Compose injeta a configuração.
 
 O `.env` é ignorado pelo Git, então o segredo não vai para o repositório.
+
+Os testes (`./mvnw test`) **não dependem do seu `.env`**: o perfil de teste
+(`src/test/resources/application-test.yaml`) fixa a configuração de banco, da Pluggy e de login. Sem
+isso, credenciais reais no `.env` mudariam o resultado da suíte e fariam testes falarem com a
+Pluggy de verdade. Um teste (`TestEnvironmentIsolationTest`) garante isso.
 
 > Não coloque comentário na mesma linha de um valor: o `#` passaria a fazer
 > parte do valor e a aplicação não sobe.

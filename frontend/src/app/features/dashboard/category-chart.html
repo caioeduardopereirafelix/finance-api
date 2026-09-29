@@ -1,0 +1,91 @@
+<section class="card chart" aria-labelledby="chart-title" [class.is-refreshing]="refreshing()">
+  <div class="chart-head">
+    <div>
+      <h2 id="chart-title">{{ type() === 'EXPENSES' ? 'Saídas' : 'Entradas' }} por categoria</h2>
+      <p class="chart-sub">{{ periodLabel() }}</p>
+    </div>
+
+    <div class="chart-controls">
+      <fieldset class="segmented">
+        <legend class="sr-only">Tipo de movimentação</legend>
+        <label>
+          <input type="radio" name="chart-type" [checked]="type() === 'EXPENSES'" (change)="setType('EXPENSES')" />
+          <span>Saídas</span>
+        </label>
+        <label>
+          <input type="radio" name="chart-type" [checked]="type() === 'CASH_ENTRY'" (change)="setType('CASH_ENTRY')" />
+          <span>Entradas</span>
+        </label>
+      </fieldset>
+
+      @if (bars().length > 0) {
+        <button type="button" class="btn btn-secondary chart-toggle"
+                [attr.aria-pressed]="showTable()" (click)="showTable.set(!showTable())">
+          {{ showTable() ? 'Ver gráfico' : 'Ver como tabela' }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (bars().length === 0) {
+    <p class="chart-empty">Nenhuma {{ type() === 'EXPENSES' ? 'saída' : 'entrada' }} neste período.</p>
+  } @else if (showTable()) {
+    <div class="table-wrap">
+      <table class="chart-table">
+        <caption class="sr-only">{{ type() === 'EXPENSES' ? 'Saídas' : 'Entradas' }} por categoria, {{ periodLabel() }}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Categoria</th>
+            <th scope="col" class="num">Valor</th>
+            <th scope="col" class="num">% do total</th>
+            <th scope="col" class="num">Transações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (bar of bars(); track bar.category) {
+            <tr>
+              <th scope="row">{{ bar.label }}</th>
+              <td class="num">{{ bar.total | money }}</td>
+              <td class="num">{{ share(bar) }}</td>
+              <td class="num">{{ bar.count }}</td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row">Total</th>
+            <td class="num">{{ total() | money }}</td>
+            <td class="num">100%</td>
+            <td class="num"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  } @else {
+    <ul class="bars">
+      @for (bar of bars(); track bar.category) {
+        <li class="bar-item" (pointerenter)="active.set(bar.category)" (pointerleave)="active.set(null)">
+          <div class="bar-row" tabindex="0" role="group"
+               [attr.aria-label]="bar.label + ', ' + (bar.total | money) + ', ' + share(bar) + ' das ' + noun() + ', ' + countText(bar)"
+               (focus)="active.set(bar.category)" (blur)="active.set(null)"
+               (keydown.escape)="active.set(null)">
+            <span class="bar-label">{{ bar.label }}</span>
+            <span class="bar-area">
+              <span class="bar" aria-hidden="true" [style.--scale]="bar.scale"></span>
+              <span class="bar-value">{{ bar.total | money }}</span>
+            </span>
+          </div>
+
+          @if (active() === bar.category) {
+            <div class="tooltip" aria-hidden="true">
+              <strong>{{ bar.total | money }}</strong>
+              <span>{{ bar.label }}</span>
+              <span>{{ share(bar) }} do total · {{ countText(bar) }}</span>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+    <p class="chart-total">Total de {{ noun() }}: <strong>{{ total() | money }}</strong></p>
+  }
+</section>

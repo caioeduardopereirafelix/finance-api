@@ -13,10 +13,7 @@ import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
-/**
- * Base para os testes que exercitam a API inteira: contexto real, cadeia de
- * filtros de seguranca real e banco em memoria.
- */
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -35,7 +32,6 @@ abstract class ApiIntegrationTestSupport {
         }
     }
 
-    /** Cadastra um usuario com e-mail unico e ja devolve os tokens do login. */
     protected Account registerAndLogin() throws Exception {
 
         String email = "user-" + UUID.randomUUID() + "@test.com";

@@ -27,6 +27,8 @@ export class TransactionsPage {
 
   private readonly formDialog = viewChild<ElementRef<HTMLDialogElement>>('formDialog');
   private readonly deleteDialog = viewChild<ElementRef<HTMLDialogElement>>('deleteDialog');
+  private readonly categoryDialog = viewChild<ElementRef<HTMLDialogElement>>('categoryDialog');
+  private readonly categorySelect = viewChild<ElementRef<HTMLSelectElement>>('categorySelect');
   private readonly descriptionInput = viewChild<ElementRef<HTMLInputElement>>('descriptionInput');
 
   readonly loading = signal(true);
@@ -36,6 +38,9 @@ export class TransactionsPage {
   readonly saving = signal(false);
   readonly editing = signal<Transaction | null>(null);
   readonly pendingDelete = signal<Transaction | null>(null);
+  readonly recategorizing = signal<Transaction | null>(null);
+  readonly newCategory = signal<CategoryName | null>(null);
+  readonly applyToSimilar = signal(true);
   readonly formSubmitted = signal(false);
   readonly formError = signal<string | null>(null);
 
@@ -205,6 +210,52 @@ export class TransactionsPage {
     });
   }
 
+
+  categoryChoices(transaction: Transaction | null): CategoryName[] {
+    return transaction ? CATEGORIES_BY_TYPE[transaction.type] : [];
+  }
+
+  openCategory(transaction: Transaction) {
+    this.recategorizing.set(transaction);
+    this.newCategory.set(transaction.category);
+    this.applyToSimilar.set(true);
+    this.formError.set(null);
+
+    const dialog = this.categoryDialog()?.nativeElement;
+    if (!dialog) return;
+    dialog.showModal();
+    queueMicrotask(() => this.categorySelect()?.nativeElement.focus());
+  }
+
+  closeCategory() { this.categoryDialog()?.nativeElement.close(); }
+
+  saveCategory() {
+    const target = this.recategorizing();
+    const category = this.newCategory();
+    if (!target || !category) return;
+
+    if (category === target.category && !this.applyToSimilar()) {
+      this.closeCategory();
+      return;
+    }
+
+    this.saving.set(true);
+    this.api.updateCategory(target.id, category, this.applyToSimilar()).subscribe({
+      next: (change) => {
+        this.saving.set(false);
+        this.closeCategory();
+        this.notifications.success(change.updated === 1
+          ? 'Categoria alterada em 1 transação.'
+          : `Categoria alterada em ${change.updated} transações.`);
+        this.load(this.currentPage);
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.closeCategory();
+        this.notifications.error(messageOf(err, 'Não foi possível alterar a categoria.'));
+      },
+    });
+  }
 
   askDelete(transaction: Transaction) {
     this.pendingDelete.set(transaction);

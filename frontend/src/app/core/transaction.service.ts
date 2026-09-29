@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { API_BASE_URL } from './api.config';
-import { PageResponse, Summary, Transaction, TransactionFilters, TransactionPayload } from './models';
+import { CategoryChange, CategoryName, CategoryTotal, PageResponse, Summary, Transaction, TransactionFilters, TransactionPayload } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class TransactionService {
@@ -45,11 +45,28 @@ export class TransactionService {
     return this.http.put<Transaction>(`${this.baseUrl}/transaction/${id}`, payload);
   }
 
+  updateCategory(id: string, category: CategoryName, applyToSimilar: boolean): Observable<CategoryChange> {
+    return this.http.patch<CategoryChange>(`${this.baseUrl}/transaction/${id}/category`, { category, applyToSimilar });
+  }
+
   remove(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/transaction/${id}`);
   }
 
-  summary(): Observable<Summary> {
-    return this.http.get<Summary>(`${this.baseUrl}/transaction/summary`);
+  summary(range?: { start: string; end: string }): Observable<Summary> {
+    return this.http.get<Summary>(`${this.baseUrl}/transaction/summary`, { params: this.periodParams(range) });
+  }
+
+  categoryTotals(range?: { start: string; end: string }): Observable<CategoryTotal[]> {
+    return this.http.get<CategoryTotal[]>(`${this.baseUrl}/transaction/summary/by-category`,
+      { params: this.periodParams(range) });
+  }
+
+  private periodParams(range?: { start: string; end: string }): HttpParams {
+    let params = new HttpParams();
+    if (range) {
+      params = params.set('startDate', range.start).set('endDate', range.end);
+    }
+    return params;
   }
 }

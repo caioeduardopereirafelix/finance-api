@@ -185,3 +185,18 @@ thead .num { text-align: right; }
   background: color-mix(in srgb, var(--primary) 10%, transparent);
 }
 .radio-option:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.check-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+}
+.check-option input { width: 1.25rem; min-height: auto; margin-top: 0.2rem; accent-color: var(--primary); flex: none; }
+.check-hint { display: block; font-weight: 400; margin-top: 0.15rem; }
+.check-option:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+

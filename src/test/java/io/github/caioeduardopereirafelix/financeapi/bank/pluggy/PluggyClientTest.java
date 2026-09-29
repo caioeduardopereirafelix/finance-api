@@ -108,7 +108,7 @@ class PluggyClientTest {
 
     @Test
     void deveReaproveitarAApiKeyEntreChamadas() {
-        expectAuth("key-1");   // uma unica autenticacao para as duas chamadas
+        expectAuth("key-1");
         server.expect(once(), requestTo(BASE + "/items/item-1")).andExpect(header("X-API-KEY", "key-1"))
                 .andRespond(withSuccess("{\"id\":\"item-1\"}", MediaType.APPLICATION_JSON));
         server.expect(once(), requestTo(BASE + "/items/item-2")).andExpect(header("X-API-KEY", "key-1"))
@@ -179,7 +179,7 @@ class PluggyClientTest {
         server.expect(once(), requestTo(BASE + "/auth"))
                 .andRespond(withStatus(HttpStatus.UNAUTHORIZED).contentType(MediaType.APPLICATION_JSON)
                         .body("{\"message\":\"Invalid credentials\"}"));
-        server.expect(once(), requestTo(BASE + "/auth"))   // a tentativa de renovar tambem falha
+        server.expect(once(), requestTo(BASE + "/auth"))
                 .andRespond(withStatus(HttpStatus.UNAUTHORIZED).contentType(MediaType.APPLICATION_JSON)
                         .body("{\"message\":\"Invalid credentials\"}"));
 
@@ -207,7 +207,6 @@ class PluggyClientTest {
                 .andRespond(withSuccess("""
                         {"results":[{"id":"t1"},{"id":"t2"}],"next":"?accountId=acc-1&after=%s"}
                         """.formatted(CURSOR), MediaType.APPLICATION_JSON));
-        // o "next" e anexado como veio (com + / =), so acrescentando o filtro de data que faltou
         server.expect(once(), requestTo(BASE + "/v2/transactions?accountId=acc-1&after=" + CURSOR + "&dateFrom=2026-01-01"))
                 .andRespond(withSuccess("""
                         {"results":[{"id":"t3"}],"next":null}
@@ -242,7 +241,7 @@ class PluggyClientTest {
                 .andRespond(withSuccess("{\"results\":[{\"id\":\"t2\"}],\"next\":\"?accountId=acc-1&after=A\"}", MediaType.APPLICATION_JSON));
 
         assertEquals(2, client.transactions("acc-1", LocalDate.parse("2026-01-01")).size());
-        server.verify();   // exatamente duas requisicoes
+        server.verify();
     }
 
     @Test
@@ -282,7 +281,7 @@ class PluggyClientTest {
         server.expect(once(), requestTo(BASE + "/items/item-1"))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND));
 
-        client.deleteItem("item-1");   // nao lanca
+        client.deleteItem("item-1");
         server.verify();
     }
 

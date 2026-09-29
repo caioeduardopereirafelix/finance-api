@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** Webhooks da Pluggy: rota publica protegida por segredo no caminho. */
 @TestPropertySource(properties = {
         "bank.provider=pluggy",
         "bank.pluggy.client-id=id-teste",
@@ -34,7 +33,7 @@ class PluggyWebhookIntegrationTest extends ApiIntegrationTestSupport {
 
     private static final String WEBHOOK = "/webhooks/pluggy/segredo-de-teste";
 
-    /** Um por teste (o JUnit cria uma instancia por metodo): o banco de testes e compartilhado. */
+
     private final String item = UUID.randomUUID().toString();
     private final String outroItem = UUID.randomUUID().toString();
 
@@ -89,7 +88,7 @@ class PluggyWebhookIntegrationTest extends ApiIntegrationTestSupport {
         var a = registerAndLogin();
         var b = registerAndLogin();
         stubItem(item, "t1", "t2");
-        stubItem(outroItem, "t1");   // mesmo id de transacao, mas em outro item e outro usuario
+        stubItem(outroItem, "t1");
         String conexaoA = conectar(a, item);
         String conexaoB = conectar(b, outroItem);
         sincronizar(a, conexaoA);
@@ -101,7 +100,7 @@ class PluggyWebhookIntegrationTest extends ApiIntegrationTestSupport {
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.content[0].description").value("Compra t2"));
         mockMvc.perform(get("/transaction").header(HttpHeaders.AUTHORIZATION, b.bearer()))
-                .andExpect(jsonPath("$.totalElements").value(1));   // o t1 do outro usuario continua
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
@@ -122,7 +121,7 @@ class PluggyWebhookIntegrationTest extends ApiIntegrationTestSupport {
     void transacoesCriadasDisparamUmaSincronizacaoEmSegundoPlano() throws Exception {
         var a = registerAndLogin();
         stubItem(item, "t1", "t2", "t3");
-        conectar(a, item);   // ainda sem nenhuma sincronizacao
+        conectar(a, item);
 
         webhook(WEBHOOK, "{\"event\":\"transactions/created\",\"itemId\":\"" + item + "\",\"accountId\":\"acc\"}");
 

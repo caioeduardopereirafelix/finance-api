@@ -7,7 +7,6 @@ import org.springframework.http.MediaType;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** Sem nenhum provedor habilitado (o padrao), a integracao responde 503 em vez de fingir que funciona. */
 class BankWithoutProviderIntegrationTest extends ApiIntegrationTestSupport {
 
     @Test

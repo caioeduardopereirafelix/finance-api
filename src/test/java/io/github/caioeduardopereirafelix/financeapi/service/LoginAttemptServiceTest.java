@@ -69,7 +69,6 @@ class LoginAttemptServiceTest {
 
         assertDoesNotThrow(() -> service.checkAllowed("a@b.com"));
 
-        // e a contagem recomeca do zero
         fail("a@b.com", 2);
         assertDoesNotThrow(() -> service.checkAllowed("a@b.com"));
     }

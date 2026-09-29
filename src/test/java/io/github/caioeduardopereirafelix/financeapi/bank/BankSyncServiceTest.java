@@ -38,6 +38,8 @@ class BankSyncServiceTest {
     private TransactionRepository transactions;
     @Mock
     private BankProvider provider;
+    @Mock
+    private io.github.caioeduardopereirafelix.financeapi.service.CategoryRuleService categoryRules;
 
     private BankSyncService service;
     private BankConnection connection;
@@ -48,7 +50,7 @@ class BankSyncServiceTest {
         when(provider.name()).thenReturn("test");
         BankProviders providers = new BankProviders(List.of(provider), "test");
 
-        service = new BankSyncService(connections, transactions, providers, new BankCategoryMapper());
+        service = new BankSyncService(connections, transactions, providers, new BankCategoryMapper(), categoryRules);
 
         user = User.builder().id(UUID.randomUUID()).build();
         connection = new BankConnection();
@@ -76,13 +78,55 @@ class BankSyncServiceTest {
         var captor = ArgumentCaptor.forClass(Transaction.class);
         verify(transactions).save(captor.capture());
         Transaction saved = captor.getValue();
-        assertEquals(new BigDecimal("40.00"), saved.getAmount());          // sempre positivo
+        assertEquals(new BigDecimal("40.00"), saved.getAmount());
         assertEquals(TransactionalType.EXPENSES, saved.getType());
         assertEquals(CategoryName.FOOD, saved.getCategory());
         assertEquals(TransactionSource.BANK, saved.getSource());
-        assertEquals(user.getId().toString(), saved.getCreatedBy());        // dono, mesmo sem usuario logado
-        assertEquals("test:a", saved.getExternalId());                      // prefixado pelo provedor
+        assertEquals(user.getId().toString(), saved.getCreatedBy());
+        assertEquals("test:a", saved.getExternalId());
         assertEquals(connection, saved.getBankConnection());
+    }
+
+    @Test
+    void regraDoUsuarioTemPrioridadeSobreOMapeamentoPadrao() {
+        var chave = io.github.caioeduardopereirafelix.financeapi.service.CategoryRuleService
+                .lookupKey(TransactionalType.EXPENSES, "uber viagem");
+        when(categoryRules.rulesOf(user)).thenReturn(java.util.Map.of(chave, CategoryName.LEISURE));
+        when(provider.fetchTransactions(anyString(), any())).thenReturn(List.of(
+                new ExternalTransaction("a", "Uber *Viagem 4821", new BigDecimal("-30.00"), Instant.now(), "Transport")));
+
+        service.syncById(connection.getId());
+
+        var captor = ArgumentCaptor.forClass(Transaction.class);
+        verify(transactions).save(captor.capture());
+        assertEquals(CategoryName.LEISURE, captor.getValue().getCategory());
+    }
+
+    @Test
+    void regraDeSaidaNaoAtingeEntradaDeMesmaDescricao() {
+        var chave = io.github.caioeduardopereirafelix.financeapi.service.CategoryRuleService
+                .lookupKey(TransactionalType.EXPENSES, "pix");
+        when(categoryRules.rulesOf(user)).thenReturn(java.util.Map.of(chave, CategoryName.LEISURE));
+        when(provider.fetchTransactions(anyString(), any())).thenReturn(List.of(
+                new ExternalTransaction("a", "Pix", new BigDecimal("50.00"), Instant.now(), null)));
+
+        service.syncById(connection.getId());
+
+        var captor = ArgumentCaptor.forClass(Transaction.class);
+        verify(transactions).save(captor.capture());
+        assertEquals(CategoryName.OTHER_INCOME, captor.getValue().getCategory());   // nao virou LEISURE
+    }
+
+    @Test
+    void semRegraUsaOMapeamentoPadrao() {
+        when(categoryRules.rulesOf(user)).thenReturn(java.util.Map.of());
+        when(provider.fetchTransactions(anyString(), any())).thenReturn(List.of(external("a", "-40.00", "Groceries")));
+
+        service.syncById(connection.getId());
+
+        var captor = ArgumentCaptor.forClass(Transaction.class);
+        verify(transactions).save(captor.capture());
+        assertEquals(CategoryName.FOOD, captor.getValue().getCategory());
     }
 
     @Test

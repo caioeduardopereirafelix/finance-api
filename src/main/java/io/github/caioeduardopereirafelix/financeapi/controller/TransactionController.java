@@ -1,6 +1,10 @@
 package io.github.caioeduardopereirafelix.financeapi.controller;
 
+import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidFieldException;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CategoryTotalDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CategoryChangeResponseDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CreateTransactionRequestDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateCategoryRequestDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.ResponseTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.SummaryResponseDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
@@ -76,6 +80,18 @@ public class TransactionController {
     }
 
 
+    /** Troca so a categoria; com applyToSimilar, vale tambem para as parecidas e as proximas importacoes. */
+    @PatchMapping("/{id}/category")
+    public ResponseEntity<CategoryChangeResponseDTO> updateCategory(
+            @PathVariable("id") UUID id,
+            @Valid @RequestBody UpdateCategoryRequestDTO request){
+
+        var change = service.updateCategory(id, request.category(), request.applyToSimilar());
+
+        return ResponseEntity.ok(new CategoryChangeResponseDTO(
+                transactionMapper.toResponse(change.transaction()), change.updated()));
+    }
+
     @GetMapping
     public ResponseEntity<Page<ResponseTransactionDTO>> findAllTransactions(
             @RequestParam(required = false) TransactionalType type,
@@ -96,15 +112,8 @@ public class TransactionController {
                              sort = "occurredAt",
                              direction = Sort.Direction.DESC)Pageable pageable){
 
-        // "De 01/09 ate 28/09" sao dias no fuso do usuario, nao em UTC: uma compra das
-        // 22h de Sao Paulo cai no dia 29 em UTC e sumiria de um filtro "ate 28".
-        Instant occurredFrom = startDate != null
-                ? startDate.atStartOfDay(zone).toInstant()
-                : null;
-
-        Instant occurredBefore = endDate != null
-                ? endDate.plusDays(1).atStartOfDay(zone).toInstant()
-                : null;
+        Instant occurredFrom = startOf(startDate);
+        Instant occurredBefore = endOfInclusive(endDate);
 
         Page<Transaction> transactions = service.findTransactionsWithFilters(
                 type,
@@ -123,9 +132,52 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
+    /** Entradas, saidas e saldo. Sem datas, cobre tudo; com datas, so o periodo. */
     @GetMapping("/summary")
-    public ResponseEntity<SummaryResponseDTO> summary(){
+    public ResponseEntity<SummaryResponseDTO> summary(
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
 
-        return ResponseEntity.ok(service.getSummary());
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate){
+
+        requireOrderedPeriod(startDate, endDate);
+
+        return ResponseEntity.ok(service.getSummary(startOf(startDate), endOfInclusive(endDate)));
+    }
+
+    /** Total por categoria no periodo, do maior para o menor. */
+    @GetMapping("/summary/by-category")
+    public ResponseEntity<List<CategoryTotalDTO>> summaryByCategory(
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate){
+
+        requireOrderedPeriod(startDate, endDate);
+
+        return ResponseEntity.ok(service.getTotalsByCategory(startOf(startDate), endOfInclusive(endDate)));
+    }
+
+    // "De 01/09 ate 28/09" sao dias no fuso do usuario, nao em UTC: uma compra das 22h de
+    // Sao Paulo cai no dia 29 em UTC e sumiria de um filtro "ate 28".
+    private Instant startOf(LocalDate date) {
+        return date != null ? date.atStartOfDay(zone).toInstant() : null;
+    }
+
+    /** O dia final entra inteiro: o limite e o comeco do dia seguinte, exclusivo. */
+    private Instant endOfInclusive(LocalDate date) {
+        return date != null ? date.plusDays(1).atStartOfDay(zone).toInstant() : null;
+    }
+
+    private void requireOrderedPeriod(LocalDate startDate, LocalDate endDate) {
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            throw new InvalidFieldException("startDate", "A data inicial deve ser anterior ou igual a final");
+        }
     }
 }

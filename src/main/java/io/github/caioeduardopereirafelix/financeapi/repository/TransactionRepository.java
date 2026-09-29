@@ -3,12 +3,15 @@ package io.github.caioeduardopereirafelix.financeapi.repository;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.BankConnection;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
+import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
+import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionSource;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +22,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
     Optional<Transaction> findByIdAndUser(UUID id, User user);
 
     boolean existsByUserAndExternalId(User user, String externalId);
+
+    List<Transaction> findByUserAndSourceAndType(User user, TransactionSource source, TransactionalType type);
 
     /** Apaga o que foi importado de uma conexao (usado ao desconectar, a pedido do usuario). */
     void deleteByBankConnection(BankConnection bankConnection);
@@ -43,13 +48,32 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
 
     /**
      * Soma os valores por tipo direto no banco, em vez de carregar todas as
-     * transacoes do usuario na memoria so para somar.
+     * transacoes do usuario na memoria so para somar. O periodo vai de {@code from}
+     * (inclusive) ate {@code before} (exclusivo), sobre a data em que o gasto ocorreu.
      */
     @Query("""
             select t.type as type, sum(t.amount) as total
             from Transaction t
             where t.user = :user
+              and t.occurredAt >= :from
+              and t.occurredAt < :before
             group by t.type
             """)
-    List<TransactionSummaryProjection> summarizeByType(@Param("user") User user);
+    List<TransactionSummaryProjection> summarizeByType(@Param("user") User user,
+                                                       @Param("from") Instant from,
+                                                       @Param("before") Instant before);
+
+    /** Total por categoria no periodo, do maior para o menor. */
+    @Query("""
+            select t.category as category, t.type as type, sum(t.amount) as total, count(t) as count
+            from Transaction t
+            where t.user = :user
+              and t.occurredAt >= :from
+              and t.occurredAt < :before
+            group by t.category, t.type
+            order by sum(t.amount) desc
+            """)
+    List<CategoryTotalProjection> totalsByCategory(@Param("user") User user,
+                                                   @Param("from") Instant from,
+                                                   @Param("before") Instant before);
 }

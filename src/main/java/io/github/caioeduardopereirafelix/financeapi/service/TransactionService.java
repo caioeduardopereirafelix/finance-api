@@ -2,6 +2,7 @@ package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.config.SecurityUtils;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.TransactionNotFound;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CategoryTotalDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CreateTransactionRequestDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.SummaryResponseDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -34,6 +36,10 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final TransactionValidator validator;
     private final SecurityUtils securityUtils;
+    private final CategoryRuleService categoryRules;
+
+    public record CategoryChange(Transaction transaction, int updated) {
+    }
 
     public Transaction create(CreateTransactionRequestDTO transaction){
 
@@ -80,6 +86,7 @@ public class TransactionService {
 
         validator.validateAmount(transactionDTO.amount());
         validator.validateCategoryByType(transactionDTO.category(), transactionDTO.type());
+        validator.validateImportedOnlyChangesCategory(transaction, transactionDTO);
 
         transaction.setType(transactionDTO.type());
         transaction.setDescription(transactionDTO.description());
@@ -89,11 +96,42 @@ public class TransactionService {
         return transactionRepository.save(transaction);
     }
 
-    public SummaryResponseDTO getSummary(){
+    /**
+     * Troca so a categoria. Serve a qualquer transacao do usuario, e e o unico ajuste que uma
+     * transacao importada do banco aceita.
+     */
+    public CategoryChange updateCategory(UUID id, CategoryName category, boolean applyToSimilar) {
+
+        User user = securityUtils.getAuthenticatedUser();
+        var transaction = transactionRepository
+                .findByIdAndUser(id, user).orElseThrow(() -> new TransactionNotFound("Transaction not found"));
+
+        validator.validateCategoryByType(category, transaction.getType());
+
+        transaction.setCategory(category);
+        transactionRepository.save(transaction);
+
+        int updated = 1;
+        if (applyToSimilar) {
+            updated += categoryRules.remember(user, transaction, category);
+        }
+        return new CategoryChange(transaction, updated);
+    }
+
+    /** Sem limites de data, o resumo cobre tudo. */
+    private static final Instant FIRST_INSTANT = Instant.EPOCH;
+    private static final Instant LAST_INSTANT = Instant.parse("3000-01-01T00:00:00Z");
+
+    /**
+     * @param from   inicio do periodo (inclusive); nulo = desde sempre
+     * @param before fim do periodo (exclusivo); nulo = ate hoje e alem
+     */
+    public SummaryResponseDTO getSummary(Instant from, Instant before){
 
         User user = securityUtils.getAuthenticatedUser();
 
-        Map<TransactionalType, BigDecimal> totals = transactionRepository.summarizeByType(user)
+        Map<TransactionalType, BigDecimal> totals = transactionRepository
+                .summarizeByType(user, from != null ? from : FIRST_INSTANT, before != null ? before : LAST_INSTANT)
                 .stream()
                 .collect(Collectors.toMap(
                         TransactionSummaryProjection::getType,
@@ -103,6 +141,17 @@ public class TransactionService {
         BigDecimal expenses = totals.getOrDefault(TransactionalType.EXPENSES, BigDecimal.ZERO);
 
         return new SummaryResponseDTO(cashEntry, expenses, cashEntry.subtract(expenses));
+    }
+
+    public List<CategoryTotalDTO> getTotalsByCategory(Instant from, Instant before){
+
+        User user = securityUtils.getAuthenticatedUser();
+
+        return transactionRepository
+                .totalsByCategory(user, from != null ? from : FIRST_INSTANT, before != null ? before : LAST_INSTANT)
+                .stream()
+                .map(row -> new CategoryTotalDTO(row.getCategory(), row.getType(), row.getTotal(), row.getCount()))
+                .toList();
     }
 
     public Page<Transaction> findTransactionsWithFilters(

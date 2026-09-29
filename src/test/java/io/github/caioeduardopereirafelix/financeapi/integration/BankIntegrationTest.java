@@ -24,7 +24,7 @@ class BankIntegrationTest extends ApiIntegrationTestSupport {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.institutionName").value("Banco Demo"))
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
-                .andExpect(jsonPath("$.externalId").doesNotExist())   // nao vaza o id do provedor
+                .andExpect(jsonPath("$.externalId").doesNotExist())
                 .andReturn().getResponse().getContentAsString();
         return objectMapper.readTree(body).get("id").asText();
     }
@@ -58,7 +58,7 @@ class BankIntegrationTest extends ApiIntegrationTestSupport {
                 .andExpect(jsonPath("$.imported").value(7))
                 .andExpect(jsonPath("$.skipped").value(0));
 
-        // 5 saidas e 2 entradas no provedor de mentira
+
         mockMvc.perform(get("/transaction").param("size", "20").header(HttpHeaders.AUTHORIZATION, a.bearer()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(7));
@@ -79,7 +79,6 @@ class BankIntegrationTest extends ApiIntegrationTestSupport {
         mockMvc.perform(post("/bank/connections/" + id + "/sync").header(HttpHeaders.AUTHORIZATION, a.bearer()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.imported").value(0))
-                // a segunda busca so cobre os ultimos 7 dias antes da anterior: 3 dos 7 itens
                 .andExpect(jsonPath("$.skipped").value(3));
 
         mockMvc.perform(get("/transaction").param("size", "20").header(HttpHeaders.AUTHORIZATION, a.bearer()))
@@ -92,7 +91,6 @@ class BankIntegrationTest extends ApiIntegrationTestSupport {
         String id = conectar(a, novoExternalId());
         mockMvc.perform(post("/bank/connections/" + id + "/sync").header(HttpHeaders.AUTHORIZATION, a.bearer()));
 
-        // entradas: 5400 + 150 | saidas: 312.48 + 27.90 + 84.10 + 39.90 + 9.90
         mockMvc.perform(get("/transaction/summary").header(HttpHeaders.AUTHORIZATION, a.bearer()))
                 .andExpect(jsonPath("$.cashEntry").value(5550.00))
                 .andExpect(jsonPath("$.expenses").value(474.28))
@@ -160,7 +158,6 @@ class BankIntegrationTest extends ApiIntegrationTestSupport {
         String id = conectar(a, novoExternalId());
         mockMvc.perform(post("/bank/connections/" + id + "/sync").header(HttpHeaders.AUTHORIZATION, a.bearer()));
 
-        // um lancamento manual que nao pode ser apagado junto
         mockMvc.perform(post("/transaction")
                 .header(HttpHeaders.AUTHORIZATION, a.bearer())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -202,10 +199,9 @@ class BankIntegrationTest extends ApiIntegrationTestSupport {
         String id = conectar(a, novoExternalId());
         mockMvc.perform(post("/bank/connections/" + id + "/sync").header(HttpHeaders.AUTHORIZATION, a.bearer()));
 
-        // tudo entrou no mesmo instante; o que ordena e a data em que o gasto ocorreu
         mockMvc.perform(get("/transaction").param("size", "20").header(HttpHeaders.AUTHORIZATION, a.bearer()))
-                .andExpect(jsonPath("$.content[0].description").value("Supermercado Central"))      // 2 dias atras
-                .andExpect(jsonPath("$.content[6].description").value("Tarifa desconhecida"));      // 20 dias atras
+                .andExpect(jsonPath("$.content[0].description").value("Supermercado Central"))
+                .andExpect(jsonPath("$.content[6].description").value("Tarifa desconhecida"));
     }
 
     @Test
@@ -226,12 +222,10 @@ class BankIntegrationTest extends ApiIntegrationTestSupport {
         String id = conectar(a, novoExternalId());
         mockMvc.perform(post("/bank/connections/" + id + "/sync").header(HttpHeaders.AUTHORIZATION, a.bearer()));
 
-        // gastos de 2, 3 e 5 dias atras (7 itens no total, todos importados agora)
         mockMvc.perform(get("/transaction").param("startDate", dia(6)).param("size", "20")
                         .header(HttpHeaders.AUTHORIZATION, a.bearer()))
                 .andExpect(jsonPath("$.totalElements").value(3));
 
-        // entre 13 e 9 dias atras: os de 10 e 12 dias
         mockMvc.perform(get("/transaction").param("startDate", dia(13)).param("endDate", dia(9)).param("size", "20")
                         .header(HttpHeaders.AUTHORIZATION, a.bearer()))
                 .andExpect(jsonPath("$.totalElements").value(2));
@@ -245,11 +239,9 @@ class BankIntegrationTest extends ApiIntegrationTestSupport {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"description\":\"Hoje\",\"amount\":10.00,\"type\":\"EXPENSES\",\"category\":\"FOOD\"}"));
 
-        // endDate = hoje: o lancamento de agora precisa aparecer
         mockMvc.perform(get("/transaction").param("endDate", dia(0)).header(HttpHeaders.AUTHORIZATION, a.bearer()))
                 .andExpect(jsonPath("$.totalElements").value(1));
 
-        // endDate = ontem: nao pode
         mockMvc.perform(get("/transaction").param("endDate", dia(1)).header(HttpHeaders.AUTHORIZATION, a.bearer()))
                 .andExpect(jsonPath("$.totalElements").value(0));
     }

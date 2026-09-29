@@ -151,9 +151,15 @@
                 </span>
               </td>
               <td class="cell-actions">
-                <button type="button" class="btn btn-ghost btn-sm" (click)="openEdit(item)">
-                  Editar<span class="sr-only"> transação {{ item.description }}</span>
-                </button>
+                @if (item.source === 'BANK') {
+                  <button type="button" class="btn btn-ghost btn-sm" (click)="openCategory(item)">
+                    Categoria<span class="sr-only"> da transação {{ item.description }}</span>
+                  </button>
+                } @else {
+                  <button type="button" class="btn btn-ghost btn-sm" (click)="openEdit(item)">
+                    Editar<span class="sr-only"> transação {{ item.description }}</span>
+                  </button>
+                }
                 <button type="button" class="btn btn-danger btn-sm" (click)="askDelete(item)">
                   Excluir<span class="sr-only"> transação {{ item.description }}</span>
                 </button>
@@ -264,6 +270,42 @@
     <button type="button" class="btn btn-secondary" (click)="cancelDelete()">Cancelar</button>
     <button type="button" class="btn btn-danger" [disabled]="saving()" (click)="confirmDelete()">
       {{ saving() ? 'Excluindo…' : 'Excluir' }}
+    </button>
+  </div>
+</dialog>
+
+<dialog #categoryDialog class="dialog dialog-sm" aria-labelledby="cat-dialog-titulo"
+        aria-describedby="cat-dialog-texto">
+  <h2 id="cat-dialog-titulo">Alterar categoria</h2>
+  <p id="cat-dialog-texto">
+    <strong>{{ recategorizing()?.description }}</strong> veio do banco: o valor e a descrição
+    não mudam, mas a categoria você escolhe.
+  </p>
+
+  <div class="field">
+    <label for="cat-select">Categoria</label>
+    <select #categorySelect id="cat-select" [value]="newCategory()"
+            (change)="newCategory.set($any($event.target).value)">
+      @for (category of categoryChoices(recategorizing()); track category) {
+        <option [value]="category" [selected]="category === newCategory()">{{ categoryLabel[category] }}</option>
+      }
+    </select>
+  </div>
+
+  <label class="check-option">
+    <input type="checkbox" [checked]="applyToSimilar()" (change)="applyToSimilar.set($any($event.target).checked)" />
+    <span>
+      Usar também nas transações parecidas
+      <span class="hint check-hint">
+        Muda as já importadas do mesmo estabelecimento e vale para as próximas importações.
+      </span>
+    </span>
+  </label>
+
+  <div class="dialog-actions">
+    <button type="button" class="btn btn-secondary" (click)="closeCategory()">Cancelar</button>
+    <button type="button" class="btn btn-primary" [disabled]="saving()" (click)="saveCategory()">
+      {{ saving() ? 'Salvando…' : 'Salvar' }}
     </button>
   </div>
 </dialog>

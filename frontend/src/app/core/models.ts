@@ -30,6 +30,18 @@ export interface TransactionPayload {
   category: CategoryName;
 }
 
+export interface CategoryTotal {
+  category: CategoryName;
+  type: TransactionalType;
+  total: number;
+  count: number;
+}
+
+export interface CategoryChange {
+  transaction: Transaction;
+  updated: number;
+}
+
 export interface Summary {
   cashEntry: number;
   expenses: number;

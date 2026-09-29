@@ -51,7 +51,6 @@ class BankConnectionServiceTest {
         return c;
     }
 
-    // ---------- reautorizar ----------
 
     @Test
     void tokenDeReautorizacaoTrazOExternalIdParaOWidgetAbrirNaConexao() {
@@ -77,7 +76,6 @@ class BankConnectionServiceTest {
         verify(provider, never()).createUpdateToken(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
     }
 
-    // ---------- apagar a conta ----------
 
     @Test
     void revokeAllRevogaCadaConexaoDoUsuario() {
@@ -120,7 +118,7 @@ class BankConnectionServiceTest {
         var atual = connection("test", "item-a");
         when(connections.findByUserOrderByCreatedAtDesc(user)).thenReturn(List.of(antiga, atual));
 
-        service.revokeAll(user);   // nao lanca
+        service.revokeAll(user);
 
         verify(provider).disconnect("item-a");
     }

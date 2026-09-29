@@ -70,7 +70,6 @@ class AuthFlowIntegrationTest extends ApiIntegrationTestSupport {
                                 .andReturn().getResponse().getContentAsString())
                 .get("refreshToken").asText();
 
-        // rotacao: o token apresentado nao serve mais
         mockMvc.perform(post("/v1/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -78,7 +77,6 @@ class AuthFlowIntegrationTest extends ApiIntegrationTestSupport {
                                 """.formatted(account.refreshToken())))
                 .andExpect(status().isUnauthorized());
 
-        // o novo, sim
         mockMvc.perform(post("/v1/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -118,7 +116,6 @@ class AuthFlowIntegrationTest extends ApiIntegrationTestSupport {
 
     @Test
     void loginNaoExigeTamanhoMinimoParaNaoTrancarContasAntigas() throws Exception {
-        // 401 (credencial errada) e nao 422 (validacao): a senha curta chega a ser conferida
         mockMvc.perform(post("/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""

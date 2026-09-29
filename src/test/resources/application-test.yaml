@@ -17,12 +17,31 @@ spring:
 api:
   security:
     token:
-      # segredo exclusivo de teste, sem valor fora da suite
       secret: test-secret-test-secret-test-secret-test-secret-test-secret-0123
       expiration: 3600000
 
     refresh-token:
       expiration: 604800000
 
+    login:
+      max-attempts: 5
+      lock-minutes: 15
+
   cors:
     allowed-origins: http://localhost:4200
+
+bank:
+  provider: mock
+  mock:
+    enabled: false
+  sync:
+    enabled: false
+    cron: "0 0 0 1 1 *"
+  pluggy:
+    client-id: ""
+    client-secret: ""
+    base-url: http://127.0.0.1:9
+    include-credit-cards: false
+    webhook-secret: ""
+    webhook-base-url: ""
+

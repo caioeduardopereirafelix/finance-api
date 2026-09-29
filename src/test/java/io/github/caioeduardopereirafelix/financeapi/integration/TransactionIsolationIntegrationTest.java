@@ -11,10 +11,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * A promessa central da API e que cada usuario so enxerga o proprio dinheiro.
- * Estes testes cobrem exatamente isso.
- */
 class TransactionIsolationIntegrationTest extends ApiIntegrationTestSupport {
 
     private String criarTransacao(Account account, String descricao, String valor,
@@ -75,8 +71,6 @@ class TransactionIsolationIntegrationTest extends ApiIntegrationTestSupport {
 
         mockMvc.perform(delete("/transaction/" + idDoB).header(HttpHeaders.AUTHORIZATION, a.bearer()))
                 .andExpect(status().isNotFound());
-
-        // continua intacta para o dono
         mockMvc.perform(get("/transaction/" + idDoB).header(HttpHeaders.AUTHORIZATION, b.bearer()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description").value("Privado do B"));

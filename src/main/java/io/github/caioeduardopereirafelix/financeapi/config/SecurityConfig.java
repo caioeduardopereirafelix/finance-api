@@ -89,6 +89,9 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.PUT, "/transaction", "/transaction/**")
                         .hasAnyRole("ADMIN", "USER")
+
+                        .requestMatchers(HttpMethod.PATCH, "/transaction/**")
+                        .hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

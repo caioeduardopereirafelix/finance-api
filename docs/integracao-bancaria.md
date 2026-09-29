@@ -135,3 +135,18 @@ Um aviso `updated` não reescreve valor, descrição ou data de uma linha já im
 responde 502 e nada é apagado (repetir é seguro). Provedor não configurado nesta instância é pulado
 com aviso no log. A conta e as transações dela são apagadas juntas (migration V6).
 
+## Recategorizar
+
+O mapeamento automático (`BankCategoryMapper`) cobre só termos comuns; o resto cai em "Outras
+despesas/receitas". Na tela **Transações**, uma transação importada tem o botão **Categoria** (no lugar
+de "Editar": valor e descrição vêm do banco e não mudam). O diálogo oferece só categorias do mesmo tipo
+e a opção **Usar também nas transações parecidas**, marcada por padrão:
+
+- muda as transações importadas do mesmo estabelecimento (`DescriptionKey`) e do mesmo tipo;
+- guarda uma regra por usuário, aplicada nas próximas importações, com prioridade sobre o mapeamento
+  automático;
+- não toca em lançamentos manuais nem em transações de outros usuários.
+
+Desmarcar a opção troca só aquela transação. Para desfazer, basta escolher outra categoria com a opção
+marcada: a regra é atualizada, não duplicada.
+

@@ -58,7 +58,6 @@ class BankCategoryMapperTest {
 
     @Test
     void categoriaDeSaidaEmValorPositivoNaoVazaParaEntrada() {
-        // estorno de mercado: e entrada, e FOOD so existe para saida
         var mapped = mapper.map(new BigDecimal("30"), "Groceries");
 
         assertEquals(TransactionalType.CASH_ENTRY, mapped.type());

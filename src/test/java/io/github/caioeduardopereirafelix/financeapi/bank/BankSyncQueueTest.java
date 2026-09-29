@@ -37,14 +37,13 @@ class BankSyncQueueTest {
 
         queue.enqueue(id);
         assertTrue(primeiraIniciou.await(5, TimeUnit.SECONDS));
-        // a primeira esta rodando: estes tres avisos pedem UMA nova rodada, nao tres
         queue.enqueue(id);
         queue.enqueue(id);
         queue.enqueue(id);
         liberar.countDown();
 
         assertTrue(terminou.await(5, TimeUnit.SECONDS));
-        Thread.sleep(200);   // tempo para uma terceira execucao indevida aparecer, se existisse
+        Thread.sleep(200);
         assertEquals(2, chamadas.get());
         queue.stop();
     }

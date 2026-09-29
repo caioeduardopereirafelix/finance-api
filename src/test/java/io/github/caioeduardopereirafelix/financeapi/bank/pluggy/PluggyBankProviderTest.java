@@ -155,7 +155,6 @@ class PluggyBankProviderTest {
 
     @Test
     void dataSoComDiaNaoDeveCairNoDiaAnteriorNoFusoDoBrasil() {
-        // meia-noite UTC = 21h do dia 4 em Sao Paulo; a compra e do dia 5
         ExternalTransaction t = provider.map(tx("t1", "DEBIT", "-10", "2026-03-05T00:00:00.000Z", "POSTED"), false);
 
         assertEquals(LocalDate.parse("2026-03-05"), t.date().atZone(SAO_PAULO).toLocalDate());
@@ -170,9 +169,9 @@ class PluggyBankProviderTest {
 
     @Test
     void registroIncompletoDeveSerIgnoradoEmVezDeQuebrarASincronizacao() {
-        assertNull(provider.map(json("{\"id\":\"x\",\"type\":\"DEBIT\",\"date\":\"2026-03-05\"}"), false));          // sem amount
-        assertNull(provider.map(json("{\"type\":\"DEBIT\",\"amount\":1,\"date\":\"2026-03-05\"}"), false));           // sem id
-        assertNull(provider.map(json("{\"id\":\"x\",\"type\":\"DEBIT\",\"amount\":1,\"date\":\"lixo\"}"), false));    // data invalida
+        assertNull(provider.map(json("{\"id\":\"x\",\"type\":\"DEBIT\",\"date\":\"2026-03-05\"}"), false));
+        assertNull(provider.map(json("{\"type\":\"DEBIT\",\"amount\":1,\"date\":\"2026-03-05\"}"), false));
+        assertNull(provider.map(json("{\"id\":\"x\",\"type\":\"DEBIT\",\"amount\":1,\"date\":\"lixo\"}"), false));
     }
 
     @Test
@@ -228,7 +227,7 @@ class PluggyBankProviderTest {
 
         assertEquals(List.of("compra", "estorno", "cashback"), result.stream().map(ExternalTransaction::id).toList());
         assertEquals(0, new BigDecimal("-120.00").compareTo(result.get(0).amount()));
-        assertEquals(0, new BigDecimal("30").compareTo(result.get(1).amount()));   // estorno = entrada
+        assertEquals(0, new BigDecimal("30").compareTo(result.get(1).amount()));
         assertEquals(0, new BigDecimal("2.5").compareTo(result.get(2).amount()));
     }
 
@@ -250,7 +249,6 @@ class PluggyBankProviderTest {
         when(client.transactions(eq("bank"), any())).thenReturn(List.of());
         when(client.transactions(eq("card"), any())).thenReturn(List.of());
 
-        // ultima sincronizacao ha 2 dias: a conta busca desde la, o cartao volta 60 dias
         provider.fetchTransactions(ITEM, Instant.parse("2026-09-27T12:00:00Z"));
 
         verify(client).transactions("bank", LocalDate.parse("2026-09-27"));

@@ -16,6 +16,7 @@
   --expense: #A81E14;
   --expense-bg: #FCE9E7;
   --focus: #1A4FD6;
+  --viz-1: #2A78D6;
   --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 8px 24px rgb(16 24 40 / 8%);
 
   --radius: 10px;
@@ -41,6 +42,7 @@
     --expense: #FF9E96;
     --expense-bg: #3A1714;
     --focus: #8AB0FF;
+    --viz-1: #3987E5;
     --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 45%);
   }
 }
@@ -61,6 +63,7 @@
   --expense: #FF9E96;
   --expense-bg: #3A1714;
   --focus: #8AB0FF;
+  --viz-1: #3987E5;
   --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 45%);
 }
 
