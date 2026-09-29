@@ -134,7 +134,10 @@ Revoga o refresh token informado.
 POST /transaction
 ```
 
-Cria uma nova transação para o usuário autenticado.
+Cria uma nova transação para o usuário autenticado. O campo opcional `occurredOn` (`AAAA-MM-DD`)
+informa o dia em que o gasto ou a entrada aconteceu; sem ele vale agora. O dia é lido no fuso
+`America/Sao_Paulo`: hoje guarda o instante atual, um dia passado guarda o meio-dia desse dia.
+Data futura ou anterior a 2000 responde 422 (`fieldsError[0].field = occurredOn`).
 
 ```http
 GET /transaction
@@ -152,7 +155,9 @@ Retorna uma transação específica do usuário autenticado.
 PUT /transaction/{id}
 ```
 
-Atualiza uma transação existente.
+Atualiza uma transação existente. `occurredOn` segue a regra da criação; omitido, ou igual ao dia
+já gravado, a data e a hora ficam como estavam. Numa transação **importada do banco** a data vem do
+banco: pedir outro dia responde 422.
 
 ```http
 PATCH /transaction/{id}/category
@@ -198,7 +203,8 @@ transações de cada uma: `[{ "category": "FOOD", "type": "EXPENSES", "total": 8
   "description": "Salário mensal",
   "amount": 3500.00,
   "category": "WAGE",
-  "type": "CASH_ENTRY"
+  "type": "CASH_ENTRY",
+  "occurredOn": "2026-09-05"
 }
 ```
 
@@ -325,6 +331,14 @@ Os testes (`./mvnw test`) **não dependem do seu `.env`**: o perfil de teste
 (`src/test/resources/application-test.yaml`) fixa a configuração de banco, da Pluggy e de login. Sem
 isso, credenciais reais no `.env` mudariam o resultado da suíte e fariam testes falarem com a
 Pluggy de verdade. Um teste (`TestEnvironmentIsolationTest`) garante isso.
+
+A maior parte da suíte roda em H2. Os testes de `PostgresIntegrationTest` rodam contra um
+**PostgreSQL de verdade** (container do Testcontainers, imagem `postgres:16-alpine`), com as
+migrations do Flyway e `ddl-auto: validate` como em produção: conferem o schema, as restrições, o
+fuso nos filtros de período, as somas e a exclusão em cascata da conta. Precisam de Docker; sem ele
+são pulados. Para usar um PostgreSQL que já existe, defina `TEST_PG_URL` (por exemplo
+`jdbc:postgresql://localhost:5432/finance_test`), `TEST_PG_USER` e `TEST_PG_PASSWORD` — use um banco
+vazio e descartável, porque o Flyway cria as tabelas nele.
 
 > Não coloque comentário na mesma linha de um valor: o `#` passaria a fazer
 > parte do valor e a aplicação não sobe.

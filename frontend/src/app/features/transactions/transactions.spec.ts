@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Transaction } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
+import { toIso } from '../dashboard/period';
 import { TransactionsPage } from './transactions';
 
 const bank: Transaction = {
@@ -135,5 +136,88 @@ describe('TransactionsPage (categoria)', () => {
       { status: 422, statusText: 'Unprocessable Entity' });
 
     expect(notices.notices().some(n => n.tone === 'error')).toBe(true);
+  });
+  describe('data do lançamento manual', () => {
+    const fill = (date: string) => {
+      page.form.patchValue({ description: 'Mercado', amount: '50,00', date });
+    };
+    const daysFromToday = (days: number) => {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return toIso(d);
+    };
+
+    it('nova transação já vem com hoje e envia a data escolhida', () => {
+      page.openCreate();
+      expect(page.form.controls.date.value).toBe(page.today());
+
+      fill('2026-08-15');
+      page.save();
+
+      const req = http.expectOne('/transaction');
+      expect(req.request.body.occurredOn).toBe('2026-08-15');
+      req.flush(manual);
+      flushList([manual]);
+    });
+
+    it('data futura é barrada antes de chamar a API', () => {
+      page.openCreate();
+      fill(daysFromToday(1));
+      page.save();
+
+      expect(page.dateError()).toBe('A data não pode ser futura.');
+      http.expectNone('/transaction');
+    });
+
+    it('data vazia ou anterior a 2000 é barrada', () => {
+      page.openCreate();
+      fill('');
+      page.save();
+      expect(page.dateError()).toBe('Informe a data.');
+
+      fill('1999-12-31');
+      expect(page.dateError()).toBe('Informe uma data a partir de 2000.');
+      http.expectNone('/transaction');
+    });
+
+    it('o campo aparece no formulário, ligado à dica e ao erro', () => {
+      page.openCreate();
+      fixture.detectChanges();
+      const input = el.querySelector<HTMLInputElement>('#t-data')!;
+      expect(input.type).toBe('date');
+      expect(input.getAttribute('max')).toBe(page.today());
+      expect(input.getAttribute('aria-describedby')).toBe('t-data-dica');
+
+      fill(daysFromToday(1));
+      page.save();
+      fixture.detectChanges();
+      expect(input.getAttribute('aria-invalid')).toBe('true');
+      expect(input.getAttribute('aria-describedby')).toBe('t-data-erro');
+      expect(el.querySelector('#t-data-erro')?.textContent).toContain('futura');
+    });
+
+    it('editar mostra a data atual e, sem mudá-la, não manda occurredOn', () => {
+      page.openEdit(manual);
+      expect(page.form.controls.date.value).toBe(toIso(new Date(manual.occurredAt)));
+
+      page.form.patchValue({ description: 'Café da manhã' });
+      page.save();
+
+      const req = http.expectOne('/transaction/m-1');
+      expect(req.request.body.occurredOn).toBeUndefined();
+      req.flush(manual);
+      flushList([manual]);
+    });
+
+    it('editar e mudar o dia manda occurredOn', () => {
+      page.openEdit(manual);
+      page.form.patchValue({ date: '2026-09-01' });
+      page.save();
+
+      const req = http.expectOne('/transaction/m-1');
+      expect(req.request.body.occurredOn).toBe('2026-09-01');
+      req.flush(manual);
+      flushList([manual]);
+    });
   });
 });

@@ -4,14 +4,16 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { messageOf } from '../../core/api-error';
 import {
   CATEGORIES_BY_TYPE, CATEGORY_LABEL, CategoryName,
-  PageResponse, Transaction, TransactionalType, TYPE_LABEL,
+  PageResponse, Transaction, TransactionalType, TransactionPayload, TYPE_LABEL,
 } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
 import { TransactionService } from '../../core/transaction.service';
 import { BrDatePipe } from '../../shared/date.pipe';
 import { MoneyPipe } from '../../shared/money.pipe';
+import { toIso } from '../dashboard/period';
 
 const PAGE_SIZE = 10;
+const EARLIEST_DATE = '2000-01-01';
 
 @Component({
   selector: 'app-transactions',
@@ -63,9 +65,11 @@ export class TransactionsPage {
     amount: ['', [Validators.required]],
     type: ['CASH_ENTRY' as TransactionalType, [Validators.required]],
     category: ['WAGE' as CategoryName, [Validators.required]],
+    date: [toIso(new Date())],
   });
 
   private currentPage = 0;
+  private originalDate = '';
 
   constructor() {
     // Trocar o tipo troca as categorias validas; sem isso o backend recusaria.
@@ -141,7 +145,8 @@ export class TransactionsPage {
     this.editing.set(null);
     this.formSubmitted.set(false);
     this.formError.set(null);
-    this.form.reset({ description: '', amount: '', type: 'CASH_ENTRY', category: 'WAGE' });
+    this.originalDate = '';
+    this.form.reset({ description: '', amount: '', type: 'CASH_ENTRY', category: 'WAGE', date: this.today() });
     this.openDialog(this.formDialog());
   }
 
@@ -149,16 +154,22 @@ export class TransactionsPage {
     this.editing.set(transaction);
     this.formSubmitted.set(false);
     this.formError.set(null);
+    this.originalDate = toIso(new Date(transaction.occurredAt));
     this.form.reset({
       description: transaction.description,
       amount: String(transaction.amount),
       type: transaction.type,
       category: transaction.category,
+      date: this.originalDate,
     });
     this.openDialog(this.formDialog());
   }
 
   closeForm() { this.formDialog()?.nativeElement.close(); }
+
+  today(): string { return toIso(new Date()); }
+
+  readonly earliestDate = EARLIEST_DATE;
 
   showFieldError(control: 'description' | 'amount'): boolean {
     return this.formSubmitted() && this.form.controls[control].invalid;
@@ -174,21 +185,33 @@ export class TransactionsPage {
     return null;
   }
 
+  dateError(): string | null {
+    if (!this.formSubmitted()) return null;
+    const value = this.form.controls.date.value;
+    if (!value) return 'Informe a data.';
+    if (value > this.today()) return 'A data não pode ser futura.';
+    if (value < EARLIEST_DATE) return 'Informe uma data a partir de 2000.';
+    return null;
+  }
+
   save() {
     this.formSubmitted.set(true);
     this.formError.set(null);
 
-    if (this.form.controls.description.invalid || this.amountError()) {
+    if (this.form.controls.description.invalid || this.amountError() || this.dateError()) {
       return;
     }
 
     const raw = this.form.getRawValue();
-    const payload = {
+    const payload: TransactionPayload = {
       description: raw.description.trim(),
       amount: Number(raw.amount.replace(',', '.')),
       type: raw.type,
       category: raw.category,
     };
+    if (raw.date !== this.originalDate) {
+      payload.occurredOn = raw.date;
+    }
 
     this.saving.set(true);
     const editing = this.editing();

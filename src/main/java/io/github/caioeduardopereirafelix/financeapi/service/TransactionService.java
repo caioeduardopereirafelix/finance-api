@@ -1,6 +1,8 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.config.SecurityUtils;
+import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidFieldException;
+import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionSource;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.TransactionNotFound;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CategoryTotalDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CreateTransactionRequestDTO;
@@ -16,6 +18,7 @@ import io.github.caioeduardopereirafelix.financeapi.service.validator.Transactio
 import io.github.caioeduardopereirafelix.financeapi.specification.TransactionSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -37,6 +41,10 @@ public class TransactionService {
     private final TransactionValidator validator;
     private final SecurityUtils securityUtils;
     private final CategoryRuleService categoryRules;
+
+    /** Fuso em que o dia informado pelo usuario e interpretado. */
+    @Value("${app.zone:America/Sao_Paulo}")
+    private ZoneId zone;
 
     public record CategoryChange(Transaction transaction, int updated) {
     }
@@ -54,6 +62,7 @@ public class TransactionService {
         transactionSave.setAmount(transaction.amount());
         transactionSave.setType(transaction.type());
         transactionSave.setUser(user);
+        transactionSave.setOccurredAt(OccurredAt.resolve(transaction.occurredOn(), null, zone, Instant.now()));
 
         return transactionRepository.save(transactionSave);
     }
@@ -87,13 +96,26 @@ public class TransactionService {
         validator.validateAmount(transactionDTO.amount());
         validator.validateCategoryByType(transactionDTO.category(), transactionDTO.type());
         validator.validateImportedOnlyChangesCategory(transaction, transactionDTO);
+        requireSameDayIfImported(transaction, transactionDTO);
 
         transaction.setType(transactionDTO.type());
         transaction.setDescription(transactionDTO.description());
         transaction.setCategory(transactionDTO.category());
         transaction.setAmount(transactionDTO.amount());
+        transaction.setOccurredAt(OccurredAt.resolve(
+                transactionDTO.occurredOn(), transaction.getOccurredAt(), zone, Instant.now()));
 
         return transactionRepository.save(transaction);
+    }
+
+    /** A data de uma transacao importada e a que o banco informou. */
+    private void requireSameDayIfImported(Transaction transaction, UpdateTransactionDTO changes) {
+        boolean imported = transaction.getSource() == TransactionSource.BANK;
+        if (imported && changes.occurredOn() != null
+                && !changes.occurredOn().equals(OccurredAt.dayOf(transaction.getOccurredAt(), zone))) {
+            throw new InvalidFieldException("occurredOn",
+                    "Transacao importada do banco: a data vem do banco e nao pode ser alterada");
+        }
     }
 
     /**

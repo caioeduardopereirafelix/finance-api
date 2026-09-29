@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 public record CreateTransactionRequestDTO(
@@ -18,5 +19,7 @@ public record CreateTransactionRequestDTO(
         @NotNull(message = "Transactional Type cannot be empty")
         TransactionalType type,
         @NotNull(message = "Category Name cannot be empty")
-        CategoryName category) {
+        CategoryName category,
+        /** Dia em que a transacao ocorreu; sem ele, vale agora. */
+        LocalDate occurredOn) {
 }

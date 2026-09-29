@@ -28,6 +28,7 @@ export interface TransactionPayload {
   amount: number;
   type: TransactionalType;
   category: CategoryName;
+  occurredOn?: string;
 }
 
 export interface CategoryTotal {

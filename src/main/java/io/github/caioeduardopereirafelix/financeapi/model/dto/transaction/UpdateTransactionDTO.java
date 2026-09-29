@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record UpdateTransactionDTO(
    @NotBlank(message = "Description cannot be empty")
@@ -17,6 +18,8 @@ public record UpdateTransactionDTO(
    @NotNull(message = "Transactional Type cannot be empty")
    TransactionalType type,
    @NotNull(message = "Category Name cannot be empty")
-   CategoryName category
+   CategoryName category,
+   /** Novo dia da transacao; sem ele, a data nao muda. */
+   LocalDate occurredOn
 
 ) {}

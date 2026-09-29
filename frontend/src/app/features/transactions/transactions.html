@@ -226,6 +226,19 @@
       }
     </div>
 
+    <div class="field">
+      <label for="t-data">Data</label>
+      <input id="t-data" type="date" formControlName="date" required
+             [attr.min]="earliestDate" [attr.max]="today()"
+             [attr.aria-invalid]="dateError() ? 'true' : null"
+             [attr.aria-describedby]="dateError() ? 't-data-erro' : 't-data-dica'" />
+      @if (dateError(); as message) {
+        <p id="t-data-erro" class="field-error">{{ message }}</p>
+      } @else {
+        <p id="t-data-dica" class="hint">O dia em que a transação aconteceu. Não pode ser futuro.</p>
+      }
+    </div>
+
     <fieldset class="type-choice">
       <legend>Tipo</legend>
       <div class="radio-row">
