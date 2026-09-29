@@ -42,6 +42,8 @@ public class BankConnectionService {
         ExternalConnection described;
         try {
             described = provider.describeConnection(externalId);
+        } catch (BankIntegrationException e) {
+            throw e;   // o provedor ja disse o que houve (ex.: identificador invalido)
         } catch (RuntimeException e) {
             throw new BankIntegrationException(HttpStatus.BAD_GATEWAY,
                     "Nao foi possivel confirmar a conexao no provedor bancario", e);

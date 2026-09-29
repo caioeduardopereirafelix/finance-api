@@ -42,6 +42,9 @@ public class BankCategoryMapper {
             Map.entry("taxi", CategoryName.TRANSPORT),
             Map.entry("ride hailing", CategoryName.TRANSPORT),
             Map.entry("fuel", CategoryName.TRANSPORT),
+            Map.entry("gas stations", CategoryName.TRANSPORT),
+            Map.entry("taxi and ride-hailing", CategoryName.TRANSPORT),
+            Map.entry("public transportation", CategoryName.TRANSPORT),
             Map.entry("transporte", CategoryName.TRANSPORT),
             Map.entry("combustivel", CategoryName.TRANSPORT),
 

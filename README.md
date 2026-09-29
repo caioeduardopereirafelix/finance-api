@@ -253,6 +253,12 @@ REFRESH_TOKEN_EXPIRATION=604800000
 CORS_ALLOWED_ORIGINS=http://localhost:4200
 MANAGEMENT_PORT=9091
 SWAGGER_ENABLED=true
+
+# integracao bancaria (opcional) — veja docs/integracao-bancaria.md
+BANK_MOCK_ENABLED=false
+BANK_PROVIDER=mock
+PLUGGY_CLIENT_ID=
+PLUGGY_CLIENT_SECRET=
 ```
 
 Para gerar o `JWT_SECRET`:

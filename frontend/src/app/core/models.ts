@@ -121,3 +121,6 @@ export interface BankSyncResult {
 
 /** Provedor de demonstracao do backend: nao tem widget, conecta direto. */
 export const MOCK_PROVIDER = 'mock';
+
+/** Pluggy: a conexao e feita pelo widget deles. */
+export const PLUGGY_PROVIDER = 'pluggy';

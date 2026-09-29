@@ -57,3 +57,19 @@ api:
 
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+
+# Integracao bancaria. Os placeholders sao explicitos de proposito: o .env e lido
+# como arquivo de propriedades, e la o nome BANK_MOCK_ENABLED nao vira
+# bank.mock.enabled sozinho (so acontece com variavel de ambiente de verdade).
+bank:
+  provider: ${BANK_PROVIDER:mock}
+  mock:
+    enabled: ${BANK_MOCK_ENABLED:false}
+  sync:
+    enabled: ${BANK_SYNC_ENABLED:false}
+    cron: ${BANK_SYNC_CRON:0 0 * * * *}
+  pluggy:
+    client-id: ${PLUGGY_CLIENT_ID:}
+    client-secret: ${PLUGGY_CLIENT_SECRET:}
+    base-url: ${PLUGGY_BASE_URL:https://api.pluggy.ai}
+    include-credit-cards: ${PLUGGY_INCLUDE_CREDIT_CARDS:false}

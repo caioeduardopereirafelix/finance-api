@@ -5,8 +5,9 @@ import { RouterLink } from '@angular/router';
 
 import { messageOf } from '../../core/api-error';
 import { BankService } from '../../core/bank.service';
-import { BankConnection, MOCK_PROVIDER } from '../../core/models';
+import { BankConnection, MOCK_PROVIDER, PLUGGY_PROVIDER } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
+import { PluggyConnectService } from '../../core/pluggy-connect';
 import { BrDateTimePipe } from '../../shared/datetime.pipe';
 
 @Component({
@@ -19,6 +20,7 @@ export class BanksPage {
 
   private readonly banks = inject(BankService);
   private readonly notifications = inject(NotificationService);
+  private readonly pluggy = inject(PluggyConnectService);
 
   private readonly disconnectDialog = viewChild<ElementRef<HTMLDialogElement>>('disconnectDialog');
   private readonly heading = viewChild<ElementRef<HTMLElement>>('heading');
@@ -60,15 +62,16 @@ export class BanksPage {
     this.connecting.set(true);
 
     this.banks.connectToken().subscribe({
-      next: ({ provider }) => {
-        if (provider !== MOCK_PROVIDER) {
-          // Aqui entraria o widget do provedor real, aberto com o token.
+      next: ({ token, provider }) => {
+        if (provider === MOCK_PROVIDER) {
+          this.registerAndSync(`demo-${randomId()}`);
+        } else if (provider === PLUGGY_PROVIDER) {
+          this.openPluggy(token);
+        } else {
           this.connecting.set(false);
           this.notifications.info(
             `O provedor "${provider}" está ativo no servidor, mas o widget dele ainda não foi integrado a esta tela.`);
-          return;
         }
-        this.connectDemo();
       },
       error: (err) => {
         this.connecting.set(false);
@@ -77,9 +80,24 @@ export class BanksPage {
     });
   }
 
-  /** O provedor de demonstracao nao tem widget: registra uma conexao e ja importa. */
-  private connectDemo() {
-    this.banks.connect(`demo-${randomId()}`).subscribe({
+  /** O widget da Pluggy cuida do login no banco; aqui so recebemos o id do item conectado. */
+  private async openPluggy(token: string) {
+    try {
+      const itemId = await this.pluggy.open(token);
+      if (itemId === null) {
+        this.connecting.set(false);   // fechou o widget sem concluir: nao e erro
+        return;
+      }
+      this.registerAndSync(itemId);
+    } catch (e) {
+      this.connecting.set(false);
+      this.notifications.error(e instanceof Error ? e.message : 'Não foi possível conectar o banco.');
+    }
+  }
+
+  /** Registra a conexao no backend e ja faz a primeira importacao. */
+  private registerAndSync(externalId: string) {
+    this.banks.connect(externalId).subscribe({
       next: (connection) => {
         this.banks.sync(connection.id).subscribe({
           next: (result) => {
