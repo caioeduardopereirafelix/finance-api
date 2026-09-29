@@ -52,7 +52,7 @@
                 <span aria-hidden="true">✓</span> Ativa
               } @else {
                 <span aria-hidden="true">⚠</span> Com erro
-                <span class="status-hint">— tente sincronizar de novo</span>
+                <span class="status-hint">— tente sincronizar de novo@if (connection.provider === pluggyProvider) { ou reautorize o acesso}</span>
               }
             </p>
 
@@ -67,9 +67,18 @@
           </div>
 
           <div class="connection-actions">
+            @if (connection.status === 'ERROR' && connection.provider === pluggyProvider) {
+              <button type="button" class="btn btn-secondary"
+                      (click)="reauthorize(connection)"
+                      [disabled]="reauthId() !== null || syncingId() !== null"
+                      [attr.aria-busy]="reauthId() === connection.id">
+                @if (reauthId() === connection.id) { Abrindo… } @else { Reautorizar }
+                <span class="sr-only"> {{ name(connection) }}</span>
+              </button>
+            }
             <button type="button" class="btn btn-secondary"
                     (click)="sync(connection)"
-                    [disabled]="syncingId() !== null"
+                    [disabled]="syncingId() !== null || reauthId() !== null"
                     [attr.aria-busy]="syncingId() === connection.id">
               @if (syncingId() === connection.id) { Sincronizando… } @else { Sincronizar }
               <span class="sr-only"> {{ name(connection) }}</span>

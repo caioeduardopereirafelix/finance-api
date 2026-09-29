@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,6 +31,15 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("update Transaction t set t.bankConnection = null where t.bankConnection = :connection")
     void detachFromConnection(@Param("connection") BankConnection connection);
+
+    /**
+     * Apaga, so dentro da conexao informada, as importadas com esses ids externos
+     * (o provedor avisou que foram excluidas). Devolve quantas foram apagadas.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("delete from Transaction t where t.bankConnection = :connection and t.externalId in :externalIds")
+    int deleteImported(@Param("connection") BankConnection connection,
+                       @Param("externalIds") Collection<String> externalIds);
 
     /**
      * Soma os valores por tipo direto no banco, em vez de carregar todas as

@@ -33,6 +33,49 @@ public class BankConnectionService {
     public record ConnectToken(String token, String provider) {
     }
 
+    /** Token para reautorizar uma conexao; {@code externalId} e o que o widget precisa para abrir nela. */
+    public record ReauthToken(String token, String provider, String externalId) {
+    }
+
+    @Transactional(readOnly = true)
+    public ReauthToken createUpdateToken(User user, UUID id) {
+        BankConnection connection = connections.findByIdAndUser(id, user)
+                .orElseThrow(() -> new BankIntegrationException(HttpStatus.NOT_FOUND, "Conexao bancaria nao encontrada"));
+
+        BankProvider provider = providers.named(connection.getProvider());
+        String token = provider.createUpdateToken(connection.getExternalId(), user.getId().toString());
+        return new ReauthToken(token, provider.name(), connection.getExternalId());
+    }
+
+    /**
+     * Revoga todas as conexoes do usuario nos provedores (usado antes de apagar a conta).
+     *
+     * Falha do provedor interrompe: sem isso a conta sumiria deixando a autorizacao viva la, e
+     * nao haveria mais como revogar. Repetir e seguro (item ja apagado = sucesso). Provedor que
+     * nao esta configurado neste servidor e pulado com aviso, senao a conta nunca poderia ser apagada.
+     */
+    public void revokeAll(User user) {
+        for (BankConnection connection : connections.findByUserOrderByCreatedAtDesc(user)) {
+            BankProvider provider;
+            try {
+                provider = providers.named(connection.getProvider());
+            } catch (BankIntegrationException e) {
+                log.warn("Conexao {} nao foi revogada: {}", connection.getId(), e.getMessage());
+                continue;
+            }
+            try {
+                provider.disconnect(connection.getExternalId());
+            } catch (BankIntegrationException e) {
+                log.warn("Nao foi possivel revogar a conexao {}: {}", connection.getId(), e.getMessage());
+                throw e;
+            } catch (RuntimeException e) {
+                log.warn("Nao foi possivel revogar a conexao {}: {}", connection.getId(), e.toString());
+                throw new BankIntegrationException(HttpStatus.BAD_GATEWAY,
+                        "Nao foi possivel revogar a autorizacao no provedor bancario. Tente de novo.", e);
+            }
+        }
+    }
+
     @Transactional
     public BankConnection connect(User user, String externalId) {
         BankProvider provider = providers.forNewConnections();

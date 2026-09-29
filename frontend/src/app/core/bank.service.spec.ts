@@ -27,6 +27,17 @@ describe('BankService', () => {
     expect(provider).toBe('mock');
   });
 
+  it('pede o token de reautorização de uma conexão', () => {
+    let externalId = '';
+    service.updateToken('c-1').subscribe(r => (externalId = r.externalId));
+
+    const req = http.expectOne('/bank/connections/c-1/update-token');
+    expect(req.request.method).toBe('POST');
+    req.flush({ token: 't', provider: 'pluggy', externalId: 'item-9' });
+
+    expect(externalId).toBe('item-9');
+  });
+
   it('registra a conexao com o externalId', () => {
     service.connect('abc').subscribe();
 

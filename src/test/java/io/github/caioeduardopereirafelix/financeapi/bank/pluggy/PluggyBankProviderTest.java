@@ -99,6 +99,19 @@ class PluggyBankProviderTest {
     }
 
     @Test
+    void reautorizarPedeATokenDeAtualizacaoDoItem() {
+        when(client.createConnectToken("user-1", ITEM)).thenReturn("token-upd");
+
+        assertEquals("token-upd", provider.createUpdateToken(ITEM, "user-1"));
+    }
+
+    @Test
+    void reautorizarComIdentificadorInvalidoNaoChegaNaPluggy() {
+        assertThrows(BankIntegrationException.class, () -> provider.createUpdateToken("../x", "user-1"));
+        verify(client, never()).createConnectToken(any(), any());
+    }
+
+    @Test
     void desconectarDeveApagarOItemNaPluggy() {
         provider.disconnect(ITEM);
 

@@ -5,6 +5,7 @@ export const PLUGGY_INCLUDE_SANDBOX = true;
 export interface PluggyWidgetOptions {
   connectToken: string;
   includeSandbox?: boolean;
+  updateItem?: string;
   onSuccess: (data: { item: { id: string } }) => void | Promise<void>;
   onError?: (error: { message: string }) => void | Promise<void>;
   onClose?: () => void | Promise<void>;
@@ -31,7 +32,7 @@ export class PluggyConnectService {
 
   private readonly loadSdk = inject(PLUGGY_SDK_LOADER);
 
-  async open(connectToken: string): Promise<string | null> {
+  async open(connectToken: string, updateItem?: string): Promise<string | null> {
     let Widget: PluggyWidgetFactory;
     try {
       Widget = await this.loadSdk();
@@ -51,6 +52,7 @@ export class PluggyConnectService {
       const widget = new Widget({
         connectToken,
         includeSandbox: PLUGGY_INCLUDE_SANDBOX,
+        ...(updateItem ? { updateItem } : {}),
         onSuccess: (data) => done(() => resolve(data.item.id)),
         onError: (error) => done(() => reject(new Error(error?.message || 'Falha no widget da Pluggy.'))),
         onClose: () => done(() => resolve(null)),

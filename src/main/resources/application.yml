@@ -65,3 +65,6 @@ bank:
     client-secret: ${PLUGGY_CLIENT_SECRET:}
     base-url: ${PLUGGY_BASE_URL:https://api.pluggy.ai}
     include-credit-cards: ${PLUGGY_INCLUDE_CREDIT_CARDS:false}
+    # Webhooks: a rota so existe com o segredo definido; a URL base e o endereco publico da API
+    webhook-secret: ${PLUGGY_WEBHOOK_SECRET:}
+    webhook-base-url: ${PLUGGY_WEBHOOK_BASE_URL:}

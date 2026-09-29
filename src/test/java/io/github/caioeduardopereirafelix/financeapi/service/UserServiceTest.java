@@ -39,6 +39,8 @@ class UserServiceTest {
     private UserValidator userValidator;
     @Mock
     private SecurityUtils securityUtils;
+    @Mock
+    private io.github.caioeduardopereirafelix.financeapi.bank.BankConnectionService bankConnections;
 
     @InjectMocks
     private UserService userService;
@@ -86,6 +88,36 @@ class UserServiceTest {
         var alvo = UUID.randomUUID();
 
         assertThrows(AccessDeniedException.class, () -> userService.deleteById(alvo));
+
+        verify(repository, never()).delete(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void apagarAPropriaContaRevogaAsConexoesBancariasAntesDeApagar() {
+        var id = UUID.randomUUID();
+        var autenticado = userWith(id, RolesTypeEnum.ROLE_USER);
+        when(securityUtils.getAuthenticatedUser()).thenReturn(autenticado);
+        when(repository.findById(id)).thenReturn(Optional.of(autenticado));
+
+        userService.deleteById(id);
+
+        var ordem = org.mockito.Mockito.inOrder(bankConnections, repository);
+        ordem.verify(bankConnections).revokeAll(autenticado);
+        ordem.verify(repository).delete(autenticado);
+    }
+
+    @Test
+    void seARevogacaoFalharAContaNaoEApagada() {
+        var id = UUID.randomUUID();
+        var autenticado = userWith(id, RolesTypeEnum.ROLE_USER);
+        when(securityUtils.getAuthenticatedUser()).thenReturn(autenticado);
+        when(repository.findById(id)).thenReturn(Optional.of(autenticado));
+        org.mockito.Mockito.doThrow(new io.github.caioeduardopereirafelix.financeapi.bank.BankIntegrationException(
+                org.springframework.http.HttpStatus.BAD_GATEWAY, "Pluggy fora do ar"))
+                .when(bankConnections).revokeAll(autenticado);
+
+        assertThrows(io.github.caioeduardopereirafelix.financeapi.bank.BankIntegrationException.class,
+                () -> userService.deleteById(id));
 
         verify(repository, never()).delete(org.mockito.ArgumentMatchers.any());
     }

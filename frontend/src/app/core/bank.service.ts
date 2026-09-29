@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { API_BASE_URL } from './api.config';
-import { BankConnection, BankSyncResult, ConnectToken } from './models';
+import { BankConnection, BankSyncResult, ConnectToken, ReauthToken } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class BankService {
@@ -13,6 +13,10 @@ export class BankService {
 
   connectToken(): Observable<ConnectToken> {
     return this.http.post<ConnectToken>(`${this.baseUrl}/bank/connect-token`, {});
+  }
+
+  updateToken(id: string): Observable<ReauthToken> {
+    return this.http.post<ReauthToken>(`${this.baseUrl}/bank/connections/${id}/update-token`, {});
   }
 
   connect(externalId: string): Observable<BankConnection> {

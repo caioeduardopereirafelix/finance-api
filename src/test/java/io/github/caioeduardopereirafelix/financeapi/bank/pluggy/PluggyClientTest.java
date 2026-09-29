@@ -76,6 +76,37 @@ class PluggyClientTest {
     }
 
     @Test
+    void tokenParaReautorizarLevaOItemIdEOWebhookQuandoConfigurado() {
+        RestClient.Builder builder = RestClient.builder().baseUrl(BASE);
+        MockRestServiceServer webhookServer = MockRestServiceServer.bindTo(builder).build();
+        PluggyClient comWebhook = new PluggyClient(builder.build(), BASE, "https://api.exemplo.com/webhooks/pluggy/segredo",
+                "id-1", "secret-1", Clock.systemUTC());
+
+        webhookServer.expect(once(), requestTo(BASE + "/auth"))
+                .andRespond(withSuccess("{\"apiKey\":\"key-1\"}", MediaType.APPLICATION_JSON));
+        webhookServer.expect(once(), requestTo(BASE + "/connect_token"))
+                .andExpect(jsonPath("$.itemId").value("item-9"))
+                .andExpect(jsonPath("$.options.clientUserId").value("user-42"))
+                .andExpect(jsonPath("$.options.webhookUrl").value("https://api.exemplo.com/webhooks/pluggy/segredo"))
+                .andRespond(withSuccess("{\"accessToken\":\"connect-upd\"}", MediaType.APPLICATION_JSON));
+
+        assertEquals("connect-upd", comWebhook.createConnectToken("user-42", "item-9"));
+        webhookServer.verify();
+    }
+
+    @Test
+    void tokenDeConexaoNovaNaoLevaItemIdNemWebhookSemConfiguracao() {
+        expectAuth("key-1");
+        server.expect(once(), requestTo(BASE + "/connect_token"))
+                .andExpect(jsonPath("$.itemId").doesNotExist())
+                .andExpect(jsonPath("$.options.webhookUrl").doesNotExist())
+                .andRespond(withSuccess("{\"accessToken\":\"connect-abc\"}", MediaType.APPLICATION_JSON));
+
+        client.createConnectToken("user-42");
+        server.verify();
+    }
+
+    @Test
     void deveReaproveitarAApiKeyEntreChamadas() {
         expectAuth("key-1");   // uma unica autenticacao para as duas chamadas
         server.expect(once(), requestTo(BASE + "/items/item-1")).andExpect(header("X-API-KEY", "key-1"))

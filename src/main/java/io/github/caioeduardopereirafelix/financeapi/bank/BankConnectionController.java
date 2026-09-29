@@ -34,6 +34,12 @@ public class BankConnectionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(BankConnectionResponse.from(connection));
     }
 
+    /** Token para reautorizar uma conexao existente (o banco pediu login de novo). */
+    @PostMapping("/connections/{id}/update-token")
+    public BankConnectionService.ReauthToken updateToken(@PathVariable UUID id) {
+        return connectionService.createUpdateToken(securityUtils.getAuthenticatedUser(), id);
+    }
+
     @GetMapping("/connections")
     public List<BankConnectionResponse> list() {
         return connectionService.list(securityUtils.getAuthenticatedUser()).stream()

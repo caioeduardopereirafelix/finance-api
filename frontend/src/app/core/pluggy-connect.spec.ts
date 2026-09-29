@@ -32,6 +32,22 @@ describe('PluggyConnectService', () => {
     await p;
   });
 
+  it('abre em modo de reautorização quando recebe o item', async () => {
+    const p = service.open('token-1', 'item-9');
+    await new Promise((r) => setTimeout(r));
+    expect(options.updateItem).toBe('item-9');
+    options.onSuccess({ item: { id: 'item-9' } });
+    await p;
+  });
+
+  it('não manda updateItem ao criar uma conexão nova', async () => {
+    const p = service.open('token-1');
+    await new Promise((r) => setTimeout(r));
+    expect('updateItem' in options).toBe(false);
+    options.onClose?.();
+    await p;
+  });
+
   it('devolve o id do item quando a conexao termina', async () => {
     const p = service.open('t');
     await new Promise((r) => setTimeout(r));

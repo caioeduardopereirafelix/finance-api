@@ -23,14 +23,26 @@ public class PluggyConfig {
     PluggyClient pluggyClient(RestClient.Builder builder,
                               @Value("${bank.pluggy.base-url:https://api.pluggy.ai}") String baseUrl,
                               @Value("${bank.pluggy.client-id}") String clientId,
-                              @Value("${bank.pluggy.client-secret:}") String clientSecret) {
+                              @Value("${bank.pluggy.client-secret:}") String clientSecret,
+                              @Value("${bank.pluggy.webhook-secret:}") String webhookSecret,
+                              @Value("${bank.pluggy.webhook-base-url:}") String webhookBaseUrl) {
         // Sem timeout, uma Pluggy lenta seguraria a requisicao (e o agendador) indefinidamente.
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(5));
         factory.setReadTimeout(Duration.ofSeconds(30));
 
         RestClient http = builder.baseUrl(baseUrl).requestFactory(factory).build();
-        return new PluggyClient(http, baseUrl, clientId, clientSecret, Clock.systemUTC());
+        return new PluggyClient(http, baseUrl, webhookUrl(webhookBaseUrl, webhookSecret), clientId, clientSecret,
+                Clock.systemUTC());
+    }
+
+    /** URL publica que a Pluggy chama; so existe com a URL base e o segredo definidos. */
+    static String webhookUrl(String baseUrl, String secret) {
+        if (baseUrl == null || baseUrl.isBlank() || secret == null || secret.isBlank()) {
+            return null;
+        }
+        String base = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+        return base + "/webhooks/pluggy/" + secret;
     }
 
     @Bean

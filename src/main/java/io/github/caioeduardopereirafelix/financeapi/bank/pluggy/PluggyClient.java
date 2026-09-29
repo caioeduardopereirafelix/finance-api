@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -43,6 +44,7 @@ public class PluggyClient {
 
     private final RestClient http;
     private final String baseUrl;
+    private final String webhookUrl;
     private final String clientId;
     private final String clientSecret;
     private final Clock clock;
@@ -51,12 +53,19 @@ public class PluggyClient {
     private Instant apiKeyExpiresAt = Instant.MIN;
 
     public PluggyClient(RestClient http, String baseUrl, String clientId, String clientSecret, Clock clock) {
+        this(http, baseUrl, null, clientId, clientSecret, clock);
+    }
+
+    /** @param webhookUrl para onde a Pluggy avisa de mudancas nos itens criados com o token; nulo = sem webhook */
+    public PluggyClient(RestClient http, String baseUrl, String webhookUrl, String clientId, String clientSecret,
+                        Clock clock) {
         if (clientId == null || clientId.isBlank() || clientSecret == null || clientSecret.isBlank()) {
             throw new IllegalStateException(
                     "PLUGGY_CLIENT_ID e PLUGGY_CLIENT_SECRET precisam estar definidos para usar a Pluggy");
         }
         this.http = http;
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+        this.webhookUrl = webhookUrl == null || webhookUrl.isBlank() ? null : webhookUrl;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.clock = clock;
@@ -64,11 +73,30 @@ public class PluggyClient {
 
     /** Token que o front entrega ao widget. {@code clientUserId} liga a conexao ao nosso usuario. */
     public String createConnectToken(String clientUserId) {
+        return createConnectToken(clientUserId, null);
+    }
+
+    /**
+     * @param itemId se informado, o token serve para reautorizar esse item em vez de criar um novo.
+     *               [confirmar no sandbox que o campo se chama "itemId" no corpo]
+     */
+    public String createConnectToken(String clientUserId, String itemId) {
+        Map<String, Object> options = new LinkedHashMap<>();
+        options.put("clientUserId", clientUserId);
+        if (webhookUrl != null) {
+            options.put("webhookUrl", webhookUrl);
+        }
+        Map<String, Object> body = new LinkedHashMap<>();
+        if (itemId != null) {
+            body.put("itemId", itemId);
+        }
+        body.put("options", options);
+
         JsonNode response = authenticated(key -> http.post()
                 .uri("/connect_token")
                 .header("X-API-KEY", key)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(json(Map.of("options", Map.of("clientUserId", clientUserId))))
+                .body(json(body))
                 .retrieve()
                 .body(JsonNode.class));
         return required(response, "accessToken");

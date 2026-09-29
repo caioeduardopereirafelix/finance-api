@@ -109,6 +109,12 @@ export interface ConnectToken {
   provider: string;
 }
 
+export interface ReauthToken {
+  token: string;
+  provider: string;
+  externalId: string;
+}
+
 export interface BankSyncResult {
   imported: number;
   skipped: number;

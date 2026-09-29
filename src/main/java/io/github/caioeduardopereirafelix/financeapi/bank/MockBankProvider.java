@@ -33,6 +33,11 @@ public class MockBankProvider implements BankProvider {
     }
 
     @Override
+    public String createUpdateToken(String externalId, String userReference) {
+        return "mock-connect-token";
+    }
+
+    @Override
     public ExternalConnection describeConnection(String externalId, String userReference) {
         return new ExternalConnection(externalId, "Banco Demo");
     }

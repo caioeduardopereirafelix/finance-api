@@ -89,6 +89,19 @@ public class PluggyBankProvider implements BankProvider {
     }
 
     @Override
+    public String createUpdateToken(String externalId, String userReference) {
+        String itemId = requireItemId(externalId);
+        try {
+            return client.createConnectToken(userReference, itemId);
+        } catch (BankIntegrationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw new BankIntegrationException(HttpStatus.BAD_GATEWAY,
+                    "Nao foi possivel iniciar a reautorizacao na Pluggy", e);
+        }
+    }
+
+    @Override
     public ExternalConnection describeConnection(String externalId, String userReference) {
         String itemId = requireItemId(externalId);
         JsonNode item = client.item(itemId);

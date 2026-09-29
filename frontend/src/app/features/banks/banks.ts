@@ -30,11 +30,13 @@ export class BanksPage {
   readonly connections = signal<BankConnection[]>([]);
   readonly connecting = signal(false);
   readonly syncingId = signal<string | null>(null);
+  readonly reauthId = signal<string | null>(null);
   readonly pendingDisconnect = signal<BankConnection | null>(null);
   readonly deleteImported = signal(false);
   readonly disconnecting = signal(false);
 
   readonly mockProvider = MOCK_PROVIDER;
+  readonly pluggyProvider = PLUGGY_PROVIDER;
 
   constructor() {
     this.load();
@@ -115,6 +117,31 @@ export class BanksPage {
         this.notifications.error(this.friendly(err, 'Não foi possível conectar o banco.'));
       },
     });
+  }
+
+  reauthorize(connection: BankConnection) {
+    this.reauthId.set(connection.id);
+
+    this.banks.updateToken(connection.id).subscribe({
+      next: ({ token, externalId }) => this.openReauth(connection, token, externalId),
+      error: (err) => {
+        this.reauthId.set(null);
+        this.notifications.error(this.friendly(err, 'Não foi possível iniciar a reautorização.'));
+      },
+    });
+  }
+
+  private async openReauth(connection: BankConnection, token: string, itemId: string) {
+    try {
+      const result = await this.pluggy.open(token, itemId);
+      this.reauthId.set(null);
+      if (result !== null) {
+        this.sync(connection);
+      }
+    } catch (e) {
+      this.reauthId.set(null);
+      this.notifications.error(e instanceof Error ? e.message : 'Não foi possível reautorizar o banco.');
+    }
   }
 
   sync(connection: BankConnection) {

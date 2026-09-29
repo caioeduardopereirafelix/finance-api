@@ -266,6 +266,9 @@ BANK_MOCK_ENABLED=false
 BANK_PROVIDER=mock
 PLUGGY_CLIENT_ID=
 PLUGGY_CLIENT_SECRET=
+# webhooks da Pluggy (opcional; a API precisa estar acessivel pela internet)
+PLUGGY_WEBHOOK_SECRET=
+PLUGGY_WEBHOOK_BASE_URL=
 ```
 
 Para gerar o `JWT_SECRET`:

@@ -22,6 +22,12 @@ public interface BankProvider {
     String createConnectToken(String userReference);
 
     /**
+     * Token para reautorizar uma conexao que ja existe (o banco pediu login de novo):
+     * o widget abre direto no formulario de credenciais dela.
+     */
+    String createUpdateToken(String externalId, String userReference);
+
+    /**
      * Confirma que a conexao existe no provedor e devolve os dados dela.
      *
      * @param userReference o mesmo valor passado a {@link #createConnectToken}; o provedor

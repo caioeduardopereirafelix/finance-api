@@ -64,6 +64,8 @@ Ao desconectar, o usuário escolhe se apaga também as transações importadas.
 | `PLUGGY_CLIENT_SECRET` | — | segredo da Pluggy; **só no `.env` ou no ambiente, nunca no Git** |
 | `PLUGGY_INCLUDE_CREDIT_CARDS` | `false` | importa também as compras de cartão de crédito |
 | `PLUGGY_BASE_URL` | `https://api.pluggy.ai` | só para apontar para um servidor de testes |
+| `PLUGGY_WEBHOOK_SECRET` | — | liga a rota de webhooks; trate como senha (`openssl rand -hex 32`) |
+| `PLUGGY_WEBHOOK_BASE_URL` | — | endereço **público** da API, para a Pluggy saber onde avisar |
 
 Para experimentar agora, ponha no `.env`:
 
@@ -99,3 +101,37 @@ para a API. Sem `PLUGGY_CLIENT_ID`, a Pluggy nem é carregada.
 3. O widget devolve o id do *item* (um banco autorizado). Esse id é o `externalId`
    da nossa conexão.
 4. A sincronização lê as contas do item e as movimentações de cada conta.
+
+## Reautorizar
+
+Uma conexão da Pluggy com erro mostra o botão **Reautorizar**. Ele chama
+`POST /bank/connections/{id}/update-token` (só o dono; outro usuário recebe 404), que pede à
+Pluggy um token para aquele item (`itemId` no corpo de `/connect_token`), abre o widget em modo
+de atualização (`updateItem`) e, ao concluir, sincroniza a conexão. Confirme no sandbox que o
+corpo `{"itemId": ...}` é o formato esperado; se não for, o aviso da tela mostra a resposta da
+Pluggy.
+
+## Webhooks
+
+`POST /webhooks/pluggy/{segredo}` trata os avisos de transações:
+
+- `transactions/created` e `transactions/updated` enfileiram uma sincronização da conexão em
+  segundo plano (uma thread só; avisos repetidos viram uma sincronização).
+- `transactions/deleted` apaga as transações citadas, só dentro da conexão daquele item.
+
+Outros eventos, item desconhecido ou `itemId` fora do formato de UUID são ignorados com 200.
+Sem `PLUGGY_WEBHOOK_SECRET` a rota não existe; com segredo errado responde 404.
+
+A autenticidade vem do segredo no caminho (não há assinatura na documentação disponível): quem
+souber o caminho pode enviar avisos. Com `PLUGGY_WEBHOOK_BASE_URL` definido, o connect token leva
+`webhookUrl = <base>/webhooks/pluggy/<segredo>`, e só conexões criadas depois disso avisam. Na sua
+máquina a Pluggy não alcança `localhost`: use um túnel (ngrok apontando para a porta 8080).
+
+Um aviso `updated` não reescreve valor, descrição ou data de uma linha já importada.
+
+## Apagar a conta
+
+`DELETE /user/{id}` revoga primeiro todas as conexões do usuário nos provedores. Se alguma falhar,
+responde 502 e nada é apagado (repetir é seguro). Provedor não configurado nesta instância é pulado
+com aviso no log. A conta e as transações dela são apagadas juntas (migration V6).
+

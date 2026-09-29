@@ -17,5 +17,7 @@ public interface BankConnectionRepository extends JpaRepository<BankConnection, 
 
     boolean existsByProviderAndExternalId(String provider, String externalId);
 
+    Optional<BankConnection> findByProviderAndExternalId(String provider, String externalId);
+
     List<BankConnection> findByStatus(BankConnectionStatus status);
 }

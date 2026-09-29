@@ -1,5 +1,6 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
+import io.github.caioeduardopereirafelix.financeapi.bank.BankConnectionService;
 import io.github.caioeduardopereirafelix.financeapi.config.SecurityUtils;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.UserNotFound;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.user.CreateUserDTO;
@@ -26,6 +27,7 @@ public class UserService {
     private final PasswordEncoder encoder;
     private final UserValidator userValidator;
     private final SecurityUtils securityUtils;
+    private final BankConnectionService bankConnections;
 
     public User createUser(CreateUserDTO dto){
 
@@ -51,6 +53,9 @@ public class UserService {
 
         var user = repository.findById(id)
                 .orElseThrow(() -> new UserNotFound("User not found"));
+
+        // Antes de apagar: depois disso nao ha mais como revogar a autorizacao dos bancos.
+        bankConnections.revokeAll(user);
 
         repository.delete(user);
     }

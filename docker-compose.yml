@@ -42,6 +42,8 @@ services:
       PLUGGY_CLIENT_ID: ${PLUGGY_CLIENT_ID:-}
       PLUGGY_CLIENT_SECRET: ${PLUGGY_CLIENT_SECRET:-}
       PLUGGY_INCLUDE_CREDIT_CARDS: ${PLUGGY_INCLUDE_CREDIT_CARDS:-false}
+      PLUGGY_WEBHOOK_SECRET: ${PLUGGY_WEBHOOK_SECRET:-}
+      PLUGGY_WEBHOOK_BASE_URL: ${PLUGGY_WEBHOOK_BASE_URL:-}
     depends_on:
       postgres:
         condition: service_healthy

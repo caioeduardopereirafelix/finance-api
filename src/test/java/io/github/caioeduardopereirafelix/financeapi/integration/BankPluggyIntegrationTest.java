@@ -135,4 +135,27 @@ class BankPluggyIntegrationTest extends ApiIntegrationTestSupport {
         mockMvc.perform(get("/bank/connections").header(HttpHeaders.AUTHORIZATION, a.bearer()))
                 .andExpect(jsonPath("$.length()").value(1));
     }
+
+    @Test
+    void reautorizarDevolveOTokenEOItemParaOWidgetAbrirNaConexao() throws Exception {
+        var a = registerAndLogin();
+        String id = conectarComPluggy(a);
+        when(pluggy.createConnectToken(any(), eq(item))).thenReturn("token-de-atualizacao");
+
+        mockMvc.perform(post("/bank/connections/" + id + "/update-token").header(HttpHeaders.AUTHORIZATION, a.bearer()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("token-de-atualizacao"))
+                .andExpect(jsonPath("$.provider").value("pluggy"))
+                .andExpect(jsonPath("$.externalId").value(item));
+    }
+
+    @Test
+    void naoSePodeReautorizarConexaoDeOutroUsuario() throws Exception {
+        var a = registerAndLogin();
+        var b = registerAndLogin();
+        String idDoA = conectarComPluggy(a);
+
+        mockMvc.perform(post("/bank/connections/" + idDoA + "/update-token").header(HttpHeaders.AUTHORIZATION, b.bearer()))
+                .andExpect(status().isNotFound());
+    }
 }
