@@ -6,6 +6,7 @@ public enum CategoryName {
     //CASH_ENTRY
     WAGE(TransactionalType.CASH_ENTRY),
     EXTRA_INCOME(TransactionalType.CASH_ENTRY),
+    OTHER_INCOME(TransactionalType.CASH_ENTRY),
 
     //EXPENSES
     FOOD(TransactionalType.EXPENSES),
@@ -14,7 +15,8 @@ public enum CategoryName {
     HEALTH(TransactionalType.EXPENSES),
     TRANSPORT(TransactionalType.EXPENSES),
     INVESTMENTS(TransactionalType.EXPENSES),
-    BILLS(TransactionalType.EXPENSES);
+    BILLS(TransactionalType.EXPENSES),
+    OTHER_EXPENSE(TransactionalType.EXPENSES);
 
     private final TransactionalType transactionalType;
 

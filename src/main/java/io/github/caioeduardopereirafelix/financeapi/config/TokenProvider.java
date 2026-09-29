@@ -29,7 +29,8 @@ public class TokenProvider {
     @PostConstruct
     void validateSecret() {
         if (!StringUtils.hasText(key)) {
-            throw new IllegalStateException();
+            throw new IllegalStateException(
+                    "JWT_SECRET nao definida. Informe no .env da raiz do projeto ou como variavel de ambiente. Gere uma com: openssl rand -base64 48");
         }
 
         int bytes = key.getBytes(StandardCharsets.UTF_8).length;

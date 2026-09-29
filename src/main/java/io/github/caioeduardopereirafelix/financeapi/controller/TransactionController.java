@@ -11,6 +11,7 @@ import io.github.caioeduardopereirafelix.financeapi.model.mapper.TransactionMapp
 import io.github.caioeduardopereirafelix.financeapi.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,7 +23,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,6 +35,10 @@ public class TransactionController {
 
     private final TransactionMapper transactionMapper;
     private final TransactionService service;
+
+    /** Fuso em que os filtros de data sao interpretados. */
+    @Value("${app.zone:America/Sao_Paulo}")
+    private ZoneId zone;
 
     @PostMapping
     public ResponseEntity<ResponseTransactionDTO> create(@Valid @RequestBody CreateTransactionRequestDTO requestTransaction){
@@ -87,15 +93,17 @@ public class TransactionController {
             LocalDate endDate,
 
             @PageableDefault(size = 10,
-                             sort = "createdDate",
+                             sort = "occurredAt",
                              direction = Sort.Direction.DESC)Pageable pageable){
 
-        LocalDateTime startDateTime = startDate != null
-                ? startDate.atStartOfDay()
+        // "De 01/09 ate 28/09" sao dias no fuso do usuario, nao em UTC: uma compra das
+        // 22h de Sao Paulo cai no dia 29 em UTC e sumiria de um filtro "ate 28".
+        Instant occurredFrom = startDate != null
+                ? startDate.atStartOfDay(zone).toInstant()
                 : null;
 
-        LocalDateTime endDateTime = endDate != null
-                ? endDate.atTime(23, 59, 59)
+        Instant occurredBefore = endDate != null
+                ? endDate.plusDays(1).atStartOfDay(zone).toInstant()
                 : null;
 
         Page<Transaction> transactions = service.findTransactionsWithFilters(
@@ -104,8 +112,8 @@ public class TransactionController {
                 description,
                 minAmount,
                 maxAmount,
-                startDateTime,
-                endDateTime,
+                occurredFrom,
+                occurredBefore,
                 pageable
         );
 

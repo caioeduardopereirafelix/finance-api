@@ -1,5 +1,6 @@
 package io.github.caioeduardopereirafelix.financeapi.exceptions;
 
+import io.github.caioeduardopereirafelix.financeapi.bank.BankIntegrationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -53,6 +54,12 @@ public class GlobalHandleException {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseError invalidRefreshTokenHandle(InvalidRefreshToken e){
         return new ResponseError(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), List.of());
+    }
+
+    @ExceptionHandler(BankIntegrationException.class)
+    public ResponseEntity<ResponseError> bankIntegrationHandle(BankIntegrationException e){
+        return ResponseEntity.status(e.getStatus())
+                .body(new ResponseError(e.getStatus().value(), e.getMessage(), List.of()));
     }
 
     @ExceptionHandler(UserNotFound.class)

@@ -235,14 +235,27 @@ apenas valida se o schema bate com as entidades.
 
 ### Configuração local: use um `.env`
 
-Na raiz do projeto:
+Crie um arquivo chamado `.env` na raiz do projeto com o conteúdo abaixo,
+trocando o `JWT_SECRET` por um valor gerado:
 
 ```bash
-cp .env.example .env      # Linux/macOS
-copy .env.example .env    # Windows
+# obrigatorias — a aplicacao nao sobe sem elas
+DB_URL=jdbc:postgresql://localhost:5432/finance
+DB_USER=postgres
+DB_PASSWORD=postgres
+JWT_SECRET=troque-por-um-valor-gerado
+
+# opcionais — os valores abaixo ja sao os padroes
+# expiracao do access token em milissegundos (24h)
+JWT_EXPIRATION=86400000
+# expiracao do refresh token em milissegundos (7 dias)
+REFRESH_TOKEN_EXPIRATION=604800000
+CORS_ALLOWED_ORIGINS=http://localhost:4200
+MANAGEMENT_PORT=9091
+SWAGGER_ENABLED=true
 ```
 
-Depois abra o `.env` e preencha o `JWT_SECRET` com um valor gerado:
+Para gerar o `JWT_SECRET`:
 
 ```bash
 openssl rand -base64 48
@@ -253,30 +266,10 @@ A aplicação lê esse arquivo automaticamente ao subir — pela IDE ou por
 ambiente na mão**. Variáveis de ambiente, quando existirem, têm precedência
 sobre o `.env`, que é como o Docker Compose injeta a configuração.
 
-> Não coloque comentário na mesma linha de um valor no `.env`: o `#` passaria
-> a fazer parte do valor.
+O `.env` é ignorado pelo Git, então o segredo não vai para o repositório.
 
-Variáveis reconhecidas:
-
-```bash
-# obrigatorias — a aplicacao nao sobe sem elas
-DB_URL=jdbc:postgresql://localhost:5432/finance
-DB_USER=postgres
-DB_PASSWORD=postgres
-JWT_SECRET=<64+ caracteres aleatorios>
-
-# opcionais (valores padrao entre parenteses)
-JWT_EXPIRATION=86400000              # 24h
-REFRESH_TOKEN_EXPIRATION=604800000   # 7 dias
-CORS_ALLOWED_ORIGINS=http://localhost:5173
-MANAGEMENT_PORT=9091
-```
-
-Para gerar um `JWT_SECRET`:
-
-```bash
-openssl rand -base64 48
-```
+> Não coloque comentário na mesma linha de um valor: o `#` passaria a fazer
+> parte do valor e a aplicação não sobe.
 
 > **Importante:** o segredo que ficava fixo no `application.yml` está no
 > histórico do Git e deve ser considerado comprometido. Gere um novo em vez de

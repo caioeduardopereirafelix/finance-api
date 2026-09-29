@@ -40,6 +40,7 @@ Em produção o front é servido de outra origem, então:
 | `/criar-conta`  | Cadastro (já entra na conta ao final)                             |
 | `/painel`       | Resumo do mês (entradas, saídas, saldo) e últimas transações       |
 | `/transacoes`   | Extrato com filtros, paginação, criar, editar e excluir           |
+| `/bancos`       | Conexões bancárias: conectar, sincronizar e desconectar           |
 
 ## Como a autenticação funciona
 

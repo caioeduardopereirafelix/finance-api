@@ -7,7 +7,7 @@ import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalTyp
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public class TransactionSpecification {
 
@@ -69,23 +69,28 @@ public class TransactionSpecification {
         };
     }
 
-    public static Specification<Transaction> createdAtGreaterThanOrEqual(LocalDateTime startDate) {
+    /** Ocorrido a partir de {@code start} (inclusive). */
+    public static Specification<Transaction> occurredFrom(Instant start) {
         return (root, query, criteriaBuilder) -> {
-            if (startDate == null) {
+            if (start == null) {
                 return criteriaBuilder.conjunction();
             }
 
-            return criteriaBuilder.greaterThanOrEqualTo(root.get("createdDate"), startDate);
+            return criteriaBuilder.greaterThanOrEqualTo(root.<Instant>get("occurredAt"), start);
         };
     }
 
-    public static Specification<Transaction> createdAtLessThanOrEqual(LocalDateTime endDate) {
+    /**
+     * Ocorrido antes de {@code endExclusive}. O limite e exclusivo para que "ate o
+     * dia 28" seja "antes do inicio do dia 29", sem deixar de fora o ultimo segundo.
+     */
+    public static Specification<Transaction> occurredBefore(Instant endExclusive) {
         return (root, query, criteriaBuilder) -> {
-            if (endDate == null) {
+            if (endExclusive == null) {
                 return criteriaBuilder.conjunction();
             }
 
-            return criteriaBuilder.lessThanOrEqualTo(root.get("createdDate"), endDate);
+            return criteriaBuilder.lessThan(root.<Instant>get("occurredAt"), endExclusive);
         };
     }
 }

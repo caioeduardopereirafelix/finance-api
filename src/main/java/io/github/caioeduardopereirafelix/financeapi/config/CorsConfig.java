@@ -10,10 +10,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig {
 
-    /**
-     * Origens liberadas para o front-end, configuraveis por ambiente
-     * (CORS_ALLOWED_ORIGINS, separadas por virgula).
-     */
     @Value("${api.cors.allowed-origins}")
     private String[] allowedOrigins;
 

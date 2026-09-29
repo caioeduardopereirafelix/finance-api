@@ -77,7 +77,8 @@
               <div class="recent-main">
                 <p class="recent-description">{{ item.description }}</p>
                 <p class="recent-meta">
-                  {{ categoryLabel[item.category] }} · {{ item.createdDate | brDate }}
+                  {{ categoryLabel[item.category] }} · {{ item.occurredAt | brDate }}
+                  @if (item.source === 'BANK') { · Banco }
                 </p>
               </div>
               <p class="recent-amount"

@@ -40,6 +40,7 @@
 
 .nav-list {
   display: flex;
+  flex-wrap: wrap;            /* com 3+ itens, em 320px nao cabem numa linha (1.4.10) */
   gap: 0.25rem;
   list-style: none;
   margin: 0;
@@ -74,6 +75,7 @@
 main:focus { outline: none; }
 
 @media (max-width: 30rem) {
+  .nav-list a { padding: 0 0.6rem; }
   .app-header-inner { gap: 0.5rem; }
   .header-actions { margin-inline-start: 0; width: 100%; }
   .action-label { display: none; }

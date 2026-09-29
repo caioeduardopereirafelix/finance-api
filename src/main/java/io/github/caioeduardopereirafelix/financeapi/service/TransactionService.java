@@ -21,8 +21,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -112,8 +111,8 @@ public class TransactionService {
             String description,
             BigDecimal minAmount,
             BigDecimal maxAmount,
-            LocalDateTime startDate,
-            LocalDateTime endDate,
+            Instant occurredFrom,
+            Instant occurredBefore,
             Pageable pageable
     ) {
         User user = securityUtils.getAuthenticatedUser();
@@ -125,8 +124,8 @@ public class TransactionService {
                 .and(TransactionSpecification.descriptionContains(description))
                 .and(TransactionSpecification.amountGreaterThanOrEqual(minAmount))
                 .and(TransactionSpecification.amountLessThanOrEqual(maxAmount))
-                .and(TransactionSpecification.createdAtGreaterThanOrEqual(startDate))
-                .and(TransactionSpecification.createdAtLessThanOrEqual(endDate));
+                .and(TransactionSpecification.occurredFrom(occurredFrom))
+                .and(TransactionSpecification.occurredBefore(occurredBefore));
 
         return transactionRepository.findAll(specification, pageable);
     }

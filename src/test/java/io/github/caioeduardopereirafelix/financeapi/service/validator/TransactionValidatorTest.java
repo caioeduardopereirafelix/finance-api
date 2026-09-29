@@ -68,4 +68,14 @@ class TransactionValidatorTest {
                 () -> validator.validateCategoryByType(CategoryName.FOOD, TransactionalType.EXPENSES)
         );
     }
+
+    @Test
+    void categoriasOutrosRespeitamOTipo() {
+        assertDoesNotThrow(() -> validator.validateCategoryByType(CategoryName.OTHER_EXPENSE, TransactionalType.EXPENSES));
+        assertDoesNotThrow(() -> validator.validateCategoryByType(CategoryName.OTHER_INCOME, TransactionalType.CASH_ENTRY));
+        assertThrows(InvalidFieldException.class,
+                () -> validator.validateCategoryByType(CategoryName.OTHER_EXPENSE, TransactionalType.CASH_ENTRY));
+        assertThrows(InvalidFieldException.class,
+                () -> validator.validateCategoryByType(CategoryName.OTHER_INCOME, TransactionalType.EXPENSES));
+    }
 }

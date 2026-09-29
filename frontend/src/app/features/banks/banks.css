@@ -1,0 +1,98 @@
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.eyebrow { color: var(--muted); margin: 0 0 0.15rem; font-weight: 600; }
+h1:focus { outline: none; }
+
+.lead { color: var(--muted); max-width: 46rem; margin-bottom: 1.5rem; }
+.muted { color: var(--muted); }
+
+.connection-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+
+.connection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.connection-main { min-width: 0; }
+
+.connection-name {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-size: 1.1rem;
+  margin: 0 0 0.15rem;
+}
+
+/* Etiqueta com contorno e texto: nao depende so de cor (1.4.1) */
+.pill {
+  display: inline-block;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid var(--field-border);
+  color: var(--text);
+}
+
+.connection-status { margin: 0; font-weight: 700; }
+.status-ok { color: var(--income); }
+.status-error { color: var(--expense); }
+.status-hint { font-weight: 400; }
+
+.connection-meta { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.9rem; }
+
+.connection-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.after-list { margin: 1.25rem 0 0; color: var(--muted); }
+.after-list a { color: var(--primary); font-weight: 600; }
+
+.empty-state { text-align: center; padding: 2.5rem 1.5rem; }
+.empty-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem; }
+.error-panel { border-color: var(--expense); }
+.error-panel h2 { color: var(--expense); font-size: 1.1rem; }
+
+/* ---------- Dialogo ---------- */
+.dialog {
+  width: min(28rem, calc(100vw - 2rem));
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.dialog::backdrop { background: rgb(8 12 20 / 55%); }
+.dialog h2 { margin-top: 0; }
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.check-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+}
+.check-option input { width: 1.25rem; min-height: auto; margin-top: 0.2rem; accent-color: var(--primary); flex: none; }
+.check-hint { display: block; font-weight: 400; margin-top: 0.15rem; }
+.check-option:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }

@@ -141,9 +141,12 @@
                       [class.tag-expense]="item.type === 'EXPENSES'">
                   {{ typeLabel[item.type] }}
                 </span>
+                @if (item.source === 'BANK') {
+                  <span class="row-tag tag-bank">Banco</span>
+                }
               </th>
               <td data-label="Categoria">{{ categoryLabel[item.category] }}</td>
-              <td data-label="Data">{{ item.createdDate | brDate }}</td>
+              <td data-label="Data">{{ item.occurredAt | brDate }}</td>
               <td data-label="Valor" class="num">
                 <span [class.tone-income]="item.type === 'CASH_ENTRY'"
                       [class.tone-expense]="item.type === 'EXPENSES'">

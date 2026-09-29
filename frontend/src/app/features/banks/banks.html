@@ -1,0 +1,114 @@
+<div class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Importação automática</p>
+      <h1 #heading tabindex="-1">Bancos</h1>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="connect()"
+            [disabled]="connecting()" [attr.aria-busy]="connecting()">
+      @if (connecting()) { Conectando… } @else { <span aria-hidden="true">+</span> Conectar banco }
+    </button>
+  </header>
+
+  <p class="lead">
+    Conecte uma conta para importar seus gastos sozinho, sem digitar cada um.
+    Em conexões reais, você informa suas credenciais direto ao provedor bancário:
+    este aplicativo não as recebe.
+  </p>
+
+  @if (loading()) {
+    <p class="muted" role="status">Carregando suas conexões…</p>
+  } @else if (error()) {
+    <div role="alert" class="card error-panel">
+      <h2>Algo deu errado</h2>
+      <p>{{ error() }}</p>
+      <button type="button" class="btn btn-secondary" (click)="load()">Tentar de novo</button>
+    </div>
+  } @else if (connections().length === 0) {
+    <div class="card empty-state">
+      <p class="empty-title">Nenhum banco conectado</p>
+      <p>Depois de conectar, as movimentações entram no seu extrato já classificadas.</p>
+      <button type="button" class="btn btn-primary" (click)="connect()" [disabled]="connecting()">
+        Conectar banco
+      </button>
+    </div>
+  } @else {
+    <h2 class="sr-only">Conexões</h2>
+    <ul class="connection-list">
+      @for (connection of connections(); track connection.id) {
+        <li class="card connection">
+          <div class="connection-main">
+            <h3 class="connection-name">
+              {{ name(connection) }}
+              @if (connection.provider === mockProvider) {
+                <span class="pill pill-demo">Demonstração</span>
+              }
+            </h3>
+
+            <p class="connection-status"
+               [class.status-ok]="connection.status === 'ACTIVE'"
+               [class.status-error]="connection.status === 'ERROR'">
+              @if (connection.status === 'ACTIVE') {
+                <span aria-hidden="true">✓</span> Ativa
+              } @else {
+                <span aria-hidden="true">⚠</span> Com erro
+                <span class="status-hint">— tente sincronizar de novo</span>
+              }
+            </p>
+
+            <p class="connection-meta">
+              Última sincronização:
+              @if (connection.lastSyncedAt) {
+                <time [attr.datetime]="connection.lastSyncedAt">{{ connection.lastSyncedAt | brDateTime }}</time>
+              } @else {
+                nunca
+              }
+            </p>
+          </div>
+
+          <div class="connection-actions">
+            <button type="button" class="btn btn-secondary"
+                    (click)="sync(connection)"
+                    [disabled]="syncingId() !== null"
+                    [attr.aria-busy]="syncingId() === connection.id">
+              @if (syncingId() === connection.id) { Sincronizando… } @else { Sincronizar }
+              <span class="sr-only"> {{ name(connection) }}</span>
+            </button>
+            <button type="button" class="btn btn-danger" (click)="askDisconnect(connection)">
+              Desconectar<span class="sr-only"> {{ name(connection) }}</span>
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+
+    <p class="after-list">
+      As transações importadas aparecem em <a routerLink="/transacoes">Transações</a>,
+      com o selo "Banco".
+    </p>
+  }
+</div>
+
+<!-- ---------- Dialogo: desconectar ---------- -->
+<dialog #disconnectDialog class="dialog dialog-sm" aria-labelledby="disc-titulo" aria-describedby="disc-texto">
+  <h2 id="disc-titulo">Desconectar banco</h2>
+  <p id="disc-texto">
+    Desconectar <strong>{{ pendingDisconnect() ? name(pendingDisconnect()!) : '' }}</strong>
+    para de importar novas movimentações.
+  </p>
+
+  <label class="check-option">
+    <input type="checkbox" [ngModel]="deleteImported()" (ngModelChange)="deleteImported.set($event)" />
+    <span>
+      Apagar também as transações importadas deste banco
+      <span class="hint check-hint">Os lançamentos que você digitou não são afetados. Esta ação não pode ser desfeita.</span>
+    </span>
+  </label>
+
+  <div class="dialog-actions">
+    <button type="button" class="btn btn-secondary" (click)="cancelDisconnect()">Cancelar</button>
+    <button type="button" class="btn btn-danger" [disabled]="disconnecting()" (click)="confirmDisconnect()">
+      {{ disconnecting() ? 'Desconectando…' : 'Desconectar' }}
+    </button>
+  </div>
+</dialog>

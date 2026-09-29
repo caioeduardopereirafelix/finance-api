@@ -27,6 +27,12 @@ export const routes: Routes = [
     title: 'Transações · Finance',
     loadComponent: () => import('./features/transactions/transactions').then(m => m.TransactionsPage),
   },
+  {
+    path: 'bancos',
+    canActivate: [authGuard],
+    title: 'Bancos · Finance',
+    loadComponent: () => import('./features/banks/banks').then(m => m.BanksPage),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'painel' },
   {
     path: '**',

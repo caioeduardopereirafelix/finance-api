@@ -84,6 +84,13 @@ thead .num { text-align: right; }
 }
 .tag-income { background: var(--income-bg); color: var(--income); }
 .tag-expense { background: var(--expense-bg); color: var(--expense); }
+/* Contorno + texto, para nao depender so de cor (1.4.1) */
+.tag-bank {
+  margin-left: 0.35rem;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--field-border);
+}
 
 .tone-income { color: var(--income); font-weight: 700; }
 .tone-expense { color: var(--expense); font-weight: 700; }
