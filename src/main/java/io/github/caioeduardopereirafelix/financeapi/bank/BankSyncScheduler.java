@@ -1,7 +1,6 @@
 package io.github.caioeduardopereirafelix.financeapi.bank;
 
 import io.github.caioeduardopereirafelix.financeapi.model.entity.BankConnection;
-import io.github.caioeduardopereirafelix.financeapi.model.enums.BankConnectionStatus;
 import io.github.caioeduardopereirafelix.financeapi.repository.BankConnectionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +10,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Sincroniza todas as conexoes ativas em intervalo fixo.
+ * Sincroniza todas as conexoes em intervalo fixo, inclusive as marcadas com erro:
+ * uma falha passageira (a Pluggy fora do ar por uma hora) nao pode tirar a conexao
+ * da sincronizacao automatica para sempre. Quando a sincronizacao volta a dar certo,
+ * ela reativa a conexao sozinha.
  *
  * Desligado por padrao. Ligue com BANK_SYNC_ENABLED=true; o horario vem de
  * bank.sync.cron (padrao: de hora em hora).
@@ -28,7 +30,7 @@ public class BankSyncScheduler {
 
     @Scheduled(cron = "${bank.sync.cron:0 0 * * * *}")
     public void syncAll() {
-        for (BankConnection connection : connections.findByStatus(BankConnectionStatus.ACTIVE)) {
+        for (BankConnection connection : connections.findAll()) {
             try {
                 BankSyncService.Result result = syncService.syncById(connection.getId());
                 log.info("Conexao {} sincronizada: {} importadas, {} ignoradas",

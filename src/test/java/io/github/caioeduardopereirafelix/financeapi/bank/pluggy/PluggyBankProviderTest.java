@@ -99,6 +99,19 @@ class PluggyBankProviderTest {
     }
 
     @Test
+    void desconectarDeveApagarOItemNaPluggy() {
+        provider.disconnect(ITEM);
+
+        verify(client).deleteItem(ITEM);
+    }
+
+    @Test
+    void desconectarComIdentificadorInvalidoNaoChegaNaPluggy() {
+        assertThrows(BankIntegrationException.class, () -> provider.disconnect("../items"));
+        verify(client, never()).deleteItem(any());
+    }
+
+    @Test
     void identificadorQueNaoEUuidNaoDeveChegarNaPluggy() {
         var e = assertThrows(BankIntegrationException.class, () -> provider.describeConnection("../accounts", "user-1"));
         assertEquals(400, e.getStatus().value());

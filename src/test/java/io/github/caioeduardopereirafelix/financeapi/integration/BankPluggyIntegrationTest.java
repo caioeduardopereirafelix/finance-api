@@ -1,11 +1,13 @@
 package io.github.caioeduardopereirafelix.financeapi.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.caioeduardopereirafelix.financeapi.bank.BankIntegrationException;
 import io.github.caioeduardopereirafelix.financeapi.bank.pluggy.PluggyClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 
@@ -13,8 +15,11 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -31,7 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class BankPluggyIntegrationTest extends ApiIntegrationTestSupport {
 
-    private static final String ITEM = "0b0d1d3e-1111-4222-8333-444455556666";
+    /** Um por teste (o JUnit cria uma instancia por metodo): o banco de testes e compartilhado e o id nao pode repetir. */
+    private final String item = java.util.UUID.randomUUID().toString();
 
     @MockBean
     private PluggyClient pluggy;
@@ -42,8 +48,8 @@ class BankPluggyIntegrationTest extends ApiIntegrationTestSupport {
     @Test
     void fluxoCompletoComAPluggy() throws Exception {
         when(pluggy.createConnectToken(any())).thenReturn("connect-token-da-pluggy");
-        when(pluggy.item(ITEM)).thenReturn(json.readTree("{\"connector\":{\"name\":\"Banco Sandbox\"}}"));
-        when(pluggy.accounts(ITEM)).thenReturn(List.of(json.readTree("{\"id\":\"acc-1\",\"type\":\"BANK\"}")));
+        when(pluggy.item(item)).thenReturn(json.readTree("{\"connector\":{\"name\":\"Banco Sandbox\"}}"));
+        when(pluggy.accounts(item)).thenReturn(List.of(json.readTree("{\"id\":\"acc-1\",\"type\":\"BANK\"}")));
         when(pluggy.transactions(eq("acc-1"), any(LocalDate.class))).thenReturn(List.of(
                 json.readTree("""
                         {"id":"p1","description":"Mercado do Bairro","amount":-88.10,"type":"DEBIT",
@@ -62,7 +68,7 @@ class BankPluggyIntegrationTest extends ApiIntegrationTestSupport {
         String body = mockMvc.perform(post("/bank/connections")
                         .header(HttpHeaders.AUTHORIZATION, a.bearer())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"externalId\":\"" + ITEM + "\"}"))
+                        .content("{\"externalId\":\"" + item + "\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.institutionName").value("Banco Sandbox"))
                 .andExpect(jsonPath("$.provider").value("pluggy"))
@@ -88,5 +94,45 @@ class BankPluggyIntegrationTest extends ApiIntegrationTestSupport {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"externalId\":\"../accounts\"}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    private String conectarComPluggy(Account a) throws Exception {
+        when(pluggy.item(item)).thenReturn(json.readTree("{\"connector\":{\"name\":\"Banco Sandbox\"}}"));
+        String body = mockMvc.perform(post("/bank/connections")
+                        .header(HttpHeaders.AUTHORIZATION, a.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"externalId\":\"" + item + "\"}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        return json.readTree(body).get("id").asText();
+    }
+
+    @Test
+    void desconectarDeveRevogarNaPluggyEDepoisApagarLocalmente() throws Exception {
+        var a = registerAndLogin();
+        String id = conectarComPluggy(a);
+
+        mockMvc.perform(delete("/bank/connections/" + id).header(HttpHeaders.AUTHORIZATION, a.bearer()))
+                .andExpect(status().isNoContent());
+
+        verify(pluggy).deleteItem(item);
+        mockMvc.perform(get("/bank/connections").header(HttpHeaders.AUTHORIZATION, a.bearer()))
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void seAPluggyFalharAoRevogarAConexaoContinuaExistindo() throws Exception {
+        var a = registerAndLogin();
+        String id = conectarComPluggy(a);
+        doThrow(new BankIntegrationException(HttpStatus.BAD_GATEWAY, "A Pluggy recusou a operacao (HTTP 500)"))
+                .when(pluggy).deleteItem(item);
+
+        mockMvc.perform(delete("/bank/connections/" + id).header(HttpHeaders.AUTHORIZATION, a.bearer()))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.error").value("A Pluggy recusou a operacao (HTTP 500)"));
+
+        // nada local mudou: da para tentar de novo
+        mockMvc.perform(get("/bank/connections").header(HttpHeaders.AUTHORIZATION, a.bearer()))
+                .andExpect(jsonPath("$.length()").value(1));
     }
 }

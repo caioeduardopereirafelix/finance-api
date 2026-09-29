@@ -234,6 +234,37 @@ class PluggyClientTest {
     }
 
     @Test
+    void deveApagarOItemNaPluggy() {
+        expectAuth("key-1");
+        server.expect(once(), requestTo(BASE + "/items/item-1"))
+                .andExpect(method(HttpMethod.DELETE))
+                .andExpect(header("X-API-KEY", "key-1"))
+                .andRespond(withStatus(HttpStatus.NO_CONTENT));
+
+        client.deleteItem("item-1");
+        server.verify();
+    }
+
+    @Test
+    void itemQueJaNaoExisteContaComoApagado() {
+        expectAuth("key-1");
+        server.expect(once(), requestTo(BASE + "/items/item-1"))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND));
+
+        client.deleteItem("item-1");   // nao lanca
+        server.verify();
+    }
+
+    @Test
+    void falhaAoApagarOItemDevePropagar() {
+        expectAuth("key-1");
+        server.expect(once(), requestTo(BASE + "/items/item-1"))
+                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        assertThrows(BankIntegrationException.class, () -> client.deleteItem("item-1"));
+    }
+
+    @Test
     void deveListarAsContasDoItem() {
         expectAuth("key-1");
         server.expect(once(), requestTo(org.hamcrest.Matchers.startsWith(BASE + "/accounts")))

@@ -29,6 +29,12 @@ public interface BankProvider {
      */
     ExternalConnection describeConnection(String externalId, String userReference);
 
+    /**
+     * Revoga a autorizacao no provedor (apaga o item/consentimento la).
+     * Deve ser idempotente: uma conexao que o provedor ja nao conhece conta como sucesso.
+     */
+    void disconnect(String externalId);
+
     /** Movimentacoes da conexao a partir de {@code since}. */
     List<ExternalTransaction> fetchTransactions(String externalId, Instant since);
 }

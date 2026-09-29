@@ -98,6 +98,11 @@ public class PluggyBankProvider implements BankProvider {
     }
 
     @Override
+    public void disconnect(String externalId) {
+        client.deleteItem(requireItemId(externalId));
+    }
+
+    @Override
     public List<ExternalTransaction> fetchTransactions(String externalId, Instant since) {
         String itemId = requireItemId(externalId);
         Instant cardSince = since.isBefore(clock.instant().minus(CARD_LOOKBACK))

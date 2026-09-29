@@ -38,6 +38,11 @@ public class MockBankProvider implements BankProvider {
     }
 
     @Override
+    public void disconnect(String externalId) {
+        // nada a revogar: o provedor de mentira nao guarda autorizacao nenhuma
+    }
+
+    @Override
     public List<ExternalTransaction> fetchTransactions(String externalId, Instant since) {
         Instant now = Instant.now();
 

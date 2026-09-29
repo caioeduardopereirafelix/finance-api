@@ -169,6 +169,35 @@ documentação ("Fixed Income Investment") e em português em outros ("Transfer�
 - Item com `LOGIN_ERROR`/`OUTDATED` (o usuário precisa reautorizar) hoje só falha na
   sincronização; falta um fluxo de "renovar consentimento".
 
+## Sincronização automática
+
+Ligue com `BANK_SYNC_ENABLED=true`. O horário vem de `BANK_SYNC_CRON` (6 campos, começando
+pelos segundos; padrão `0 0 * * * *`, de hora em hora). Para testar sem esperar uma hora,
+use `BANK_SYNC_CRON=0 * * * * *` (todo minuto) e acompanhe `docker compose logs -f api`:
+cada conexão sincronizada gera uma linha `Conexao ... sincronizada: N importadas`.
+
+- O agendador sincroniza **todas** as conexões, inclusive as com erro. Uma falha passageira
+  (a Pluggy fora do ar) marca a conexão como `ERROR`; na rodada seguinte ela é tentada de
+  novo e, se der certo, volta a `ACTIVE` sozinha. Uma conexão quebrada de vez (o banco pede
+  login de novo) falha a cada rodada e aparece como aviso no log, até existir o fluxo de
+  reautorização.
+- A sincronização só lê o que a Pluggy já buscou no banco. A frequência com que a Pluggy
+  atualiza cada banco depende do plano dela.
+- Com mais de uma instância da API, cada uma rodaria o agendador.
+
+## Desconectar
+
+Ao desconectar, a API **primeiro revoga a autorização no provedor** (na Pluggy, apaga o item,
+`DELETE /items/{id}`) e só depois apaga a conexão daqui:
+
+- Se a revogação falhar, a API responde 502 com o motivo, **nada muda localmente** e a pessoa
+  pode tentar de novo.
+- Um item que a Pluggy já não conhece (404) conta como sucesso, então repetir é seguro. É o que
+  acontece se a exclusão local falhar depois de a remota ter dado certo.
+- Se o provedor estiver desligado (por exemplo, `BANK_PROVIDER` mudou), a conexão antiga não pode
+  ser removida (503) até ele voltar.
+- Apagar a **conta do usuário** ainda não revoga as conexões dele na Pluggy.
+
 ## Regras de importação
 
 - **Tipo** vem do sinal do valor: negativo é saída, positivo é entrada. O valor

@@ -77,6 +77,19 @@ public class BankConnectionService {
         BankConnection connection = connections.findByIdAndUser(id, user)
                 .orElseThrow(() -> new BankIntegrationException(HttpStatus.NOT_FOUND, "Conexao bancaria nao encontrada"));
 
+        // Primeiro o provedor: se a revogacao falhar, nada local muda e a pessoa tenta de novo.
+        // Se o local falhar depois, tentar outra vez e seguro (o provedor ja sem o item = sucesso).
+        try {
+            providers.named(connection.getProvider()).disconnect(connection.getExternalId());
+        } catch (BankIntegrationException e) {
+            log.warn("Nao foi possivel revogar a conexao {} no provedor: {}", connection.getId(), e.getMessage());
+            throw e;
+        } catch (RuntimeException e) {
+            log.warn("Nao foi possivel revogar a conexao {} no provedor: {}", connection.getId(), e.toString());
+            throw new BankIntegrationException(HttpStatus.BAD_GATEWAY,
+                    "Nao foi possivel revogar a autorizacao no provedor bancario. Tente de novo.", e);
+        }
+
         if (deleteImported) {
             transactions.deleteByBankConnection(connection);
         } else {

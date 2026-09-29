@@ -82,6 +82,25 @@ public class PluggyClient {
                 .body(JsonNode.class));
     }
 
+    /**
+     * Apaga o item na Pluggy, o que revoga a autorizacao e remove os dados la.
+     * Um item que ja nao existe (404) conta como sucesso, para poder repetir a operacao.
+     */
+    public void deleteItem(String itemId) {
+        try {
+            authenticated(key -> http.delete()
+                    .uri("/items/{id}", itemId)
+                    .header("X-API-KEY", key)
+                    .retrieve()
+                    .toBodilessEntity());
+        } catch (BankIntegrationException e) {
+            if (e.getCause() instanceof RestClientResponseException r && r.getStatusCode().value() == 404) {
+                return;
+            }
+            throw e;
+        }
+    }
+
     public List<JsonNode> accounts(String itemId) {
         JsonNode response = authenticated(key -> http.get()
                 .uri(uri -> uri.path("/accounts").queryParam("itemId", itemId).build())
