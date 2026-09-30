@@ -126,8 +126,6 @@ Para rodar sem Docker, testes, migrations e produção: [docs/configuracao.md](d
 | Resumos | `GET /transaction/summary`, `GET /transaction/summary/by-category` |
 | Bancos | `/bank/connections` (conectar, listar, sincronizar, reautorizar, desconectar) |
 
-Referência completa com exemplos em [docs/api.md](docs/api.md).
-
 ## Autor
 
 **Caio Eduardo** · [github.com/caioeduardopereirafelix](https://github.com/caioeduardopereirafelix) · Licença [MIT](LICENSE)
