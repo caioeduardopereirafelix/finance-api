@@ -47,7 +47,7 @@ Medido com 1,05 milhão de transações na tabela e 100 mil do usuário testado,
 | Listar transações (página 1) | 21,9 ms | 34,7 ms | ~185 |
 | Resumo de tudo (100 mil linhas) | 36,5 ms | 64,4 ms | ~97 |
 
-p50 e p99 com uma conexão (latência sem fila). A primeira página da listagem lê os dados em **0,07 ms** pelo índice `(user_id, occurred_at DESC)`; o que pesa é a contagem total da paginação. O login leva ~85 ms de propósito (bcrypt). Método completo, `EXPLAIN ANALYZE`, limites e como reproduzir em [docs/desempenho.md](docs/desempenho.md).
+p50 e p99 com uma conexão (latência sem fila). A primeira página da listagem lê os dados em **0,07 ms** pelo índice `(user_id, occurred_at DESC)`; o que pesa é a contagem total da paginação. O login leva ~85 ms de propósito (bcrypt).
 
 ## Arquitetura
 
@@ -113,10 +113,7 @@ docker compose up -d --build
 | Swagger | http://localhost:8080/swagger-ui.html |
 | Grafana | http://localhost:3000 |
 
-Para testar a parte bancária sem credenciais da Pluggy, acrescente `BANK_MOCK_ENABLED=true` e `BANK_PROVIDER=mock` ao `.env`: um banco de demonstração importa sete transações. Com credenciais do sandbox da Pluggy, veja [docs/integracao-bancaria.md](docs/integracao-bancaria.md).
-
-Para rodar sem Docker, testes, migrations e produção: [docs/configuracao.md](docs/configuracao.md).
-
+Para testar a parte bancária sem credenciais da Pluggy, acrescente `BANK_MOCK_ENABLED=true` e `BANK_PROVIDER=mock` ao `.env`: um banco de demonstração importa sete transações.
 ## API
 
 | Área | Endpoints |
