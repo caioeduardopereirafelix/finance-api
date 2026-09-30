@@ -1,7 +1,5 @@
 package io.github.caioeduardopereirafelix.financeapi.service.validator;
 
-import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidFieldException;
-import io.github.caioeduardopereirafelix.financeapi.exceptions.EmailAlreadyExistException;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.RegistrationDuplicated;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
@@ -15,24 +13,6 @@ import java.util.Optional;
 public class UserValidator {
 
     private final UserRepository repository;
-
-    public void validatePassword(String senha){
-        if (senha.isBlank()) {
-            throw new InvalidFieldException("Password","Password cannot be blank");
-        }
-    }
-
-    public void validateEmail(String email){
-        if (repository.findByEmail(email).isPresent()) {
-            throw new EmailAlreadyExistException("Email already exists");
-        }
-    }
-
-    public void validateName(String name){
-        if (name.isBlank()) {
-            throw new InvalidFieldException("Name","Name cannot be blank");
-        }
-    }
 
     public void validate(User user) {
         if (existUser(user)){
@@ -56,7 +36,4 @@ public class UserValidator {
 
         return !user.getId().equals(userFound.get().getId());
     }
-
-    //melhorar essa validacao, pois nao esta lancando excecao personalizada e melhorar os metodos para validar
-    //usuario existe ou nao, password e email
 }

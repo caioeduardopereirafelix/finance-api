@@ -1,8 +1,10 @@
 # Integração bancária (Open Finance)
 
-Esta é a **base** para importar gastos de contas bancárias. Ela ainda **não fala
-com nenhum banco de verdade**: falta escrever a implementação de um agregador
-(Pluggy, Belvo, ...). Tudo em volta dela já está pronto e testado.
+Importa gastos de contas bancárias via um agregador de Open Finance. O provedor
+**Pluggy** já está implementado (`bank/pluggy/`) e é o usado em produção; um
+provedor `mock` cobre desenvolvimento e demonstração sem falar com nenhum banco
+de verdade. Outro agregador (Belvo, ...) pode ser adicionado implementando
+`BankProvider`.
 
 ## Como funciona
 
