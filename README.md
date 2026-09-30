@@ -1,372 +1,147 @@
 # Finance API
 
-API REST para controle financeiro pessoal, desenvolvida com **Java 21** e **Spring Boot**.
+**Controle financeiro pessoal com Open Finance.** API REST em Java 21 e Spring Boot, front Angular acessível, PostgreSQL e observabilidade, tudo em um `docker compose up`.
 
-O projeto permite que usuários se cadastrem, realizem autenticação com **JWT** e gerenciem suas próprias transações financeiras de entrada e saída, como salários, rendas extras, alimentação, transporte, moradia, saúde, lazer, contas e investimentos.
+[![CI](https://github.com/caioeduardopereirafelix/finance-api/actions/workflows/ci.yml/badge.svg)](https://github.com/caioeduardopereirafelix/finance-api/actions/workflows/ci.yml)
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3-6db33f)
+![Angular](https://img.shields.io/badge/Angular-21-dd0031)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791)
+![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)
 
-## Sobre o projeto
+<p>
+  <img src="docs/img/painel-light.png" alt="Painel com resumo do mês, gráfico de saídas por categoria e últimas transações, no tema claro" width="49%">
+  <img src="docs/img/painel-dark.png" alt="O mesmo painel no tema escuro" width="49%">
+</p>
+<table>
+  <tr>
+    <td valign="top" width="68%"><img src="docs/img/transacoes-light.png" alt="Lista de transações com selo Banco nas importadas"></td>
+    <td valign="top" width="32%"><img src="docs/img/painel-mobile-dark.png" alt="Painel em tela de celular"></td>
+  </tr>
+</table>
 
-A **Finance API** foi criada com o objetivo de praticar e demonstrar conhecimentos em desenvolvimento backend utilizando Spring Boot, Spring Security, autenticação JWT, JPA/Hibernate e PostgreSQL.
+## O que faz
 
-A aplicação segue uma arquitetura em camadas, separando responsabilidades entre controllers, services, repositories, DTOs, entidades, mappers e tratamento de exceções.
+Cada pessoa se cadastra, conecta seus bancos pelo **Open Finance** (Pluggy) e vê o dinheiro num painel: entradas, saídas e saldo por período, comparados com o período anterior, e um gráfico por categoria. As transações do banco entram sozinhas e sem duplicar, já categorizadas; o que a pessoa corrige vira regra e vale para as próximas importações.
 
-Um dos principais pontos do projeto é a segurança dos dados: cada usuário autenticado acessa apenas suas próprias transações, garantindo isolamento das informações por usuário.
+## Números
 
-## Funcionalidades
+| Indicador | Resultado |
+|---|---|
+| **Testes** | mais de 200 no backend (com a cadeia real do Spring Security e PostgreSQL de verdade) e 60 no front |
+| **CI** | GitHub Actions: build e testes do backend, testes e build de produção do front |
+| **Desempenho** | ~1.400 escritas/s e ~900 consultas de período/s; p99 abaixo de 45 ms (16 conexões, 100 mil transações do usuário, máquina de 4 vCPUs dividida com o banco) |
+| **Migrations** | 7, com um teste que impede editar uma já aplicada |
+| **Acessibilidade** | WCAG 2.2 AA, auditado com axe-core (0 violações nas telas verificadas), tema claro e escuro, funciona a 320 px |
+| **Front** | 79 kB transferidos na carga inicial; cada tela carrega sob demanda |
 
-* Cadastro de usuários
-* Login com autenticação JWT
-* Refresh token com rotação e revogação (logout)
-* Proteção de rotas com Spring Security
-* Isolamento de dados por usuário autenticado
-* Autorização baseada em roles
-* Criação de transações financeiras
-* Listagem das transações do usuário autenticado
-* Edição de transações
-* Remoção de transações
-* Resumo financeiro com:
+## Desempenho
 
-  * total de entradas
-  * total de despesas
-  * saldo final
-* Filtros de transações
-* Paginação e ordenação
-* Validação de campos com Bean Validation
-* Validação de categoria conforme o tipo da transação
-* Tratamento de exceções personalizado
-* Persistência de dados com PostgreSQL
+Medido com 1,05 milhão de transações na tabela e 100 mil do usuário testado, PostgreSQL 16 padrão e a API com heap de 512 MB. Zero erros.
 
-## Tecnologias utilizadas
+| Operação | p50 | p99 | req/s (16 conexões) |
+|---|---:|---:|---:|
+| Criar transação | 3,8 ms | 7,7 ms | ~1.400 |
+| Resumo do mês | 6,2 ms | 10,7 ms | ~890 |
+| Listar com filtro de período | 6,2 ms | 11,6 ms | ~990 |
+| Listar transações (página 1) | 21,9 ms | 34,7 ms | ~185 |
+| Resumo de tudo (100 mil linhas) | 36,5 ms | 64,4 ms | ~97 |
 
-* Java 21
-* Spring Boot
-* Spring Web
-* Spring Data JPA
-* Spring Security
-* JWT
-* PostgreSQL
-* Maven
-* Lombok
-* MapStruct
-* Bean Validation
-* Hibernate
-* Flyway
-* Docker / Docker Compose
-* Swagger / OpenAPI (springdoc)
-* Prometheus e Grafana
-* JUnit 5, Mockito e Spring Security Test
+p50 e p99 com uma conexão (latência sem fila). A primeira página da listagem lê os dados em **0,07 ms** pelo índice `(user_id, occurred_at DESC)`; o que pesa é a contagem total da paginação. O login leva ~85 ms de propósito (bcrypt). Método completo, `EXPLAIN ANALYZE`, limites e como reproduzir em [docs/desempenho.md](docs/desempenho.md).
 
-## Conceitos aplicados
+## Arquitetura
 
-* API REST
-* Autenticação stateless com JWT
-* Autorização com Spring Security
-* Organização em camadas
-* DTOs para entrada e saída de dados
-* Mapeamento de entidades com JPA
-* Relacionamento entre usuários, roles e transações
-* Validação de dados
-* Tratamento centralizado de erros
-* Paginação, ordenação e filtros
-* Controle de acesso por usuário autenticado
-
-## Estrutura do projeto
-
-```txt
-src/main/java/io/github/caioeduardopereirafelix/financeapi
-├── config
-├── controller
-├── exceptions
-├── model
-│   ├── dto
-│   ├── entity
-│   ├── enums
-│   └── mapper
-├── repository
-├── specification
-└── service
-    └── validator
-```
-## Documentação da API
-
-Com a aplicação rodando, a documentação interativa fica em:
-
-* Swagger UI: http://localhost:8080/swagger-ui.html
-* OpenAPI JSON: http://localhost:8080/v3/api-docs
-
-Para chamar os endpoints protegidos pela UI: faça login em `POST /v1/auth/login`,
-clique em **Authorize** e informe o token retornado.
-
-Para desligar a documentação (em produção, por exemplo), use `SWAGGER_ENABLED=false`.
-
-## Principais endpoints
-
-### Autenticação
-
-```http
-POST /v1/auth/register
+```mermaid
+flowchart LR
+    U["Navegador<br/>Angular 21"] --> N["nginx"]
+    N -->|"/v1 /transaction /bank"| A["API REST<br/>Spring Boot 3"]
+    A --> P[("PostgreSQL 16<br/>schema via Flyway")]
+    A <-->|"Open Finance"| X["Pluggy"]
+    X -->|"webhooks"| A
+    M["Prometheus"] -->|"métricas"| A
+    G["Grafana"] --> M
 ```
 
-Cadastro de novo usuário.
+Em camadas dentro da API: controllers, services, repositories, DTOs, mappers e tratamento centralizado de erros.
 
-```http
-POST /v1/auth/login
-```
+## Decisões que valem olhar
 
-Autenticação do usuário. Retorna o token JWT de acesso e um refresh token.
+**Segurança**
+- **Isolamento por usuário:** cada pessoa só enxerga e altera o que é dela. Um id de outro usuário responde `403`, igual a um id inexistente, então não dá para descobrir quais existem.
+- **Refresh token** opaco, guardado só como hash SHA-256, de uso único com rotação; o logout revoga.
+- **Trava de login:** 5 senhas erradas seguidas bloqueiam o e-mail por 15 minutos (`429` com `Retry-After`).
+- **Webhook público** protegido por segredo no caminho, com comparação em tempo constante; o dono de cada conexão bancária é conferido pelo `clientUserId`.
+- **Apagar a conta** revoga as conexões bancárias na Pluggy antes.
+- A aplicação **não sobe sem `JWT_SECRET`** de pelo menos 32 bytes; o actuator roda em porta separada; a imagem da API não roda como root.
 
-```http
-POST /v1/auth/refresh
-```
+**Dados**
+- **Flyway** é o dono do schema (`ddl-auto: validate`) e `MigrationImmutabilityTest` falha o build se uma migration já aplicada for alterada.
+- **Importação idempotente:** índice único parcial `(usuário, id externo)`; sincronizar três vezes não duplica (verificado contra PostgreSQL).
+- **Datas e fuso:** o período é calculado em `America/Sao_Paulo` com limite superior exclusivo; uma compra às 23:30 cai no dia certo.
+- **Somas no banco:** `SUM`/`GROUP BY` no PostgreSQL em vez de carregar as transações na memória: 70 a 100 ms contra 420 a 520 ms só para trazer as 100 mil linhas.
 
-Troca um refresh token válido por um novo par de tokens. O refresh token
-apresentado é invalidado no processo (rotação de uso único).
+**Produto e engenharia**
+- **Categorização que aprende:** escolher a categoria de uma compra do banco vale para as parecidas (mesmo estabelecimento) e para as próximas importações, por usuário.
+- **Gráfico acessível:** cor única, tabela equivalente ("Ver como tabela") e dica de valores por foco de teclado, não só por mouse.
+- **Testes isolados do `.env`:** a suíte não muda de resultado com as suas credenciais, e há um teste que garante isso.
+- **Docker:** build em dois estágios, healthcheck da API, Prometheus e Grafana com versão fixa e uma sobreposição de produção que publica só o front.
 
-```http
-POST /v1/auth/logout
-```
+## Stack
 
-Revoga o refresh token informado.
+| Camada | Tecnologias |
+|---|---|
+| Backend | Java 21, Spring Boot 3.3 (Web, Data JPA, Security, Validation), JWT, Hibernate, Flyway, MapStruct, Lombok |
+| Front | Angular 21 (componentes standalone, signals), sem biblioteca de UI ou de gráficos |
+| Dados | PostgreSQL 16 |
+| Integração | Pluggy (Open Finance): widget, sincronização, webhooks, reautorização |
+| Operação | Docker Compose, Prometheus, Grafana, GitHub Actions |
+| Testes | JUnit 5, Mockito, Spring Security Test, Testcontainers, Vitest |
 
-### Transações
+## Rodando
 
-```http
-POST /transaction
-```
-
-Cria uma nova transação para o usuário autenticado. O campo opcional `occurredOn` (`AAAA-MM-DD`)
-informa o dia em que o gasto ou a entrada aconteceu; sem ele vale agora. O dia é lido no fuso
-`America/Sao_Paulo`: hoje guarda o instante atual, um dia passado guarda o meio-dia desse dia.
-Data futura ou anterior a 2000 responde 422 (`fieldsError[0].field = occurredOn`).
-
-```http
-GET /transaction
-```
-
-Lista as transações do usuário autenticado (paginada, com filtros).
-
-```http
-GET /transaction/{id}
-```
-
-Retorna uma transação específica do usuário autenticado.
-
-```http
-PUT /transaction/{id}
-```
-
-Atualiza uma transação existente. `occurredOn` segue a regra da criação; omitido, ou igual ao dia
-já gravado, a data e a hora ficam como estavam. Numa transação **importada do banco** a data vem do
-banco: pedir outro dia responde 422.
-
-```http
-PATCH /transaction/{id}/category
-```
-
-Troca só a categoria (corpo: `{ "category": "BILLS", "applyToSimilar": true }`). Serve a qualquer
-transação do usuário e é o único ajuste que uma transação **importada do banco** aceita: o `PUT`
-recusa (422) mudar valor, descrição ou tipo dela. Com `applyToSimilar`, a categoria vale também
-para as transações importadas do mesmo estabelecimento e para as próximas importações. A resposta
-traz a transação e `updated`, o total de transações que mudaram. Categoria de outro tipo (uma
-entrada numa saída) responde 422.
-
-"Mesmo estabelecimento" são as primeiras quatro palavras da descrição, sem acento, número nem
-símbolo (`Uber *Viagem 1234` e `UBER *TRIP 9F3K` se aproximam). Cada escolha vira uma regra do
-usuário (tabela `category_rules`): escolher de novo atualiza a regra, e outro usuário nunca é
-afetado.
-
-```http
-DELETE /transaction/{id}
-```
-
-Remove uma transação existente.
-
-```http
-GET /transaction/summary?startDate=2026-09-01&endDate=2026-09-29
-```
-
-Retorna o resumo financeiro (entradas, saídas e saldo) do usuário autenticado. As datas são
-opcionais e valem sobre o dia em que o gasto ocorreu, no fuso `America/Sao_Paulo`, com o dia final
-incluído. Sem datas, o resumo cobre tudo. Data inicial depois da final responde 422.
-
-```http
-GET /transaction/summary/by-category?startDate=2026-09-01&endDate=2026-09-29
-```
-
-Retorna o total por categoria no período, do maior para o menor, com a quantidade de
-transações de cada uma: `[{ "category": "FOOD", "type": "EXPENSES", "total": 812.40, "count": 12 }]`.
-
-## Exemplo de criação de transação
-
-```json
-{
-  "description": "Salário mensal",
-  "amount": 3500.00,
-  "category": "WAGE",
-  "type": "CASH_ENTRY",
-  "occurredOn": "2026-09-05"
-}
-```
-
-## Exemplo de resposta do resumo financeiro
-
-```json
-{
-  "cashEntry": 5000.00,
-  "expenses": 2300.00,
-  "balance": 2700.00
-}
-```
-
-## Exemplo de resposta de transação
-
-```json
-{
-  "id": "cf0d4b6e-69f6-4b28-86d3-4c95c6795ff3",
-  "description": "Salário mensal",
-  "amount": 3500.00,
-  "category": "WAGE",
-  "type": "CASH_ENTRY",
-  "createdDate": "2026-09-10T16:39:38.108341Z"
-}
-```
-
-## Exemplo de resposta da autenticação
-
-```json
-{
-  "token": "eyJhbGciOiJIUzUxMiJ9...",
-  "expiresIn": 86400000,
-  "refreshToken": "SpBDPlDaixM8zBfCur4A..."
-}
-```
-
-O `token` é usado no header `Authorization: Bearer <token>`. Quando ele expira,
-chame `POST /v1/auth/refresh` com o `refreshToken` para obter um par novo — não
-é preciso pedir a senha ao usuário de novo.
-
-## Segurança
-
-* Cada usuário só enxerga e altera o **próprio** cadastro e as **próprias**
-  transações. Um `GET`/`PUT`/`DELETE` em `/user/{id}` de outro usuário responde
-  `403`, e o mesmo `403` vale para um id inexistente — assim não dá para
-  descobrir quais ids existem.
-* Perfis `ROLE_ADMIN` têm acesso a qualquer cadastro.
-* Refresh tokens são opacos e ficam no banco **apenas como hash SHA-256**. Cada
-  um vale para um único uso: ao ser trocado, é revogado.
-* O `/actuator` não responde mais na porta pública da API — ele fica numa porta
-  separada (`MANAGEMENT_PORT`, padrão `9091`), que **não deve ser exposta fora
-  da rede interna**.
-
-## Banco de dados e migrations
-
-O schema é controlado pelo **Flyway** (`src/main/resources/db/migration`) e o Hibernate
-roda com `ddl-auto: validate` — ou seja, a aplicação não cria nem altera tabelas,
-apenas valida se o schema bate com as entidades.
-
-### Migration que já rodou nunca se edita
-
-O Flyway guarda o checksum de cada migration no banco e se recusa a subir se o arquivo mudou
-depois — **mesmo que seja só um comentário ou um espaço no fim da linha** (trocar quebra de
-linha, LF por CRLF, não conta). O teste `MigrationImmutabilityTest` trava isso no build: ele guarda o
-checksum de cada migration e falha se alguma foi alterada ou apagada.
-
-Para mudar o schema, crie sempre uma migration nova (`V7__...`, `V8__...`). Antes de commitar,
-rode `./mvnw test`: o teste diz o checksum da nova migration e a linha exata para acrescentar em
-`APPLIED`, no próprio teste. Se alguma ferramenta remove comentários dos arquivos do projeto, exclua
-`src/main/resources/db/migration/` dela.
-
-### Configuração local: use um `.env`
-
-Crie um arquivo chamado `.env` na raiz do projeto com o conteúdo abaixo,
-trocando o `JWT_SECRET` por um valor gerado:
+Crie um `.env` na raiz com três valores: `JWT_SECRET` (gere com `openssl rand -base64 48`), `POSTGRES_PASSWORD` e `GRAFANA_PASSWORD`. Depois:
 
 ```bash
-# obrigatorias — a aplicacao nao sobe sem elas
-DB_URL=jdbc:postgresql://localhost:5432/finance
-DB_USER=postgres
-DB_PASSWORD=postgres
-JWT_SECRET=troque-por-um-valor-gerado
-
-# opcionais — os valores abaixo ja sao os padroes
-# expiracao do access token em milissegundos (24h)
-JWT_EXPIRATION=86400000
-# expiracao do refresh token em milissegundos (7 dias)
-REFRESH_TOKEN_EXPIRATION=604800000
-CORS_ALLOWED_ORIGINS=http://localhost:4200
-MANAGEMENT_PORT=9091
-SWAGGER_ENABLED=true
-
-# seguranca (opcional) — os valores abaixo ja sao os padroes
-# senhas erradas seguidas para o mesmo e-mail antes de travar o login, e por quantos minutos
-LOGIN_MAX_ATTEMPTS=5
-LOGIN_LOCK_MINUTES=15
-# imprime cada SQL no log (util so para depurar)
-JPA_SHOW_SQL=false
-
-# integracao bancaria (opcional) — veja docs/integracao-bancaria.md
-BANK_MOCK_ENABLED=false
-BANK_PROVIDER=mock
-PLUGGY_CLIENT_ID=
-PLUGGY_CLIENT_SECRET=
-# webhooks da Pluggy (opcional; a API precisa estar acessivel pela internet)
-PLUGGY_WEBHOOK_SECRET=
-PLUGGY_WEBHOOK_BASE_URL=
+git clone https://github.com/caioeduardopereirafelix/finance-api
+cd finance-api
+docker compose up -d --build
 ```
 
-Para gerar o `JWT_SECRET`:
+| Serviço | Endereço |
+|---|---|
+| Front | http://localhost:4200 |
+| Swagger | http://localhost:8080/swagger-ui.html |
+| Grafana | http://localhost:3000 |
 
-```bash
-openssl rand -base64 48
-```
+Para testar a parte bancária sem credenciais da Pluggy, acrescente `BANK_MOCK_ENABLED=true` e `BANK_PROVIDER=mock` ao `.env`: um banco de demonstração importa sete transações. Com credenciais do sandbox da Pluggy, veja [docs/integracao-bancaria.md](docs/integracao-bancaria.md).
 
-A aplicação lê esse arquivo automaticamente ao subir — pela IDE ou por
-`./mvnw spring-boot:run` —, então **não é preciso configurar variável de
-ambiente na mão**. Variáveis de ambiente, quando existirem, têm precedência
-sobre o `.env`, que é como o Docker Compose injeta a configuração.
+Para rodar sem Docker, testes, migrations e produção: [docs/configuracao.md](docs/configuracao.md).
 
-O `.env` é ignorado pelo Git, então o segredo não vai para o repositório.
+## API
 
-Os testes (`./mvnw test`) **não dependem do seu `.env`**: o perfil de teste
-(`src/test/resources/application-test.yaml`) fixa a configuração de banco, da Pluggy e de login. Sem
-isso, credenciais reais no `.env` mudariam o resultado da suíte e fariam testes falarem com a
-Pluggy de verdade. Um teste (`TestEnvironmentIsolationTest`) garante isso.
+| Área | Endpoints |
+|---|---|
+| Autenticação | `POST /v1/auth/register`, `/login`, `/refresh`, `/logout` |
+| Transações | `POST`, `GET`, `PUT`, `DELETE /transaction`, `PATCH /transaction/{id}/category` |
+| Resumos | `GET /transaction/summary`, `GET /transaction/summary/by-category` |
+| Bancos | `/bank/connections` (conectar, listar, sincronizar, reautorizar, desconectar) |
 
-A maior parte da suíte roda em H2. Os testes de `PostgresIntegrationTest` rodam contra um
-**PostgreSQL de verdade** (container do Testcontainers, imagem `postgres:16-alpine`), com as
-migrations do Flyway e `ddl-auto: validate` como em produção: conferem o schema, as restrições, o
-fuso nos filtros de período, as somas e a exclusão em cascata da conta. Precisam de Docker; sem ele
-são pulados. Para usar um PostgreSQL que já existe, defina `TEST_PG_URL` (por exemplo
-`jdbc:postgresql://localhost:5432/finance_test`), `TEST_PG_USER` e `TEST_PG_PASSWORD` — use um banco
-vazio e descartável, porque o Flyway cria as tabelas nele.
+Referência completa com exemplos em [docs/api.md](docs/api.md).
 
-> Não coloque comentário na mesma linha de um valor: o `#` passaria a fazer
-> parte do valor e a aplicação não sobe.
+## Documentação
 
-> **Importante:** o segredo que ficava fixo no `application.yml` está no
-> histórico do Git e deve ser considerado comprometido. Gere um novo em vez de
-> reaproveitá-lo.
+- [docs/api.md](docs/api.md): endpoints, regras e exemplos
+- [docs/desempenho.md](docs/desempenho.md): medições, planos de consulta e como reproduzir
+- [docs/integracao-bancaria.md](docs/integracao-bancaria.md): Pluggy, webhooks, reautorização
+- [docs/configuracao.md](docs/configuracao.md): variáveis, testes, migrations, Docker e produção
 
-> **Atenção:** se você já tem um banco local criado pela versão antiga
-> (que usava `ddl-auto: update`), apague o schema antes de subir a aplicação,
-> para que o Flyway assuma o controle a partir da V1:
->
-> ```sql
-> DROP SCHEMA public CASCADE; CREATE SCHEMA public;
-> ```
+## Próximos passos
 
-## Status do projeto
-
-Projeto em desenvolvimento.
-
-A API cobre autenticação com JWT e refresh token, isolamento de dados por
-usuário, CRUD de transações, resumo financeiro, filtros com paginação,
-validações, migrations versionadas com Flyway, documentação OpenAPI,
-métricas via Prometheus/Grafana e execução completa via Docker Compose.
-
+- Recuperação de senha e verificação de e-mail
+- Paginação por cursor nas listas muito longas
+- HTTPS e cabeçalhos de segurança na borda
+- Orçamentos e metas por categoria, exportação dos dados
 
 ## Autor
 
-Desenvolvido por **Caio Eduardo**.
-
-GitHub: https://github.com/caioeduardopereirafelix
+**Caio Eduardo** · [github.com/caioeduardopereirafelix](https://github.com/caioeduardopereirafelix) · Licença [MIT](LICENSE)

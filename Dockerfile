@@ -21,4 +21,7 @@ USER app
 
 EXPOSE 8080 9091
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 CMD wget -q --spider http://127.0.0.1:${MANAGEMENT_PORT:-9091}/actuator/health || exit 1
+
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+
