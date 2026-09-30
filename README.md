@@ -128,20 +128,6 @@ Para rodar sem Docker, testes, migrations e produção: [docs/configuracao.md](d
 
 Referência completa com exemplos em [docs/api.md](docs/api.md).
 
-## Documentação
-
-- [docs/api.md](docs/api.md): endpoints, regras e exemplos
-- [docs/desempenho.md](docs/desempenho.md): medições, planos de consulta e como reproduzir
-- [docs/integracao-bancaria.md](docs/integracao-bancaria.md): Pluggy, webhooks, reautorização
-- [docs/configuracao.md](docs/configuracao.md): variáveis, testes, migrations, Docker e produção
-
-## Próximos passos
-
-- Recuperação de senha e verificação de e-mail
-- Paginação por cursor nas listas muito longas
-- HTTPS e cabeçalhos de segurança na borda
-- Orçamentos e metas por categoria, exportação dos dados
-
 ## Autor
 
 **Caio Eduardo** · [github.com/caioeduardopereirafelix](https://github.com/caioeduardopereirafelix) · Licença [MIT](LICENSE)
