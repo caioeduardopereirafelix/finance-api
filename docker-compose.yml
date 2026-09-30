@@ -52,15 +52,6 @@ services:
     networks:
       - finance-network
 
-  frontend:
-    build: ./frontend
-    depends_on:
-      - api
-    ports:
-      - "4200:80"
-    networks:
-      - finance-network
-
   prometheus:
     image: prom/prometheus:v3.15.0
     volumes:

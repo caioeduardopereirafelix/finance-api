@@ -1,6 +1,6 @@
 # Finance API
 
-**Controle financeiro pessoal com Open Finance.** API REST em Java 21 e Spring Boot, front Angular acessível, PostgreSQL e observabilidade, tudo em um `docker compose up`.
+**Controle financeiro pessoal com Open Finance.** API REST em Java 21 e Spring Boot, front Angular acessível, PostgreSQL e observabilidade. O backend sobe com um `docker compose up` e o front com `npm start`.
 
 [![CI](https://github.com/caioeduardopereirafelix/finance-api/actions/workflows/ci.yml/badge.svg)](https://github.com/caioeduardopereirafelix/finance-api/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-21-orange)
@@ -53,8 +53,7 @@ p50 e p99 com uma conexão (latência sem fila). A primeira página da listagem 
 
 ```mermaid
 flowchart LR
-    U["Navegador<br/>Angular 21"] --> N["nginx"]
-    N -->|"/v1 /transaction /bank"| A["API REST<br/>Spring Boot 3"]
+    U["Navegador<br/>Angular 21"] -->|"REST / JSON"| A["API REST<br/>Spring Boot 3"]
     A --> P[("PostgreSQL 16<br/>schema via Flyway")]
     A <-->|"Open Finance"| X["Pluggy"]
     X -->|"webhooks"| A
@@ -84,7 +83,7 @@ Em camadas dentro da API: controllers, services, repositories, DTOs, mappers e t
 - **Categorização que aprende:** escolher a categoria de uma compra do banco vale para as parecidas (mesmo estabelecimento) e para as próximas importações, por usuário.
 - **Gráfico acessível:** cor única, tabela equivalente ("Ver como tabela") e dica de valores por foco de teclado, não só por mouse.
 - **Testes isolados do `.env`:** a suíte não muda de resultado com as suas credenciais, e há um teste que garante isso.
-- **Docker:** build em dois estágios, healthcheck da API, Prometheus e Grafana com versão fixa e uma sobreposição de produção que publica só o front.
+- **Docker:** build em dois estágios, healthcheck da API, Prometheus e Grafana com versão fixa e uma sobreposição de produção que não expõe o banco nem o monitoramento.
 
 ## Stack
 
@@ -107,11 +106,21 @@ cd finance-api
 docker compose up -d --build
 ```
 
+Isso sobe a API, o PostgreSQL, o Prometheus e o Grafana. O front roda à parte, com Node 22:
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
 | Serviço | Endereço |
 |---|---|
 | Front | http://localhost:4200 |
 | Swagger | http://localhost:8080/swagger-ui.html |
 | Grafana | http://localhost:3000 |
+
+O front fala com a API pelo proxy do servidor de desenvolvimento (`frontend/proxy.conf.json`), então não precisa configurar CORS.
 
 Para testar a parte bancária sem credenciais da Pluggy, acrescente `BANK_MOCK_ENABLED=true` e `BANK_PROVIDER=mock` ao `.env`: um banco de demonstração importa sete transações.
 ## API

@@ -5,12 +5,6 @@ services:
 
   api:
     restart: unless-stopped
-    ports: !reset []
-
-  frontend:
-    restart: unless-stopped
-    ports: !override
-      - "${FRONTEND_PORT:-80}:80"
 
   prometheus:
     restart: unless-stopped
