@@ -45,6 +45,16 @@
   </header>
 }
 
+@if (auth.isLoggedIn() && auth.emailVerified() === false) {
+  <div class="verify-banner" role="status">
+    <p>Confirme seu e-mail para conectar bancos. Enviamos um link para <strong>{{ auth.profile()?.email }}</strong>.</p>
+    <button type="button" class="btn btn-secondary" (click)="resendVerification()"
+            [disabled]="resending()" [attr.aria-busy]="resending()">
+      {{ resending() ? 'Enviando…' : 'Reenviar e-mail' }}
+    </button>
+  </div>
+}
+
 <div aria-live="polite" aria-atomic="true" class="sr-only">{{ routeAnnouncement() }}</div>
 
 <main id="conteudo" #mainRegion tabindex="-1">

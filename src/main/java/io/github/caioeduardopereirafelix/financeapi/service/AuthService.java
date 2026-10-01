@@ -33,6 +33,7 @@ public class AuthService {
     private final TokenProvider tokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final LoginAttemptService loginAttempts;
+    private final EmailVerificationService emailVerificationService;
 
     @Value("${api.security.token.expiration}")
     private long expirationTime;
@@ -47,12 +48,14 @@ public class AuthService {
                 .orElseGet(() -> rolesUserRepository.save(RolesUser.builder()
                         .name(RolesTypeEnum.ROLE_USER.name()).build()));
 
-        userRepository.save(User.builder()
+        var saved = userRepository.save(User.builder()
                 .name(requestAuthDTO.user())
                 .email(requestAuthDTO.email())
                 .roles(List.of(role))
                 .password(passwordEncoder.encode(requestAuthDTO.password()))
                 .build());
+
+        emailVerificationService.sendInitial(saved);
     }
 
 

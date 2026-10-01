@@ -1,0 +1,48 @@
+<div class="auth-page">
+  <div class="auth-card card">
+    <div class="auth-brand">
+      <span class="auth-mark" aria-hidden="true">₿</span>
+      <p class="auth-eyebrow">Finance</p>
+    </div>
+
+    @switch (state()) {
+      @case ('verifying') {
+        <h1>Confirmando seu e-mail…</h1>
+        <p class="auth-subtitle" role="status">Só um instante.</p>
+      }
+      @case ('done') {
+        <h1>E-mail confirmado</h1>
+        <div class="auth-notice" role="status">
+          <p>Pronto! Agora você já pode conectar seus bancos.</p>
+        </div>
+        @if (auth.isLoggedIn()) {
+          <a routerLink="/bancos" class="btn btn-primary auth-submit">Conectar um banco</a>
+        } @else {
+          <a routerLink="/entrar" class="btn btn-primary auth-submit">Entrar</a>
+        }
+      }
+      @case ('invalid') {
+        <h1>Link inválido ou expirado</h1>
+        <div class="auth-notice" role="alert">
+          <p>Este link não funciona mais. Ele vale por 24 horas e só pode ser usado uma vez.</p>
+        </div>
+        @if (auth.isLoggedIn()) {
+          <button type="button" class="btn btn-primary auth-submit" (click)="resend()"
+                  [disabled]="resending()" [attr.aria-busy]="resending()">
+            {{ resending() ? 'Enviando…' : 'Enviar um novo link' }}
+          </button>
+        } @else {
+          <p class="auth-alt">Entre na sua conta e peça um novo link pelo aviso no topo da tela.</p>
+          <a routerLink="/entrar" class="btn btn-primary auth-submit">Entrar</a>
+        }
+      }
+      @case ('failed') {
+        <h1>Não foi possível confirmar</h1>
+        <div class="auth-notice" role="alert">
+          <p>{{ failure() }}</p>
+        </div>
+        <button type="button" class="btn btn-primary auth-submit" (click)="verify()">Tentar de novo</button>
+      }
+    }
+  </div>
+</div>

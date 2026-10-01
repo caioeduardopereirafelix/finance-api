@@ -27,8 +27,24 @@ api:
       max-attempts: 5
       lock-minutes: 15
 
+    password-reset:
+      expiration-minutes: 30
+      cooldown-seconds: 60
+
+    email-verification:
+      expiration-hours: 24
+      cooldown-seconds: 60
+
   cors:
     allowed-origins: http://localhost:4200
+
+app:
+  frontend-url: http://localhost:4200
+
+mail:
+  transport: log
+  async: false
+  from: no-reply@finance.test
 
 bank:
   provider: mock

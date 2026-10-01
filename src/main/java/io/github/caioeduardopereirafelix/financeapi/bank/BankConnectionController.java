@@ -1,6 +1,7 @@
 package io.github.caioeduardopereirafelix.financeapi.bank;
 
 import io.github.caioeduardopereirafelix.financeapi.config.SecurityUtils;
+import io.github.caioeduardopereirafelix.financeapi.service.EmailVerificationService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,17 +21,22 @@ public class BankConnectionController {
     private final BankConnectionService connectionService;
     private final BankSyncService syncService;
     private final SecurityUtils securityUtils;
+    private final EmailVerificationService emailVerificationService;
 
     /** Token para o front abrir o widget de conexao do provedor. */
     @PostMapping("/connect-token")
     public BankConnectionService.ConnectToken connectToken() {
-        return connectionService.createConnectToken(securityUtils.getAuthenticatedUser());
+        var user = securityUtils.getAuthenticatedUser();
+        emailVerificationService.requireVerified(user);
+        return connectionService.createConnectToken(user);
     }
 
     /** Registra a conexao depois que o usuario autorizou o banco no widget. */
     @PostMapping("/connections")
     public ResponseEntity<BankConnectionResponse> connect(@Valid @RequestBody ConnectBankRequest request) {
-        var connection = connectionService.connect(securityUtils.getAuthenticatedUser(), request.externalId());
+        var user = securityUtils.getAuthenticatedUser();
+        emailVerificationService.requireVerified(user);
+        var connection = connectionService.connect(user, request.externalId());
         return ResponseEntity.status(HttpStatus.CREATED).body(BankConnectionResponse.from(connection));
     }
 

@@ -5,7 +5,7 @@ import { Observable, tap, throwError } from 'rxjs';
 import { catchError, finalize, shareReplay } from 'rxjs/operators';
 
 import { API_BASE_URL } from './api.config';
-import { AuthResponse } from './models';
+import { AccountProfile, AuthResponse } from './models';
 
 const ACCESS_KEY = 'finance.accessToken';
 const REFRESH_KEY = 'finance.refreshToken';
@@ -24,6 +24,9 @@ export class AuthService {
 
   readonly isLoggedIn = computed(() => this.accessToken() !== null);
 
+  readonly profile = signal<AccountProfile | null>(null);
+  readonly emailVerified = computed(() => this.profile()?.emailVerified ?? null);
+
   private refreshInFlight: Observable<AuthResponse> | null = null;
 
   register(email: string, name: string, password: string): Observable<void> {
@@ -36,6 +39,35 @@ export class AuthService {
     return this.http
       .post<AuthResponse>(`${this.baseUrl}/v1/auth/login`, { email, password })
       .pipe(tap(res => this.store(res, email)));
+  }
+
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/v1/auth/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/v1/auth/reset-password`, { token, password });
+  }
+
+  loadProfile(): void {
+    this.http.get<AccountProfile>(`${this.baseUrl}/account`).subscribe({
+      next: profile => this.profile.set(profile),
+      error: () => this.profile.set(null),
+    });
+  }
+
+  verifyEmail(token: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/v1/auth/verify-email`, { token }).pipe(
+      tap(() => {
+        if (this.isLoggedIn()) {
+          this.loadProfile();
+        }
+      }),
+    );
+  }
+
+  resendVerification(): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/account/email-verification`, {});
   }
 
   refresh(): Observable<AuthResponse> {
@@ -100,6 +132,7 @@ export class AuthService {
     this.accessToken.set(null);
     this.refreshToken.set(null);
     this.email.set(null);
+    this.profile.set(null);
     [ACCESS_KEY, REFRESH_KEY, EMAIL_KEY].forEach(k => {
       try { localStorage.removeItem(k); } catch { /* modo privado */ }
     });

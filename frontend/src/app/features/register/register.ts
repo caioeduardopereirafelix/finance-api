@@ -81,7 +81,7 @@ export class RegisterPage {
       next: () => {
         this.auth.login(email, password).subscribe({
           next: () => {
-            this.notifications.success('Conta criada. Boas-vindas!');
+            this.notifications.success('Conta criada. Enviamos um e-mail para você confirmar o endereço.');
             this.router.navigateByUrl('/painel');
           },
           error: () => {

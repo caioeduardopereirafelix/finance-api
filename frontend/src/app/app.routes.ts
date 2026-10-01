@@ -16,6 +16,22 @@ export const routes: Routes = [
     loadComponent: () => import('./features/register/register').then(m => m.RegisterPage),
   },
   {
+    path: 'esqueci-senha',
+    canActivate: [guestGuard],
+    title: 'Recuperar senha · Finance',
+    loadComponent: () => import('./features/forgot-password/forgot-password').then(m => m.ForgotPasswordPage),
+  },
+  {
+    path: 'redefinir-senha',
+    title: 'Nova senha · Finance',
+    loadComponent: () => import('./features/reset-password/reset-password').then(m => m.ResetPasswordPage),
+  },
+  {
+    path: 'confirmar-email',
+    title: 'Confirmar e-mail · Finance',
+    loadComponent: () => import('./features/confirm-email/confirm-email').then(m => m.ConfirmEmailPage),
+  },
+  {
     path: 'painel',
     canActivate: [authGuard],
     title: 'Painel · Finance',

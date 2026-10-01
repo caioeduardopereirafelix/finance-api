@@ -9,20 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.HexFormat;
 
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenService {
-
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    private static final int TOKEN_BYTES = 32;
 
     private final RefreshTokenRepository refreshTokenRepository;
 
@@ -32,14 +23,11 @@ public class RefreshTokenService {
     @Transactional
     public String generate(User user) {
 
-        byte[] randomBytes = new byte[TOKEN_BYTES];
-        SECURE_RANDOM.nextBytes(randomBytes);
-
-        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+        String token = SecureTokens.generate();
         Instant now = Instant.now();
 
         refreshTokenRepository.save(RefreshToken.builder()
-                .tokenHash(hash(token))
+                .tokenHash(SecureTokens.sha256(token))
                 .user(user)
                 .createdAt(now)
                 .expiresAt(now.plusMillis(expirationTime))
@@ -52,7 +40,7 @@ public class RefreshTokenService {
     @Transactional
     public User consume(String token) {
 
-        RefreshToken stored = refreshTokenRepository.findByTokenHash(hash(token))
+        RefreshToken stored = refreshTokenRepository.findByTokenHash(SecureTokens.sha256(token))
                 .orElseThrow(() -> new InvalidRefreshToken("Refresh token is invalid"));
 
         if (stored.isRevoked() || stored.getExpiresAt().isBefore(Instant.now())) {
@@ -70,7 +58,7 @@ public class RefreshTokenService {
     @Transactional
     public void revoke(String token) {
 
-        refreshTokenRepository.findByTokenHash(hash(token))
+        refreshTokenRepository.findByTokenHash(SecureTokens.sha256(token))
                 .ifPresent(stored -> {
                     stored.setRevoked(true);
                     refreshTokenRepository.save(stored);
@@ -80,14 +68,5 @@ public class RefreshTokenService {
     @Transactional
     public void revokeAllFor(User user) {
         refreshTokenRepository.deleteByUser(user);
-    }
-
-    private String hash(String token) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return HexFormat.of().formatHex(digest.digest(token.getBytes(StandardCharsets.UTF_8)));
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 is not available", e);
-        }
     }
 }

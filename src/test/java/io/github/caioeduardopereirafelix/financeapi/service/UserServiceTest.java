@@ -41,6 +41,8 @@ class UserServiceTest {
     private SecurityUtils securityUtils;
     @Mock
     private io.github.caioeduardopereirafelix.financeapi.bank.BankConnectionService bankConnections;
+    @Mock
+    private EmailVerificationService emailVerificationService;
 
     @InjectMocks
     private UserService userService;

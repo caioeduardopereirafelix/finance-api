@@ -15,6 +15,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,6 +29,7 @@ public class UserService {
     private final UserValidator userValidator;
     private final SecurityUtils securityUtils;
     private final BankConnectionService bankConnections;
+    private final EmailVerificationService emailVerificationService;
 
     public User createUser(CreateUserDTO dto){
 
@@ -36,6 +38,8 @@ public class UserService {
         userMap.setPassword(encoder.encode(dto.password()));
 
         userValidator.validate(userMap);
+
+        userMap.setEmailVerifiedAt(Instant.now());
 
         return repository.save(userMap);
     }
@@ -67,8 +71,13 @@ public class UserService {
         var user = repository.findById(id)
                 .orElseThrow(() -> new UserNotFound("User not found"));
 
+        boolean emailChanged = !request.email().equals(user.getEmail());
+
         user.setName(request.name());
         user.setEmail(request.email());
+        if (emailChanged) {
+            user.setEmailVerifiedAt(null);
+        }
 
         if (request.password() != null && !request.password().isBlank()) {
             user.setPassword(encoder.encode(request.password()));
@@ -76,7 +85,13 @@ public class UserService {
 
         userValidator.validate(user);
 
-        return repository.save(user);
+        User saved = repository.save(user);
+
+        if (emailChanged) {
+            emailVerificationService.sendInitial(saved);
+        }
+
+        return saved;
     }
 
     /**

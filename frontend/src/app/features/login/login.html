@@ -53,6 +53,8 @@
         }
       </div>
 
+      <p class="auth-forgot"><a routerLink="/esqueci-senha">Esqueci minha senha</a></p>
+
       <button type="submit" class="btn btn-primary auth-submit"
               [disabled]="submitting()" [attr.aria-busy]="submitting()">
         {{ submitting() ? 'Entrando…' : 'Entrar' }}

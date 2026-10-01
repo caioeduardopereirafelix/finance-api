@@ -36,6 +36,19 @@
 
 .auth-submit { width: 100%; margin-top: 0.25rem; }
 
+.auth-forgot { margin: -0.4rem 0 1.1rem; text-align: right; font-size: 0.92rem; }
+.auth-forgot a { color: var(--primary); font-weight: 600; }
+
+.auth-notice {
+  border: 1px solid var(--field-border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.25rem;
+}
+.auth-notice p { margin: 0; }
+.auth-notice p + p { margin-top: 0.5rem; color: var(--muted); }
+
 .auth-alt { margin: 1.25rem 0 0; text-align: center; color: var(--muted); }
 .auth-alt a { color: var(--primary); font-weight: 600; }
 

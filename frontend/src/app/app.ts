@@ -1,9 +1,11 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
+import { messageOf } from './core/api-error';
 import { AuthService } from './core/auth.service';
+import { NotificationService } from './core/notification.service';
 import { ThemeService } from './shared/theme.service';
 import { ToastRegion } from './shared/toast-region';
 
@@ -19,14 +21,22 @@ export class App {
   readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly title = inject(Title);
+  private readonly notifications = inject(NotificationService);
 
   private readonly mainRegion = viewChild<ElementRef<HTMLElement>>('mainRegion');
 
   readonly routeAnnouncement = signal('');
+  readonly resending = signal(false);
 
   private firstNavigation = true;
 
   constructor() {
+    effect(() => {
+      if (this.auth.isLoggedIn()) {
+        untracked(() => this.auth.loadProfile());
+      }
+    });
+
     this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(() => {
@@ -39,6 +49,20 @@ export class App {
         this.routeAnnouncement.set(`${pageTitle}. Página carregada.`);
         this.mainRegion()?.nativeElement.focus();
       });
+  }
+
+  resendVerification() {
+    this.resending.set(true);
+    this.auth.resendVerification().subscribe({
+      next: () => {
+        this.resending.set(false);
+        this.notifications.success('E-mail reenviado. Confira sua caixa de entrada.');
+      },
+      error: (err) => {
+        this.resending.set(false);
+        this.notifications.error(messageOf(err, 'Não foi possível reenviar o e-mail.'));
+      },
+    });
   }
 
   logout() {

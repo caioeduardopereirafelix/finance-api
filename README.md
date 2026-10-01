@@ -28,12 +28,12 @@ Cada pessoa se cadastra, conecta seus bancos pelo **Open Finance** (Pluggy) e v�
 
 | Indicador | Resultado |
 |---|---|
-| **Testes** | mais de 200 no backend (com a cadeia real do Spring Security e PostgreSQL de verdade) e 60 no front |
+| **Testes** | mais de 200 no backend (com a cadeia real do Spring Security e PostgreSQL de verdade) e 82 no front |
 | **CI** | GitHub Actions: build e testes do backend, testes e build de produção do front |
 | **Desempenho** | ~1.400 escritas/s e ~900 consultas de período/s; p99 abaixo de 45 ms (16 conexões, 100 mil transações do usuário, máquina de 4 vCPUs dividida com o banco) |
-| **Migrations** | 7, com um teste que impede editar uma já aplicada |
+| **Migrations** | 9, com um teste que impede editar uma já aplicada |
 | **Acessibilidade** | WCAG 2.2 AA, auditado com axe-core (0 violações nas telas verificadas), tema claro e escuro, funciona a 320 px |
-| **Front** | 79 kB transferidos na carga inicial; cada tela carrega sob demanda |
+| **Front** | 81 kB transferidos na carga inicial; cada tela carrega sob demanda |
 
 ## Desempenho
 
@@ -69,6 +69,8 @@ Em camadas dentro da API: controllers, services, repositories, DTOs, mappers e t
 - **Isolamento por usuário:** cada pessoa só enxerga e altera o que é dela. Um id de outro usuário responde `403`, igual a um id inexistente, então não dá para descobrir quais existem.
 - **Refresh token** opaco, guardado só como hash SHA-256, de uso único com rotação; o logout revoga.
 - **Trava de login:** 5 senhas erradas seguidas bloqueiam o e-mail por 15 minutos (`429` com `Retry-After`).
+- **Confirmação de e-mail** no cadastro: quem ainda não confirmou entra e usa o painel, mas não conecta banco (`403`); o link é de uso único, vale 24 horas, o reenvio tem intervalo mínimo (`429` com `Retry-After`) e trocar o e-mail desfaz a confirmação. Quem já tinha conta antes da migration conta como confirmado.
+- **Recuperação de senha** por link de uso único: token de 256 bits guardado só como hash, validade de 30 minutos, enviado no fragmento da URL (não vai para logs nem para o `Referer`); a resposta é a mesma para e-mail cadastrado ou não, o pedido tem intervalo mínimo por conta e a troca revoga os refresh tokens e destrava o login.
 - **Webhook público** protegido por segredo no caminho, com comparação em tempo constante; o dono de cada conexão bancária é conferido pelo `clientUserId`.
 - **Apagar a conta** revoga as conexões bancárias na Pluggy antes.
 - A aplicação **não sobe sem `JWT_SECRET`** de pelo menos 32 bytes; o actuator roda em porta separada; a imagem da API não roda como root.
@@ -122,13 +124,16 @@ npm start
 
 O front fala com a API pelo proxy do servidor de desenvolvimento (`frontend/proxy.conf.json`), então não precisa configurar CORS.
 
+Recuperação de senha e confirmação de e-mail: por padrão nenhum e-mail sai de verdade e o link aparece no log da API (`docker compose logs api`). Para enviar por SMTP (por exemplo, o Brevo: `smtp-relay.brevo.com`, porta `587`), acrescente ao `.env` `MAIL_TRANSPORT=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` e `FRONTEND_URL` (o endereço público do front, usado no link).
+
 Para testar a parte bancária sem credenciais da Pluggy, acrescente `BANK_MOCK_ENABLED=true` e `BANK_PROVIDER=mock` ao `.env`: um banco de demonstração importa sete transações.
 ## API
 
 | Área | Endpoints |
 |---|---|
-| Autenticação | `POST /v1/auth/register`, `/login`, `/refresh`, `/logout` |
+| Autenticação | `POST /v1/auth/register`, `/login`, `/refresh`, `/logout`, `/forgot-password`, `/reset-password`, `/verify-email` |
 | Transações | `POST`, `GET`, `PUT`, `DELETE /transaction`, `PATCH /transaction/{id}/category` |
+| Conta | `GET /account`, `POST /account/email-verification` (reenviar confirmação) |
 | Resumos | `GET /transaction/summary`, `GET /transaction/summary/by-category` |
 | Bancos | `/bank/connections` (conectar, listar, sincronizar, reautorizar, desconectar) |
 

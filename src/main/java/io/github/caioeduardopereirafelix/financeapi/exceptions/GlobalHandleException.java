@@ -64,6 +64,31 @@ public class GlobalHandleException {
         return new ResponseError(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), List.of());
     }
 
+    @ExceptionHandler(InvalidPasswordResetToken.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseError invalidPasswordResetTokenHandle(InvalidPasswordResetToken e){
+        return new ResponseError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), List.of());
+    }
+
+    @ExceptionHandler(InvalidEmailVerificationToken.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseError invalidEmailVerificationTokenHandle(InvalidEmailVerificationToken e){
+        return new ResponseError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), List.of());
+    }
+
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseError emailNotVerifiedHandle(EmailNotVerifiedException e){
+        return new ResponseError(HttpStatus.FORBIDDEN.value(), e.getMessage(), List.of());
+    }
+
+    @ExceptionHandler(VerificationResendTooSoonException.class)
+    public ResponseEntity<ResponseError> verificationResendTooSoonHandle(VerificationResendTooSoonException e){
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(e.getRetryAfterSeconds()))
+                .body(new ResponseError(HttpStatus.TOO_MANY_REQUESTS.value(), e.getMessage(), List.of()));
+    }
+
     @ExceptionHandler(BankIntegrationException.class)
     public ResponseEntity<ResponseError> bankIntegrationHandle(BankIntegrationException e){
         return ResponseEntity.status(e.getStatus())

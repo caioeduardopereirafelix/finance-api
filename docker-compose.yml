@@ -44,6 +44,13 @@ services:
       PLUGGY_INCLUDE_CREDIT_CARDS: ${PLUGGY_INCLUDE_CREDIT_CARDS:-false}
       PLUGGY_WEBHOOK_SECRET: ${PLUGGY_WEBHOOK_SECRET:-}
       PLUGGY_WEBHOOK_BASE_URL: ${PLUGGY_WEBHOOK_BASE_URL:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
+      MAIL_TRANSPORT: ${MAIL_TRANSPORT:-log}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@finance.local}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
     depends_on:
       postgres:
         condition: service_healthy

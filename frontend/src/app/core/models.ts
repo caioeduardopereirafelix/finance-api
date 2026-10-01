@@ -12,6 +12,12 @@ export interface AuthResponse {
   refreshToken: string;
 }
 
+export interface AccountProfile {
+  name: string;
+  email: string;
+  emailVerified: boolean;
+}
+
 export interface Transaction {
   id: string;
   description: string;

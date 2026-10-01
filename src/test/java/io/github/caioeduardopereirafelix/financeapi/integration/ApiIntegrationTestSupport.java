@@ -2,6 +2,7 @@ package io.github.caioeduardopereirafelix.financeapi.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -32,7 +34,18 @@ abstract class ApiIntegrationTestSupport {
         }
     }
 
+    @Autowired
+    protected UserRepository userRepository;
+
     protected Account registerAndLogin() throws Exception {
+        var account = registerAndLoginUnverified();
+        var user = userRepository.findByEmail(account.email()).orElseThrow();
+        user.setEmailVerifiedAt(Instant.now());
+        userRepository.save(user);
+        return account;
+    }
+
+    protected Account registerAndLoginUnverified() throws Exception {
 
         String email = "user-" + UUID.randomUUID() + "@test.com";
         String password = "senha-segura-1";

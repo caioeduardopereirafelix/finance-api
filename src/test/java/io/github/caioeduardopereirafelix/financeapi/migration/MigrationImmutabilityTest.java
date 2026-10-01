@@ -24,7 +24,9 @@ class MigrationImmutabilityTest {
             "4", -1957963145,
             "5", 301407458,
             "6", 435866665,
-            "7", 1638335374
+            "7", 1638335374,
+            "8", 666689705,
+            "9", 1881932073
     );
 
     private static Map<String, Integer> checksumsOnDisk() {

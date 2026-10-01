@@ -14,6 +14,11 @@
     "secure": false,
     "changeOrigin": true
   },
+  "/account": {
+    "target": "http://localhost:8080",
+    "secure": false,
+    "changeOrigin": true
+  },
   "/bank": {
     "target": "http://localhost:8080",
     "secure": false,

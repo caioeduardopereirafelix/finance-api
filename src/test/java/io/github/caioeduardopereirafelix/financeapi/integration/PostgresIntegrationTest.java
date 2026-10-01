@@ -93,7 +93,7 @@ class PostgresIntegrationTest extends PostgresIntegrationTestSupport {
     void asMigrationsRodamDoZeroSemPendenciaNemFalha() {
         MigrationInfo[] all = flyway.info().all();
 
-        assertTrue(all.length >= 7, "esperava ao menos as migrations V1 a V7");
+        assertTrue(all.length >= 8, "esperava ao menos as migrations V1 a V8");
         assertTrue(Arrays.stream(all).allMatch(m -> m.getState() == MigrationState.SUCCESS),
                 "toda migration deve estar aplicada com sucesso: " + Arrays.toString(all));
         assertEquals(0, flyway.info().pending().length);
