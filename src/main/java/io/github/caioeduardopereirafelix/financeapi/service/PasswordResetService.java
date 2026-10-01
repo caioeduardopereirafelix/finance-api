@@ -1,5 +1,6 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
+import io.github.caioeduardopereirafelix.financeapi.config.EmailPolicy;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidPasswordResetToken;
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailDispatcher;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.PasswordResetToken;
@@ -26,6 +27,7 @@ public class PasswordResetService {
     private final RefreshTokenService refreshTokenService;
     private final LoginAttemptService loginAttempts;
     private final EmailDispatcher emailDispatcher;
+    private final AccountNotifications accountNotifications;
 
     @Value("${api.security.password-reset.expiration-minutes:30}")
     private long expirationMinutes;
@@ -37,7 +39,7 @@ public class PasswordResetService {
     private String frontendUrl;
 
     public void requestReset(String email) {
-        userRepository.findByEmail(email).ifPresent(this::issueToken);
+        userRepository.findByEmail(EmailPolicy.normalize(email)).ifPresent(this::issueToken);
     }
 
     @Transactional
@@ -57,15 +59,7 @@ public class PasswordResetService {
         refreshTokenService.revokeAllFor(user);
         loginAttempts.recordSuccess(user.getEmail());
 
-        afterCommit(() -> emailDispatcher.dispatch(user.getEmail(),
-                "Sua senha foi alterada",
-                """
-                Olá, %s.
-
-                A senha da sua conta no Finance acabou de ser alterada. Por segurança, nenhum dispositivo consegue mais renovar o acesso com a senha antiga.
-
-                Se foi você, não precisa fazer nada. Se não foi, peça uma nova redefinição de senha agora mesmo.
-                """.formatted(user.getName())));
+        afterCommit(() -> accountNotifications.passwordChanged(user));
     }
 
     private void issueToken(User user) {

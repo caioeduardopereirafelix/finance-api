@@ -47,6 +47,8 @@ class PasswordResetServiceTest {
     private LoginAttemptService loginAttempts;
     @Mock
     private EmailDispatcher emailDispatcher;
+    @Mock
+    private AccountNotifications accountNotifications;
 
     @InjectMocks
     private PasswordResetService service;
@@ -160,6 +162,6 @@ class PasswordResetServiceTest {
         verify(tokenRepository).deleteByUser(user);
         verify(refreshTokenService).revokeAllFor(user);
         verify(loginAttempts).recordSuccess("caio@test.com");
-        verify(emailDispatcher).dispatch(anyString(), anyString(), anyString());
+        verify(accountNotifications).passwordChanged(user);
     }
 }

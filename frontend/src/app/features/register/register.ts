@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { messageOf } from '../../core/api-error';
 import { AuthService } from '../../core/auth.service';
+import { EMAIL_PATTERN } from '../../core/email';
 import { NotificationService } from '../../core/notification.service';
 
 @Component({
@@ -27,7 +28,7 @@ export class RegisterPage {
 
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(20)]],
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.email, Validators.pattern(EMAIL_PATTERN)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
 

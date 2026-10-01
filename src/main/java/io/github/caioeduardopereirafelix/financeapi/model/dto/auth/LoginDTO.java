@@ -1,5 +1,6 @@
 package io.github.caioeduardopereirafelix.financeapi.model.dto.auth;
 
+import io.github.caioeduardopereirafelix.financeapi.config.EmailPolicy;
 import io.github.caioeduardopereirafelix.financeapi.config.PasswordPolicy;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
@@ -14,4 +15,8 @@ public record LoginDTO(
         @Size(max = PasswordPolicy.MAX_LENGTH, message = "password is too long")
         String password
 ) {
+
+    public LoginDTO {
+        email = EmailPolicy.normalize(email);
+    }
 }

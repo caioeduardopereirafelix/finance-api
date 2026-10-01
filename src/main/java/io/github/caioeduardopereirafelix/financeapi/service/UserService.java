@@ -2,6 +2,7 @@ package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.bank.BankConnectionService;
 import io.github.caioeduardopereirafelix.financeapi.config.SecurityUtils;
+import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidFieldException;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.UserNotFound;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.user.CreateUserDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.user.UpdateUserDTO;
@@ -30,6 +31,8 @@ public class UserService {
     private final SecurityUtils securityUtils;
     private final BankConnectionService bankConnections;
     private final EmailVerificationService emailVerificationService;
+    private final RefreshTokenService refreshTokenService;
+    private final AccountNotifications accountNotifications;
 
     public User createUser(CreateUserDTO dto){
 
@@ -71,15 +74,23 @@ public class UserService {
         var user = repository.findById(id)
                 .orElseThrow(() -> new UserNotFound("User not found"));
 
-        boolean emailChanged = !request.email().equals(user.getEmail());
+        boolean emailChanged = request.email() != null && !request.email().equals(user.getEmail());
+        boolean passwordChanged = request.password() != null && !request.password().isBlank();
 
-        user.setName(request.name());
-        user.setEmail(request.email());
+        if (passwordChanged && securityUtils.getAuthenticatedUser().getId().equals(id)) {
+            requireCurrentPassword(user, request.currentPassword());
+        }
+
+        if (request.name() != null) {
+            user.setName(request.name());
+        }
+
         if (emailChanged) {
+            user.setEmail(request.email());
             user.setEmailVerifiedAt(null);
         }
 
-        if (request.password() != null && !request.password().isBlank()) {
+        if (passwordChanged) {
             user.setPassword(encoder.encode(request.password()));
         }
 
@@ -91,7 +102,21 @@ public class UserService {
             emailVerificationService.sendInitial(saved);
         }
 
+        if (passwordChanged) {
+            refreshTokenService.revokeAllFor(saved);
+            accountNotifications.passwordChanged(saved);
+        }
+
         return saved;
+    }
+
+    private void requireCurrentPassword(User user, String currentPassword) {
+        if (currentPassword == null || currentPassword.isBlank()) {
+            throw new InvalidFieldException("currentPassword", "Informe a senha atual para trocar a senha");
+        }
+        if (!encoder.matches(currentPassword, user.getPassword())) {
+            throw new InvalidFieldException("currentPassword", "Senha atual incorreta");
+        }
     }
 
     /**

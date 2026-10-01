@@ -1,5 +1,6 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
+import io.github.caioeduardopereirafelix.financeapi.config.EmailPolicy;
 import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
@@ -17,7 +18,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByEmail(username)
+        return userRepository.findByEmail(EmailPolicy.normalize(username))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 }

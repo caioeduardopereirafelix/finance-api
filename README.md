@@ -28,10 +28,10 @@ Cada pessoa se cadastra, conecta seus bancos pelo **Open Finance** (Pluggy) e v�
 
 | Indicador | Resultado |
 |---|---|
-| **Testes** | mais de 200 no backend (com a cadeia real do Spring Security e PostgreSQL de verdade) e 82 no front |
+| **Testes** | mais de 200 no backend (com a cadeia real do Spring Security e PostgreSQL de verdade) e 86 no front |
 | **CI** | GitHub Actions: build e testes do backend, testes e build de produção do front |
 | **Desempenho** | ~1.400 escritas/s e ~900 consultas de período/s; p99 abaixo de 45 ms (16 conexões, 100 mil transações do usuário, máquina de 4 vCPUs dividida com o banco) |
-| **Migrations** | 9, com um teste que impede editar uma já aplicada |
+| **Migrations** | 10, com um teste que impede editar uma já aplicada |
 | **Acessibilidade** | WCAG 2.2 AA, auditado com axe-core (0 violações nas telas verificadas), tema claro e escuro, funciona a 320 px |
 | **Front** | 81 kB transferidos na carga inicial; cada tela carrega sob demanda |
 
@@ -69,6 +69,8 @@ Em camadas dentro da API: controllers, services, repositories, DTOs, mappers e t
 - **Isolamento por usuário:** cada pessoa só enxerga e altera o que é dela. Um id de outro usuário responde `403`, igual a um id inexistente, então não dá para descobrir quais existem.
 - **Refresh token** opaco, guardado só como hash SHA-256, de uso único com rotação; o logout revoga.
 - **Trava de login:** 5 senhas erradas seguidas bloqueiam o e-mail por 15 minutos (`429` com `Retry-After`).
+- **E-mail normalizado** (minúsculas, sem espaços) em cadastro, login e recuperação de senha, então `Caio@Gmail.com` e `caio@gmail.com` são a mesma conta; o cadastro exige domínio com TLD.
+- **Trocar a senha** pela API exige a senha atual, derruba os refresh tokens e avisa por e-mail.
 - **Confirmação de e-mail** no cadastro: quem ainda não confirmou entra e usa o painel, mas não conecta banco (`403`); o link é de uso único, vale 24 horas, o reenvio tem intervalo mínimo (`429` com `Retry-After`) e trocar o e-mail desfaz a confirmação. Quem já tinha conta antes da migration conta como confirmado.
 - **Recuperação de senha** por link de uso único: token de 256 bits guardado só como hash, validade de 30 minutos, enviado no fragmento da URL (não vai para logs nem para o `Referer`); a resposta é a mesma para e-mail cadastrado ou não, o pedido tem intervalo mínimo por conta e a troca revoga os refresh tokens e destrava o login.
 - **Webhook público** protegido por segredo no caminho, com comparação em tempo constante; o dono de cada conexão bancária é conferido pelo `clientUserId`.
