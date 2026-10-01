@@ -6,35 +6,35 @@
   "rewrites": [
     {
       "source": "/v1/:path*",
-      "destination": "https://SEU-BACKEND.exemplo.com/v1/:path*"
+      "destination": "https://finance-api-aqe2.onrender.com/v1/:path*"
     },
     {
       "source": "/transaction",
-      "destination": "https://SEU-BACKEND.exemplo.com/transaction"
+      "destination": "https://finance-api-aqe2.onrender.com/transaction"
     },
     {
       "source": "/user",
-      "destination": "https://SEU-BACKEND.exemplo.com/user"
+      "destination": "https://finance-api-aqe2.onrender.com/user"
     },
     {
       "source": "/account",
-      "destination": "https://SEU-BACKEND.exemplo.com/account"
+      "destination": "https://finance-api-aqe2.onrender.com/account"
     },
     {
       "source": "/transaction/:path*",
-      "destination": "https://SEU-BACKEND.exemplo.com/transaction/:path*"
+      "destination": "https://finance-api-aqe2.onrender.com/transaction/:path*"
     },
     {
       "source": "/user/:path*",
-      "destination": "https://SEU-BACKEND.exemplo.com/user/:path*"
+      "destination": "https://finance-api-aqe2.onrender.com/user/:path*"
     },
     {
       "source": "/account/:path*",
-      "destination": "https://SEU-BACKEND.exemplo.com/account/:path*"
+      "destination": "https://finance-api-aqe2.onrender.com/account/:path*"
     },
     {
       "source": "/bank/:path*",
-      "destination": "https://SEU-BACKEND.exemplo.com/bank/:path*"
+      "destination": "https://finance-api-aqe2.onrender.com/bank/:path*"
     },
     {
       "source": "/(.*)",
