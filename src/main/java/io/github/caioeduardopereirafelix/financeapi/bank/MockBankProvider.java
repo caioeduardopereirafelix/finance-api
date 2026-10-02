@@ -8,14 +8,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-/**
- * Provedor de mentira, para desenvolvimento, demonstracao e testes.
- *
- * Desligado por padrao: em producao ele deixaria qualquer usuario "conectar"
- * um banco falso. Para usar, defina BANK_MOCK_ENABLED=true.
- *
- * Os ids sao fixos, entao sincronizar duas vezes nao duplica nada.
- */
 @Component
 @ConditionalOnProperty(name = "bank.mock.enabled", havingValue = "true")
 public class MockBankProvider implements BankProvider {
@@ -44,7 +36,6 @@ public class MockBankProvider implements BankProvider {
 
     @Override
     public void disconnect(String externalId) {
-        // nada a revogar: o provedor de mentira nao guarda autorizacao nenhuma
     }
 
     @Override

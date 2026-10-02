@@ -1,4 +1,9 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
+
   datasource:
     url: jdbc:h2:mem:finance_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
@@ -30,6 +35,10 @@ api:
     password-reset:
       expiration-minutes: 30
       cooldown-seconds: 60
+
+    rate-limit:
+      enabled: false
+      trust-forwarded-for: false
 
     email-verification:
       expiration-hours: 24

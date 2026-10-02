@@ -87,7 +87,7 @@ export class RegisterPage {
           },
           error: () => {
             this.submitting.set(false);
-            this.notifications.info('Conta criada. Faça login para continuar.');
+            this.notifications.info('Pedido recebido. Entre com o e-mail e a senha que você informou. Se esse e-mail já tinha conta, enviamos um aviso para ele, e você pode recuperar a senha.');
             this.router.navigateByUrl('/entrar');
           },
         });

@@ -1,20 +1,16 @@
 package io.github.caioeduardopereirafelix.financeapi.model.entity;
 
 import io.github.caioeduardopereirafelix.financeapi.config.AuditingClass;
-import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
-import org.hibernate.mapping.Set;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 

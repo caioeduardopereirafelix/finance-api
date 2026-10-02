@@ -9,18 +9,6 @@ import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Traduz a categoria do provedor para as nossas.
- *
- * O tipo (entrada ou saida) sai do sinal do valor, nao da categoria. A
- * categoria so vale se combinar com esse tipo: um estorno de "Groceries" e
- * entrada, e FOOD e categoria de saida, entao cai em OTHER_INCOME.
- *
- * O que nao for reconhecido vira OTHER_EXPENSE (saida) ou OTHER_INCOME (entrada),
- * e nao mais uma categoria que existe para outra coisa: classificar tarifa
- * desconhecida como "Contas" ou Pix como "Renda extra" era um palpite errado
- * apresentado como fato.
- */
 @Component
 public class BankCategoryMapper {
 

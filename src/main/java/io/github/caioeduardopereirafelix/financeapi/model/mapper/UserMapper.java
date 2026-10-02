@@ -9,15 +9,11 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-
     @Mapping(source = "name", target = "name")
     @Mapping(source = "email", target = "email")
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "emailVerifiedAt", ignore = true)
     User toUser(CreateUserDTO dto);
-
-    CreateUserDTO toUserDto(User user);
-
 
     ResponseUserDTO toUserResponse (User dto);
 }

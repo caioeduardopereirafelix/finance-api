@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { API_BASE_URL } from './api.config';
-import { CategoryChange, CategoryName, CategoryTotal, PageResponse, Summary, Transaction, TransactionFilters, TransactionPayload } from './models';
+import { CategoryChange, CategoryName, CategoryTotal, ImportResult, PageResponse, Summary, Transaction, TransactionFilters, TransactionPayload } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class TransactionService {
@@ -31,6 +31,13 @@ export class TransactionService {
     set('size', filters.size ?? 10);
 
     return this.http.get<PageResponse<Transaction>>(`${this.baseUrl}/transaction`, { params });
+  }
+
+  importStatement(file: File, invertSign: boolean): Observable<ImportResult> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    form.append('invertSign', String(invertSign));
+    return this.http.post<ImportResult>(`${this.baseUrl}/transaction/import`, form);
   }
 
   getById(id: string): Observable<Transaction> {

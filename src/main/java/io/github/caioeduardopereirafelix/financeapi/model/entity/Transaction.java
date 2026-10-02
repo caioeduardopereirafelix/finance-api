@@ -12,8 +12,6 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -36,9 +34,8 @@ public class Transaction extends AuditingClass {
 
     @Enumerated(EnumType.STRING)
     @Column
-    private TransactionalType type; // ENTRADA ou DESPESA
+    private TransactionalType type;
 
-    //Relacionamento com usuário
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn
     private User user;
@@ -47,20 +44,13 @@ public class Transaction extends AuditingClass {
     @Column(name = "category")
     private CategoryName category;
 
-    /** De onde veio o lancamento: digitado pelo usuario ou importado do banco. */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TransactionSource source = TransactionSource.MANUAL;
 
-    /** Id da transacao no provedor, prefixado por ele. Nulo nos lancamentos manuais. */
     @Column(name = "external_id")
     private String externalId;
 
-    /**
-     * Quando o gasto ocorreu. E a data que vale para listar, ordenar e filtrar.
-     * Nos importados vem do banco; nos manuais e o momento do lancamento.
-     * createdDate continua sendo so o momento em que o registro entrou aqui.
-     */
     @Column(name = "occurred_at", nullable = false)
     private Instant occurredAt;
 

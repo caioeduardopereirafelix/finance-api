@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { ApiError, FieldError } from './models';
+import { ApiError } from './models';
 
 export function messageOf(error: unknown, fallback = 'Não foi possível concluir a operação.'): string {
   if (!(error instanceof HttpErrorResponse)) {
@@ -28,11 +28,4 @@ export function messageOf(error: unknown, fallback = 'Não foi possível conclui
     case 409: return 'Este e-mail já está cadastrado.';
     default: return fallback;
   }
-}
-
-export function fieldErrorsOf(error: unknown): FieldError[] {
-  if (error instanceof HttpErrorResponse) {
-    return (error.error as ApiError | undefined)?.fieldsError ?? [];
-  }
-  return [];
 }

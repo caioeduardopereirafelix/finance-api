@@ -22,25 +22,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Importa as movimentacoes do provedor para a tabela de transacoes.
- *
- * Nao usa o usuario autenticado: tambem roda pelo agendador, onde nao existe
- * requisicao nem SecurityContext.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class BankSyncService {
 
-    /** Primeira sincronizacao: quanto tempo para tras buscar. */
     static final Duration INITIAL_WINDOW = Duration.ofDays(90);
 
-    /**
-     * Sincronizacoes seguintes recomecam um pouco antes da ultima, porque bancos
-     * costumam lancar movimentacoes com atraso. Os repetidos sao descartados
-     * pelo external_id.
-     */
     static final Duration OVERLAP = Duration.ofDays(7);
 
     public record Result(int imported, int skipped) {
@@ -52,8 +40,6 @@ public class BankSyncService {
     private final BankCategoryMapper categoryMapper;
     private final CategoryRuleService categoryRules;
 
-    // noRollbackFor: a falha do provedor e uma excecao, e sem isso a transacao
-    // voltaria atras e desfaria a marcacao de status ERROR feita em sync().
     @Transactional(noRollbackFor = BankIntegrationException.class)
     public Result syncForUser(UUID connectionId, User user) {
         BankConnection connection = connections.findByIdAndUser(connectionId, user)
@@ -61,8 +47,6 @@ public class BankSyncService {
         return sync(connection);
     }
 
-    // noRollbackFor: a falha do provedor e uma excecao, e sem isso a transacao
-    // voltaria atras e desfaria a marcacao de status ERROR feita em sync().
     @Transactional(noRollbackFor = BankIntegrationException.class)
     public Result syncById(UUID connectionId) {
         BankConnection connection = connections.findById(connectionId)
@@ -88,7 +72,7 @@ public class BankSyncService {
             fetched = provider.fetchTransactions(connection.getExternalId(), since);
         } catch (BankIntegrationException e) {
             markError(connection, e);
-            throw e;   // ja traz o que o provedor respondeu
+            throw e;
         } catch (RuntimeException e) {
             markError(connection, e);
             throw new BankIntegrationException(HttpStatus.BAD_GATEWAY,
@@ -116,8 +100,6 @@ public class BankSyncService {
 
             Transaction transaction = new Transaction();
             transaction.setUser(user);
-            // Explicito porque o agendador nao tem usuario autenticado para o AuditorAware;
-            // assim o lancamento importado fica igual ao manual: created_by = dono.
             transaction.setCreatedBy(user.getId().toString());
             transaction.setDescription(external.description());
             transaction.setAmount(external.amount().abs());

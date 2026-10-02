@@ -12,21 +12,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Trava o login de um e-mail depois de varias senhas erradas seguidas.
- *
- * A contagem vale por e-mail (existente ou nao, para nao revelar quais existem)
- * e fica em memoria: reiniciar a API zera, e com varias instancias cada uma
- * conta por conta propria. Para varias instancias, o proximo passo e um
- * armazenamento compartilhado (Redis).
- *
- * Contrapartida conhecida: quem sabe o e-mail de alguem pode travar o login dele
- * por alguns minutos. E o preco de nao deixar adivinhar senha sem limite.
- */
 @Service
 public class LoginAttemptService {
 
-    /** Teto de e-mails acompanhados ao mesmo tempo, para uma enxurrada de e-mails falsos nao encher a memoria. */
     static final int MAX_TRACKED = 10_000;
 
     private record Attempts(int failures, Instant firstFailureAt, Instant lockedUntil) {
@@ -49,7 +37,6 @@ public class LoginAttemptService {
         this.clock = clock;
     }
 
-    /** Chame antes de conferir a senha. Lanca se o e-mail estiver travado. */
     public void checkAllowed(String email) {
         Attempts current = attempts.get(key(email));
         if (current == null || current.lockedUntil() == null) {
@@ -60,7 +47,7 @@ public class LoginAttemptService {
             long seconds = Duration.between(now, current.lockedUntil()).toSeconds() + 1;
             throw new TooManyLoginAttemptsException(seconds);
         }
-        attempts.remove(key(email));   // o travamento acabou
+        attempts.remove(key(email));
     }
 
     public void recordFailure(String email) {
@@ -68,7 +55,7 @@ public class LoginAttemptService {
             evictStale();
         }
         if (attempts.size() >= MAX_TRACKED && !attempts.containsKey(key(email))) {
-            return;   // cheio de e-mails ativos: nao cresce mais, so o excedente escapa da contagem
+            return;
         }
         Instant now = clock.instant();
         attempts.compute(key(email), (k, old) -> {
@@ -83,10 +70,6 @@ public class LoginAttemptService {
         attempts.remove(key(email));
     }
 
-    /**
-     * Sem travamento ativo e fora da janela: as falhas antigas nao contam. Sem isso,
-     * 5 erros espalhados por meses travariam quem so errou a senha de vez em quando.
-     */
     private boolean isStale(Attempts a, Instant now) {
         if (a.lockedUntil() != null) {
             return !now.isBefore(a.lockedUntil());

@@ -134,7 +134,7 @@ export class AuthService {
     this.email.set(null);
     this.profile.set(null);
     [ACCESS_KEY, REFRESH_KEY, EMAIL_KEY].forEach(k => {
-      try { localStorage.removeItem(k); } catch { /* modo privado */ }
+      try { localStorage.removeItem(k); } catch { }
     });
   }
 }
@@ -144,5 +144,5 @@ function read(key: string): string | null {
 }
 
 function write(key: string, value: string): void {
-  try { localStorage.setItem(key, value); } catch { /* modo privado */ }
+  try { localStorage.setItem(key, value); } catch { }
 }

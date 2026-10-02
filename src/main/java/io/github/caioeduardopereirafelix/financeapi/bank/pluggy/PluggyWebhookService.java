@@ -15,17 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * Trata os avisos (webhooks) de transacoes da Pluggy.
- *
- * - transactions/created e transactions/updated: pedem uma sincronizacao da conexao (em
- *   segundo plano). Ela importa o que ficou disponivel, como transacoes que passaram de
- *   PENDING para POSTED. Linhas que ja importamos nao sao reescritas.
- * - transactions/deleted: apaga as transacoes citadas, so dentro da conexao do item.
- *
- * Qualquer outro evento, item desconhecido ou payload estranho e ignorado sem erro:
- * responder erro so faria a Pluggy reenviar o mesmo aviso.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -35,7 +24,7 @@ public class PluggyWebhookService {
     private static final Pattern UUID_FORMAT = Pattern.compile(
             "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
     private static final int DELETE_CHUNK = 500;
-    private static final int MAX_IDS = 5_000;   // trava contra um payload gigante
+    private static final int MAX_IDS = 5_000;
 
     private final BankConnectionRepository connections;
     private final TransactionRepository transactions;

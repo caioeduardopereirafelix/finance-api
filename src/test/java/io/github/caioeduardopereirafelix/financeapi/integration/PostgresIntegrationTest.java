@@ -28,10 +28,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * O que so um PostgreSQL de verdade prova: as migrations rodam do zero, o Hibernate valida o
- * schema resultante, as restricoes existem e as consultas de periodo e soma se comportam.
- */
 class PostgresIntegrationTest extends PostgresIntegrationTestSupport {
 
     private static final ZoneId ZONE = ZoneId.of("America/Sao_Paulo");
@@ -177,7 +173,6 @@ class PostgresIntegrationTest extends PostgresIntegrationTestSupport {
         String sql = "insert into transactions (id, description, amount, type, category, user_id, created_date,"
                 + " occurred_at) values (?, ?, ?, 'EXPENSES', 'FOOD', ?, now(), ?)";
 
-        // 00:30 e 23:30 de Sao Paulo: em UTC o segundo ja cai no dia seguinte
         jdbc.update(sql, UUID.randomUUID(), "inicio-do-dia", 10, id, day.plusMinutes(30).toOffsetDateTime());
         jdbc.update(sql, UUID.randomUUID(), "fim-do-dia", 20, id, day.plusHours(23).plusMinutes(30).toOffsetDateTime());
         jdbc.update(sql, UUID.randomUUID(), "dia-anterior", 40, id, day.minusMinutes(30).toOffsetDateTime());

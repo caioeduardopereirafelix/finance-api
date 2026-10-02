@@ -68,4 +68,19 @@ describe('TransactionService (categoria)', () => {
 
     expect(updated).toBe(3);
   });
+  it('a importação de extrato manda o arquivo e a opção de inverter o sinal como formulário', () => {
+    const file = new File(['conteudo'], 'extrato.ofx', { type: 'application/octet-stream' });
+    let imported = 0;
+    service.importStatement(file, true).subscribe(r => (imported = r.imported));
+
+    const req = http.expectOne('/transaction/import');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body instanceof FormData).toBe(true);
+    const form = req.request.body as FormData;
+    expect((form.get('file') as File).name).toBe('extrato.ofx');
+    expect(form.get('invertSign')).toBe('true');
+    req.flush({ total: 3, imported: 3, skipped: 0, invalid: 0, problems: [] });
+
+    expect(imported).toBe(3);
+  });
 });

@@ -17,40 +17,28 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface TransactionRepository extends JpaRepository<Transaction, UUID>, JpaSpecificationExecutor<Transaction>/*JpaSpecificationExecutor -> dynamic search*/ {
+public interface TransactionRepository extends JpaRepository<Transaction, UUID>, JpaSpecificationExecutor<Transaction> {
 
     Optional<Transaction> findByIdAndUser(UUID id, User user);
 
     boolean existsByUserAndExternalId(User user, String externalId);
 
-    List<Transaction> findByUserAndSourceAndType(User user, TransactionSource source, TransactionalType type);
+    List<Transaction> findByUserAndSourceNotAndType(User user, TransactionSource source, TransactionalType type);
 
-    /** Apaga o que foi importado de uma conexao (usado ao desconectar, a pedido do usuario). */
+    @Query("select t.externalId from Transaction t where t.user = :user and t.externalId in :ids")
+    List<String> findExistingExternalIds(@Param("user") User user, @Param("ids") Collection<String> ids);
+
     void deleteByBankConnection(BankConnection bankConnection);
 
-    /**
-     * Desvincula as transacoes da conexao, mantendo o historico. Feito no codigo
-     * e nao so pelo ON DELETE SET NULL da migration, para o comportamento nao
-     * depender do banco em uso.
-     */
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("update Transaction t set t.bankConnection = null where t.bankConnection = :connection")
     void detachFromConnection(@Param("connection") BankConnection connection);
 
-    /**
-     * Apaga, so dentro da conexao informada, as importadas com esses ids externos
-     * (o provedor avisou que foram excluidas). Devolve quantas foram apagadas.
-     */
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("delete from Transaction t where t.bankConnection = :connection and t.externalId in :externalIds")
     int deleteImported(@Param("connection") BankConnection connection,
                        @Param("externalIds") Collection<String> externalIds);
 
-    /**
-     * Soma os valores por tipo direto no banco, em vez de carregar todas as
-     * transacoes do usuario na memoria so para somar. O periodo vai de {@code from}
-     * (inclusive) ate {@code before} (exclusivo), sobre a data em que o gasto ocorreu.
-     */
     @Query("""
             select t.type as type, sum(t.amount) as total
             from Transaction t
@@ -63,7 +51,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
                                                        @Param("from") Instant from,
                                                        @Param("before") Instant before);
 
-    /** Total por categoria no periodo, do maior para o menor. */
     @Query("""
             select t.category as category, t.type as type, sum(t.amount) as total, count(t) as count
             from Transaction t

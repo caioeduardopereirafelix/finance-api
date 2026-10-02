@@ -21,8 +21,6 @@ export const PLUGGY_SDK_LOADER = new InjectionToken<() => Promise<PluggyWidgetFa
   providedIn: 'root',
   factory: () => async () => {
     const sdk = await import('pluggy-connect-sdk');
-    // O build ESM do pacote so tem o export nomeado; o exemplo da documentacao
-    // usa `default`, que existe no build CommonJS. Aceita os dois.
     return (sdk.PluggyConnect ?? (sdk as { default?: unknown }).default) as unknown as PluggyWidgetFactory;
   },
 });

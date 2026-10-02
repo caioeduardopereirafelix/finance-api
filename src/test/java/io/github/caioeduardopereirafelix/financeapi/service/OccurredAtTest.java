@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class OccurredAtTest {
 
-    private static final ZoneId SP = ZoneId.of("America/Sao_Paulo");   // UTC-3
-    private static final Instant NOW = Instant.parse("2026-09-29T15:00:00Z");   // 29/09 12:00 em Sao Paulo
+    private static final ZoneId SP = ZoneId.of("America/Sao_Paulo");
+    private static final Instant NOW = Instant.parse("2026-09-29T15:00:00Z");
 
     private static LocalDate d(String iso) {
         return LocalDate.parse(iso);
@@ -37,13 +37,12 @@ class OccurredAtTest {
 
     @Test
     void diaAnteriorFicaAoMeioDiaNoFusoDaAplicacao() {
-        // 28/09 12:00 em Sao Paulo = 15:00 UTC: o mesmo dia em qualquer fuso proximo
         assertEquals(Instant.parse("2026-09-28T15:00:00Z"), OccurredAt.resolve(d("2026-09-28"), null, SP, NOW));
     }
 
     @Test
     void naoMudaAHoraDeQuemSoEditaOutraCoisaMantendoOMesmoDia() {
-        Instant current = Instant.parse("2026-09-28T02:10:00Z");   // 27/09 23:10 em Sao Paulo
+        Instant current = Instant.parse("2026-09-28T02:10:00Z");
         assertEquals(current, OccurredAt.resolve(d("2026-09-27"), current, SP, NOW));
     }
 
@@ -61,9 +60,9 @@ class OccurredAtTest {
 
     @Test
     void perto_da_meia_noite_vale_o_dia_do_fuso_da_aplicacao_e_nao_o_de_UTC() {
-        Instant now = Instant.parse("2026-09-30T02:00:00Z");   // 30/09 em UTC, mas ainda 29/09 23:00 em Sao Paulo
+        Instant now = Instant.parse("2026-09-30T02:00:00Z");
 
-        assertEquals(now, OccurredAt.resolve(d("2026-09-29"), null, SP, now));   // hoje para o usuario
+        assertEquals(now, OccurredAt.resolve(d("2026-09-29"), null, SP, now));
         assertThrows(InvalidFieldException.class, () -> OccurredAt.resolve(d("2026-09-30"), null, SP, now));
     }
 

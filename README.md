@@ -22,13 +22,13 @@
 
 ## O que faz
 
-Cada pessoa se cadastra, conecta seus bancos pelo **Open Finance** (Pluggy) e vê o dinheiro num painel: entradas, saídas e saldo por período, comparados com o período anterior, e um gráfico por categoria. As transações do banco entram sozinhas e sem duplicar, já categorizadas; o que a pessoa corrige vira regra e vale para as próximas importações.
+Cada pessoa se cadastra, conecta seus bancos pelo **Open Finance** (Pluggy) e vê o dinheiro num painel: entradas, saídas e saldo por período, comparados com o período anterior, e um gráfico por categoria. As transações do banco entram sozinhas e sem duplicar, já categorizadas, e quem não quer conectar banco nenhum importa o **extrato em OFX ou CSV**; o que a pessoa corrige vira regra e vale para as próximas importações.
 
 ## Números
 
 | Indicador | Resultado |
 |---|---|
-| **Testes** | mais de 200 no backend (com a cadeia real do Spring Security e PostgreSQL de verdade) e 86 no front |
+| **Testes** | mais de 200 no backend (com a cadeia real do Spring Security e PostgreSQL de verdade) e 93 no front |
 | **CI** | GitHub Actions: build e testes do backend, testes e build de produção do front |
 | **Desempenho** | ~1.400 escritas/s e ~900 consultas de período/s; p99 abaixo de 45 ms (16 conexões, 100 mil transações do usuário, máquina de 4 vCPUs dividida com o banco) |
 | **Migrations** | 10, com um teste que impede editar uma já aplicada |
@@ -70,16 +70,21 @@ Em camadas dentro da API: controllers, services, repositories, DTOs, mappers e t
 - **Refresh token** opaco, guardado só como hash SHA-256, de uso único com rotação; o logout revoga.
 - **Trava de login:** 5 senhas erradas seguidas bloqueiam o e-mail por 15 minutos (`429` com `Retry-After`).
 - **E-mail normalizado** (minúsculas, sem espaços) em cadastro, login e recuperação de senha, então `Caio@Gmail.com` e `caio@gmail.com` são a mesma conta; o cadastro exige domínio com TLD.
+- **Cadastro que não revela quem já tem conta:** a resposta é a mesma para um e-mail novo e para um já cadastrado (o dono recebe um aviso por e-mail, no máximo um por hora), e o custo do bcrypt é pago nos dois casos.
+- **Limite por endereço IP** no cadastro, login, recuperação e confirmação de e-mail (`429` com `Retry-After`), com os limites configuráveis; atrás de proxy (Vercel, Render) a opção `TRUST_FORWARDED_FOR=true` usa o IP real do cabeçalho `X-Forwarded-For`.
+- **Envio de e-mail resiliente:** até 3 tentativas com espera crescente e um contador no Prometheus (`finance_mail_sent_total`, por resultado), então uma falha do provedor deixa de ser só uma linha no log.
 - **Trocar a senha** pela API exige a senha atual, derruba os refresh tokens e avisa por e-mail.
 - **Confirmação de e-mail** no cadastro: quem ainda não confirmou entra e usa o painel, mas não conecta banco (`403`); o link é de uso único, vale 24 horas, o reenvio tem intervalo mínimo (`429` com `Retry-After`) e trocar o e-mail desfaz a confirmação. Quem já tinha conta antes da migration conta como confirmado.
 - **Recuperação de senha** por link de uso único: token de 256 bits guardado só como hash, validade de 30 minutos, enviado no fragmento da URL (não vai para logs nem para o `Referer`); a resposta é a mesma para e-mail cadastrado ou não, o pedido tem intervalo mínimo por conta e a troca revoga os refresh tokens e destrava o login.
 - **Webhook público** protegido por segredo no caminho, com comparação em tempo constante; o dono de cada conexão bancária é conferido pelo `clientUserId`.
 - **Apagar a conta** revoga as conexões bancárias na Pluggy antes.
+- **Hospedagem gratuita:** o Render desliga a API após 15 minutos sem acesso e a primeira requisição espera a subida (alguns minutos). `GET /ping` responde `200` sem autenticação e sem dados, para um monitor externo (UptimeRobot, cron-job.org) chamar a cada 10 minutos e manter a API acordada; se mesmo assim ela dormir, o front mostra o aviso "Acordando o servidor" quando a primeira resposta passa de 6 segundos.
 - A aplicação **não sobe sem `JWT_SECRET`** de pelo menos 32 bytes; o actuator roda em porta separada; a imagem da API não roda como root.
 
 **Dados**
 - **Flyway** é o dono do schema (`ddl-auto: validate`) e `MigrationImmutabilityTest` falha o build se uma migration já aplicada for alterada.
 - **Importação idempotente:** índice único parcial `(usuário, id externo)`; sincronizar três vezes não duplica (verificado contra PostgreSQL).
+- **Importar extrato (OFX e CSV):** reconhece o formato pelo conteúdo, lê arquivos em UTF-8 ou Windows-1252, números como `1.234,56` e vários layouts de CSV de banco (cabeçalho precedido de texto, colunas de débito e crédito, fatura de cartão com sinal invertido). O OFX deduplica pelo `FITID` da conta e o CSV por uma impressão digital da linha, então reenviar o mesmo período ou um período sobreposto só traz o que é novo; 5.000 linhas entram em cerca de 1,3 s no PostgreSQL.
 - **Datas e fuso:** o período é calculado em `America/Sao_Paulo` com limite superior exclusivo; uma compra às 23:30 cai no dia certo.
 - **Somas no banco:** `SUM`/`GROUP BY` no PostgreSQL em vez de carregar as transações na memória: 70 a 100 ms contra 420 a 520 ms só para trazer as 100 mil linhas.
 
@@ -138,6 +143,7 @@ Para testar a parte bancária sem credenciais da Pluggy, acrescente `BANK_MOCK_E
 | Conta | `GET /account`, `POST /account/email-verification` (reenviar confirmação) |
 | Resumos | `GET /transaction/summary`, `GET /transaction/summary/by-category` |
 | Bancos | `/bank/connections` (conectar, listar, sincronizar, reautorizar, desconectar) |
+| Extrato | `POST /transaction/import` (arquivo OFX ou CSV, até 2 MB) |
 
 ## Autor
 

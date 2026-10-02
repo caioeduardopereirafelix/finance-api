@@ -114,7 +114,7 @@ class BankSyncServiceTest {
 
         var captor = ArgumentCaptor.forClass(Transaction.class);
         verify(transactions).save(captor.capture());
-        assertEquals(CategoryName.OTHER_INCOME, captor.getValue().getCategory());   // nao virou LEISURE
+        assertEquals(CategoryName.OTHER_INCOME, captor.getValue().getCategory());
     }
 
     @Test

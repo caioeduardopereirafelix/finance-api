@@ -6,6 +6,7 @@ import { filter } from 'rxjs/operators';
 import { messageOf } from './core/api-error';
 import { AuthService } from './core/auth.service';
 import { NotificationService } from './core/notification.service';
+import { ServerStatusService } from './core/server-status.service';
 import { ThemeService } from './shared/theme.service';
 import { ToastRegion } from './shared/toast-region';
 
@@ -19,6 +20,7 @@ export class App {
 
   readonly auth = inject(AuthService);
   readonly theme = inject(ThemeService);
+  readonly server = inject(ServerStatusService);
   private readonly router = inject(Router);
   private readonly title = inject(Title);
   private readonly notifications = inject(NotificationService);

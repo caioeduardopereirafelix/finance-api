@@ -69,7 +69,6 @@ public class TransactionSpecification {
         };
     }
 
-    /** Ocorrido a partir de {@code start} (inclusive). */
     public static Specification<Transaction> occurredFrom(Instant start) {
         return (root, query, criteriaBuilder) -> {
             if (start == null) {
@@ -80,10 +79,6 @@ public class TransactionSpecification {
         };
     }
 
-    /**
-     * Ocorrido antes de {@code endExclusive}. O limite e exclusivo para que "ate o
-     * dia 28" seja "antes do inicio do dia 29", sem deixar de fora o ultimo segundo.
-     */
     public static Specification<Transaction> occurredBefore(Instant endExclusive) {
         return (root, query, criteriaBuilder) -> {
             if (endExclusive == null) {

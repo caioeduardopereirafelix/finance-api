@@ -6,7 +6,6 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.util.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -22,7 +21,6 @@ public class TokenProvider {
     private Long expirationTime;
     @Value("${api.security.token.secret:}")
     private String key;
-
 
     private static final int MIN_SECRET_BYTES = 32;
 
@@ -41,7 +39,6 @@ public class TokenProvider {
         }
     }
 
-    //gera o token
     public String generateToken(Authentication authentication){
 
         var userLog = (UserDetails) authentication.getPrincipal();
@@ -68,7 +65,6 @@ public class TokenProvider {
         return Keys.hmacShaKeyFor(key.getBytes(StandardCharsets.UTF_8));
     }
 
-    //validar o token
     public boolean isTokenValid(String token){
         try {
             getClaims(token);
@@ -80,9 +76,6 @@ public class TokenProvider {
 
     private Claims getClaims(String token){
 
-        //validar assinatura do token
-        //validar expiracao do token
-
         return Jwts.parser()
                 .verifyWith(getSigninKey())
                 .build()
@@ -90,8 +83,6 @@ public class TokenProvider {
                 .getPayload();
     }
 
-
-    //extrair informacoes do token
     public String getUserName(String token){
         return getClaims(token)
                 .getSubject();

@@ -6,7 +6,6 @@ import io.github.caioeduardopereirafelix.financeapi.model.enums.BankConnectionSt
 import java.time.Instant;
 import java.util.UUID;
 
-/** O id do provedor (externalId) fica de fora de proposito: o cliente nao precisa dele. */
 public record BankConnectionResponse(
         UUID id,
         String provider,

@@ -12,13 +12,6 @@ import java.util.Optional;
 @Configuration
 public class AuditorAwareConfig {
 
-    /**
-     * Sem este bean as anotacoes @CreatedBy/@LastModifiedBy da AuditingClass
-     * nunca eram preenchidas, mesmo com @EnableJpaAuditing ligado.
-     *
-     * Retorna vazio quando nao ha usuario autenticado (cadastro publico,
-     * por exemplo), e nesse caso as colunas ficam nulas.
-     */
     @Bean
     public AuditorAware<String> auditorAware() {
         return () -> Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())

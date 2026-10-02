@@ -5,14 +5,6 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-/**
- * O que identifica "o mesmo estabelecimento" numa descricao de extrato.
- *
- * Descricoes do banco trazem codigos e numeros que mudam a cada compra ("UBER *TRIP 9F3K",
- * "Uber *Viagem 1234"). A chave usa so as primeiras palavras, em minusculas, sem acento, numero
- * ou simbolo: o bastante para juntar as compras do mesmo lugar sem juntar coisas diferentes.
- * Vazia quando a descricao nao tem letras suficientes para identificar nada.
- */
 public final class DescriptionKey {
 
     static final int MAX_WORDS = 4;

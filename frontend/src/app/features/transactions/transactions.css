@@ -200,3 +200,9 @@ thead .num { text-align: right; }
 .check-hint { display: block; font-weight: 400; margin-top: 0.15rem; }
 .check-option:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
 
+.mode-choice { margin-bottom: 1rem; }
+.import-lead { color: var(--muted); margin: 0 0 1rem; }
+.import-error { color: var(--expense); font-weight: 600; margin: 1rem 0 0; }
+.import-result { margin-top: 1rem; }
+.import-summary { margin: 0 0 0.5rem; }
+.import-problems { margin: 0 0 0.75rem; padding-left: 1.25rem; color: var(--muted); }

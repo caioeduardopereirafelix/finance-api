@@ -1,7 +1,6 @@
 package io.github.caioeduardopereirafelix.financeapi.service.validator;
 
 import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidFieldException;
-import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionSource;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName;
@@ -20,12 +19,8 @@ public class TransactionValidator {
         }
     }
 
-    /**
-     * Uma transacao importada reflete o que o banco informou: valor, descricao e tipo nao se
-     * mudam a mao. A categoria, sim.
-     */
     public void validateImportedOnlyChangesCategory(Transaction transaction, UpdateTransactionDTO changes) {
-        if (transaction.getSource() != TransactionSource.BANK) {
+        if (!transaction.getSource().imported()) {
             return;
         }
         boolean changed = transaction.getType() != changes.type()
@@ -33,7 +28,7 @@ public class TransactionValidator {
                 || !java.util.Objects.equals(transaction.getDescription(), changes.description());
         if (changed) {
             throw new InvalidFieldException("transaction",
-                    "Transacao importada do banco: so a categoria pode ser alterada");
+                    "Transacao importada: so a categoria pode ser alterada");
         }
     }
 

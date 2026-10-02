@@ -2,7 +2,6 @@ package io.github.caioeduardopereirafelix.financeapi.bank;
 
 import org.springframework.http.HttpStatus;
 
-/** Falha da integracao bancaria, ja com o status HTTP que deve chegar ao cliente. */
 public class BankIntegrationException extends RuntimeException {
 
     private final HttpStatus status;

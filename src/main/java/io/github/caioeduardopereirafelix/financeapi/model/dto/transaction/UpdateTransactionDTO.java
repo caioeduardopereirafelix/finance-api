@@ -19,7 +19,6 @@ public record UpdateTransactionDTO(
    TransactionalType type,
    @NotNull(message = "Category Name cannot be empty")
    CategoryName category,
-   /** Novo dia da transacao; sem ele, a data nao muda. */
    LocalDate occurredOn
 
 ) {}

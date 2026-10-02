@@ -24,7 +24,6 @@ public class BankConnectionService {
     private final TransactionRepository transactions;
     private final BankProviders providers;
 
-    /** Token do widget e o nome do provedor, para o front saber qual widget abrir. */
     public ConnectToken createConnectToken(User user) {
         BankProvider provider = providers.forNewConnections();
         return new ConnectToken(provider.createConnectToken(user.getId().toString()), provider.name());
@@ -33,7 +32,6 @@ public class BankConnectionService {
     public record ConnectToken(String token, String provider) {
     }
 
-    /** Token para reautorizar uma conexao; {@code externalId} e o que o widget precisa para abrir nela. */
     public record ReauthToken(String token, String provider, String externalId) {
     }
 
@@ -47,13 +45,6 @@ public class BankConnectionService {
         return new ReauthToken(token, provider.name(), connection.getExternalId());
     }
 
-    /**
-     * Revoga todas as conexoes do usuario nos provedores (usado antes de apagar a conta).
-     *
-     * Falha do provedor interrompe: sem isso a conta sumiria deixando a autorizacao viva la, e
-     * nao haveria mais como revogar. Repetir e seguro (item ja apagado = sucesso). Provedor que
-     * nao esta configurado neste servidor e pulado com aviso, senao a conta nunca poderia ser apagada.
-     */
     public void revokeAll(User user) {
         for (BankConnection connection : connections.findByUserOrderByCreatedAtDesc(user)) {
             BankProvider provider;
@@ -89,7 +80,7 @@ public class BankConnectionService {
             described = provider.describeConnection(externalId, user.getId().toString());
         } catch (BankIntegrationException e) {
             log.warn("Conexao {} recusada: {}", externalId, e.getMessage());
-            throw e;   // o provedor ja disse o que houve (ex.: identificador invalido)
+            throw e;
         } catch (RuntimeException e) {
             log.warn("Nao foi possivel confirmar a conexao {}: {}", externalId, e.toString());
             throw new BankIntegrationException(HttpStatus.BAD_GATEWAY,
@@ -111,17 +102,11 @@ public class BankConnectionService {
         return connections.findByUserOrderByCreatedAtDesc(user);
     }
 
-    /**
-     * @param deleteImported apaga tambem as transacoes importadas dessa conexao.
-     *                       Sem isso elas ficam no historico, sem vinculo.
-     */
     @Transactional
     public void disconnect(User user, UUID id, boolean deleteImported) {
         BankConnection connection = connections.findByIdAndUser(id, user)
                 .orElseThrow(() -> new BankIntegrationException(HttpStatus.NOT_FOUND, "Conexao bancaria nao encontrada"));
 
-        // Primeiro o provedor: se a revogacao falhar, nada local muda e a pessoa tenta de novo.
-        // Se o local falhar depois, tentar outra vez e seguro (o provedor ja sem o item = sucesso).
         try {
             providers.named(connection.getProvider()).disconnect(connection.getExternalId());
         } catch (BankIntegrationException e) {

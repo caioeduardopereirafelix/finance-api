@@ -14,7 +14,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 @TestPropertySource(properties = "bank.mock.enabled=true")
 class TransactionPeriodSummaryIntegrationTest extends ApiIntegrationTestSupport {
 
@@ -96,7 +95,7 @@ class TransactionPeriodSummaryIntegrationTest extends ApiIntegrationTestSupport 
         mockMvc.perform(get("/transaction/summary/by-category")
                         .param("startDate", diasAtras(6)).param("endDate", diasAtras(0))
                         .header(HttpHeaders.AUTHORIZATION, a.bearer()))
-                .andExpect(jsonPath("$.length()").value(3))   // alimentacao, saude e transporte
+                .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[0].category").value("FOOD"))
                 .andExpect(jsonPath("$[1].category").value("HEALTH"))
                 .andExpect(jsonPath("$[2].category").value("TRANSPORT"));

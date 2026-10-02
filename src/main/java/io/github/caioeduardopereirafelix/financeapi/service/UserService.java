@@ -61,7 +61,6 @@ public class UserService {
         var user = repository.findById(id)
                 .orElseThrow(() -> new UserNotFound("User not found"));
 
-        // Antes de apagar: depois disso nao ha mais como revogar a autorizacao dos bancos.
         bankConnections.revokeAll(user);
 
         repository.delete(user);
@@ -119,11 +118,6 @@ public class UserService {
         }
     }
 
-    /**
-     * Um usuario comum so enxerga o proprio cadastro; ADMIN enxerga qualquer um.
-     * A checagem vem antes da busca no banco de proposito: assim um id de outro
-     * usuario responde sempre 403, sem revelar se ele existe ou nao.
-     */
     private void checkAccessTo(UUID targetUserId) {
 
         User authenticated = securityUtils.getAuthenticatedUser();

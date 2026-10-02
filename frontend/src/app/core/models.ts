@@ -4,7 +4,7 @@ export type CategoryName =
   | 'WAGE' | 'EXTRA_INCOME' | 'OTHER_INCOME'
   | 'FOOD' | 'LEISURE' | 'HOUSING' | 'HEALTH' | 'TRANSPORT' | 'INVESTMENTS' | 'BILLS' | 'OTHER_EXPENSE';
 
-export type TransactionSource = 'MANUAL' | 'BANK';
+export type TransactionSource = 'MANUAL' | 'BANK' | 'FILE';
 
 export interface AuthResponse {
   token: string;
@@ -16,6 +16,14 @@ export interface AccountProfile {
   name: string;
   email: string;
   emailVerified: boolean;
+}
+
+export interface ImportResult {
+  total: number;
+  imported: number;
+  skipped: number;
+  invalid: number;
+  problems: string[];
 }
 
 export interface Transaction {

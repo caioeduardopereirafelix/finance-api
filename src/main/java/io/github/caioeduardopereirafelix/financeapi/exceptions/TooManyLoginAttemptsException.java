@@ -1,6 +1,5 @@
 package io.github.caioeduardopereirafelix.financeapi.exceptions;
 
-/** Login travado por excesso de tentativas erradas. */
 public class TooManyLoginAttemptsException extends RuntimeException {
 
     private final long retryAfterSeconds;

@@ -2,6 +2,11 @@ spring:
   config:
     import: optional:file:.env[.properties]
 
+  servlet:
+    multipart:
+      max-file-size: ${UPLOAD_MAX_FILE_SIZE:2MB}
+      max-request-size: ${UPLOAD_MAX_FILE_SIZE:2MB}
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}
@@ -58,6 +63,15 @@ api:
       expiration-minutes: ${PASSWORD_RESET_EXPIRATION_MINUTES:30}
       cooldown-seconds: ${PASSWORD_RESET_COOLDOWN_SECONDS:60}
 
+    rate-limit:
+      enabled: ${RATE_LIMIT_ENABLED:true}
+      trust-forwarded-for: ${TRUST_FORWARDED_FOR:false}
+      register-per-hour: ${RATE_LIMIT_REGISTER_PER_HOUR:10}
+      forgot-per-hour: ${RATE_LIMIT_FORGOT_PER_HOUR:10}
+      reset-per-hour: ${RATE_LIMIT_RESET_PER_HOUR:20}
+      verify-per-hour: ${RATE_LIMIT_VERIFY_PER_HOUR:30}
+      login-per-minute: ${RATE_LIMIT_LOGIN_PER_MINUTE:30}
+
     email-verification:
       expiration-hours: ${EMAIL_VERIFICATION_EXPIRATION_HOURS:24}
       cooldown-seconds: ${EMAIL_VERIFICATION_COOLDOWN_SECONDS:60}
@@ -71,6 +85,8 @@ app:
 mail:
   transport: ${MAIL_TRANSPORT:log}
   async: ${MAIL_ASYNC:true}
+  max-attempts: ${MAIL_MAX_ATTEMPTS:3}
+  retry-backoff-seconds: ${MAIL_RETRY_BACKOFF_SECONDS:2}
   from: ${MAIL_FROM:no-reply@finance.local}
   smtp:
     host: ${MAIL_HOST:}
@@ -91,6 +107,5 @@ bank:
     client-secret: ${PLUGGY_CLIENT_SECRET:}
     base-url: ${PLUGGY_BASE_URL:https://api.pluggy.ai}
     include-credit-cards: ${PLUGGY_INCLUDE_CREDIT_CARDS:false}
-    # Webhooks: a rota so existe com o segredo definido; a URL base e o endereco publico da API
     webhook-secret: ${PLUGGY_WEBHOOK_SECRET:}
     webhook-base-url: ${PLUGGY_WEBHOOK_BASE_URL:}

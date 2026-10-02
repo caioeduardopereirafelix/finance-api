@@ -25,7 +25,6 @@ export class NotificationService {
   private push(tone: NoticeTone, text: string) {
     const id = this.nextId++;
     this.notices.update(list => [...list, { id, tone, text }]);
-    // Erros permanecem ate o usuario fechar: quem le devagar nao perde a mensagem.
     if (tone !== 'error') {
       setTimeout(() => this.dismiss(id), 6000);
     }

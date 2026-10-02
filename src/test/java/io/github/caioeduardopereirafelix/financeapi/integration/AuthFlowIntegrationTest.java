@@ -26,7 +26,7 @@ class AuthFlowIntegrationTest extends ApiIntegrationTestSupport {
     }
 
     @Test
-    void cadastroComEmailRepetidoDeveResponder409() throws Exception {
+    void cadastroComEmailRepetidoResponde201ComoQualquerOutro() throws Exception {
         var account = registerAndLogin();
 
         mockMvc.perform(post("/v1/auth/register")
@@ -34,7 +34,7 @@ class AuthFlowIntegrationTest extends ApiIntegrationTestSupport {
                         .content("""
                                 {"email":"%s","user":"Outro","password":"senha-segura-1"}
                                 """.formatted(account.email())))
-                .andExpect(status().isConflict());
+                .andExpect(status().isCreated());
     }
 
     @Test

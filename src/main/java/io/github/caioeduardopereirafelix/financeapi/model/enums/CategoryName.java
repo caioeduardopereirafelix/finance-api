@@ -1,14 +1,11 @@
 package io.github.caioeduardopereirafelix.financeapi.model.enums;
 
-
 public enum CategoryName {
 
-    //CASH_ENTRY
     WAGE(TransactionalType.CASH_ENTRY),
     EXTRA_INCOME(TransactionalType.CASH_ENTRY),
     OTHER_INCOME(TransactionalType.CASH_ENTRY),
 
-    //EXPENSES
     FOOD(TransactionalType.EXPENSES),
     LEISURE(TransactionalType.EXPENSES),
     HOUSING(TransactionalType.EXPENSES),

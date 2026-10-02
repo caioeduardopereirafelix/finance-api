@@ -84,7 +84,7 @@ export class BanksPage {
     try {
       const itemId = await this.pluggy.open(token);
       if (itemId === null) {
-        this.connecting.set(false);   // fechou o widget sem concluir: nao e erro
+        this.connecting.set(false);
         return;
       }
       this.registerAndSync(itemId);
@@ -156,7 +156,7 @@ export class BanksPage {
       error: (err) => {
         this.syncingId.set(null);
         this.notifications.error(this.friendly(err, 'Não foi possível sincronizar.'));
-        this.load();   // o backend marca a conexao como "com erro"
+        this.load();
       },
     });
   }
@@ -193,7 +193,6 @@ export class BanksPage {
       },
     });
   }
-
 
   name(connection: BankConnection): string {
     return connection.institutionName ?? 'Banco';

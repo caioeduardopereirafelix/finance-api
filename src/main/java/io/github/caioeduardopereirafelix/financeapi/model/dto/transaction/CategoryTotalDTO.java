@@ -5,7 +5,6 @@ import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalTyp
 
 import java.math.BigDecimal;
 
-/** Total de uma categoria no periodo, com quantas transacoes o compoem. */
 public record CategoryTotalDTO(
         CategoryName category,
         TransactionalType type,

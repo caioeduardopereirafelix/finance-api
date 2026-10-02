@@ -28,7 +28,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return request.getServletPath().startsWith("/v1/auth");
     }
 
-
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
@@ -37,7 +36,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(authorizationHeader) && authorizationHeader.startsWith("Bearer ")){
 
-            //validar token
             String token = authorizationHeader.substring(7);
 
             if (tokenProvider.isTokenValid(token)){
@@ -47,8 +45,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                 } catch (UsernameNotFoundException e) {
-                    // Token valido de um usuario que ja foi apagado: segue sem autenticar (401),
-                    // em vez de deixar a excecao virar um erro 500.
                 }
 
             }

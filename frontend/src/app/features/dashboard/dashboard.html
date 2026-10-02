@@ -137,7 +137,7 @@
                   <p class="recent-description">{{ item.description }}</p>
                   <p class="recent-meta">
                     {{ categoryLabel[item.category] }} · {{ item.occurredAt | brDate }}
-                    @if (item.source === 'BANK') { · Banco }
+                    @if (item.source !== 'MANUAL') { · {{ item.source === 'BANK' ? 'Banco' : 'Arquivo' }} }
                   </p>
                 </div>
                 <p class="recent-amount"

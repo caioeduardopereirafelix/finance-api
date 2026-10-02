@@ -8,7 +8,6 @@ import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.UUID;
 
 public record CreateTransactionRequestDTO(
         @NotBlank(message = "Description cannot be empty")
@@ -20,6 +19,5 @@ public record CreateTransactionRequestDTO(
         TransactionalType type,
         @NotNull(message = "Category Name cannot be empty")
         CategoryName category,
-        /** Dia em que a transacao ocorreu; sem ele, vale agora. */
         LocalDate occurredOn) {
 }

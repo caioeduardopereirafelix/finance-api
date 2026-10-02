@@ -2,7 +2,6 @@ package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.config.SecurityUtils;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidFieldException;
-import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionSource;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.TransactionNotFound;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CategoryTotalDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CreateTransactionRequestDTO;
@@ -42,7 +41,6 @@ public class TransactionService {
     private final SecurityUtils securityUtils;
     private final CategoryRuleService categoryRules;
 
-    /** Fuso em que o dia informado pelo usuario e interpretado. */
     @Value("${app.zone:America/Sao_Paulo}")
     private ZoneId zone;
 
@@ -108,20 +106,15 @@ public class TransactionService {
         return transactionRepository.save(transaction);
     }
 
-    /** A data de uma transacao importada e a que o banco informou. */
     private void requireSameDayIfImported(Transaction transaction, UpdateTransactionDTO changes) {
-        boolean imported = transaction.getSource() == TransactionSource.BANK;
+        boolean imported = transaction.getSource().imported();
         if (imported && changes.occurredOn() != null
                 && !changes.occurredOn().equals(OccurredAt.dayOf(transaction.getOccurredAt(), zone))) {
             throw new InvalidFieldException("occurredOn",
-                    "Transacao importada do banco: a data vem do banco e nao pode ser alterada");
+                    "Transacao importada: a data vem do extrato e nao pode ser alterada");
         }
     }
 
-    /**
-     * Troca so a categoria. Serve a qualquer transacao do usuario, e e o unico ajuste que uma
-     * transacao importada do banco aceita.
-     */
     public CategoryChange updateCategory(UUID id, CategoryName category, boolean applyToSimilar) {
 
         User user = securityUtils.getAuthenticatedUser();
@@ -140,14 +133,9 @@ public class TransactionService {
         return new CategoryChange(transaction, updated);
     }
 
-    /** Sem limites de data, o resumo cobre tudo. */
     private static final Instant FIRST_INSTANT = Instant.EPOCH;
     private static final Instant LAST_INSTANT = Instant.parse("3000-01-01T00:00:00Z");
 
-    /**
-     * @param from   inicio do periodo (inclusive); nulo = desde sempre
-     * @param before fim do periodo (exclusivo); nulo = ate hoje e alem
-     */
     public SummaryResponseDTO getSummary(Instant from, Instant before){
 
         User user = securityUtils.getAuthenticatedUser();

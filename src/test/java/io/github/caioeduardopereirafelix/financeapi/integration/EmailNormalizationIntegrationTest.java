@@ -44,11 +44,14 @@ class EmailNormalizationIntegrationTest extends ApiIntegrationTestSupport {
     }
 
     @Test
-    void emailQueSoDifereNaCaixaContaComoRepetido() throws Exception {
+    void emailQueSoDifereNaCaixaContaComoRepetidoENaoCriaOutraConta() throws Exception {
         String base = "dup-" + UUID.randomUUID();
 
         register(base + "@test.com", 201);
-        register(base.toUpperCase() + "@Test.com", 409);
+        register(base.toUpperCase() + "@Test.com", 201);
+
+        assertEquals(1, userRepository.findAll().stream()
+                .filter(u -> u.getEmail().equals(base + "@test.com")).count());
     }
 
     @Test

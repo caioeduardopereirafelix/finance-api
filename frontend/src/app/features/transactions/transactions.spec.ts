@@ -30,10 +30,9 @@ describe('TransactionsPage (categoria)', () => {
   };
 
   beforeEach(async () => {
-    // o jsdom pode nao ter implementado <dialog>: o teste nao depende de abrir de verdade
     const proto = HTMLDialogElement.prototype as unknown as Record<string, unknown>;
-    proto['showModal'] ??= function () { /* noop */ };
-    proto['close'] ??= function () { /* noop */ };
+    proto['showModal'] ??= function () { };
+    proto['close'] ??= function () { };
 
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     http = TestBed.inject(HttpTestingController);
@@ -85,7 +84,7 @@ describe('TransactionsPage (categoria)', () => {
     req.flush({ transaction: { ...bank, category: 'BILLS' }, updated: 3 });
 
     expect(notices.notices().some(n => n.text === 'Categoria alterada em 3 transações.')).toBe(true);
-    flushList([{ ...bank, category: 'BILLS' }, manual]);   // recarregou
+    flushList([{ ...bank, category: 'BILLS' }, manual]);
   });
 
   it('no singular, quando só uma mudou', () => {
@@ -114,7 +113,7 @@ describe('TransactionsPage (categoria)', () => {
   });
 
   it('mesmo sem mudar a categoria, aplicar às parecidas é uma ação válida', () => {
-    page.openCategory(bank);   // mantém OTHER_EXPENSE, com "aplicar às parecidas" marcado
+    page.openCategory(bank);
 
     page.saveCategory();
 

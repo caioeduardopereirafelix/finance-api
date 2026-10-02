@@ -1,7 +1,6 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.config.TokenProvider;
-import io.github.caioeduardopereirafelix.financeapi.exceptions.EmailAlreadyExistException;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.LoginDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.RefreshTokenRequestDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.auth.RequestAuthDTO;
@@ -34,14 +33,19 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final LoginAttemptService loginAttempts;
     private final EmailVerificationService emailVerificationService;
+    private final AccountNotifications accountNotifications;
 
     @Value("${api.security.token.expiration}")
     private long expirationTime;
 
     public void registerUser(RequestAuthDTO requestAuthDTO){
 
-        if (userRepository.findByEmail(requestAuthDTO.email()).isPresent()){
-            throw new EmailAlreadyExistException("Email already registered");
+        String encodedPassword = passwordEncoder.encode(requestAuthDTO.password());
+
+        var existing = userRepository.findByEmail(requestAuthDTO.email());
+        if (existing.isPresent()) {
+            accountNotifications.registrationAttemptOnExistingEmail(existing.get());
+            return;
         }
 
         var role = rolesUserRepository.findByName(RolesTypeEnum.ROLE_USER.name())
@@ -52,7 +56,7 @@ public class AuthService {
                 .name(requestAuthDTO.user())
                 .email(requestAuthDTO.email())
                 .roles(List.of(role))
-                .password(passwordEncoder.encode(requestAuthDTO.password()))
+                .password(encodedPassword)
                 .build());
 
         emailVerificationService.sendInitial(saved);

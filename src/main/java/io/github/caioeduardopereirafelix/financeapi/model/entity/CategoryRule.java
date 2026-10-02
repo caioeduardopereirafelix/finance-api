@@ -21,7 +21,6 @@ import lombok.ToString;
 import java.time.Instant;
 import java.util.UUID;
 
-/** "Transacoes deste estabelecimento vao para esta categoria", escolhida pelo usuario. */
 @Entity
 @Table(name = "category_rules")
 @Getter

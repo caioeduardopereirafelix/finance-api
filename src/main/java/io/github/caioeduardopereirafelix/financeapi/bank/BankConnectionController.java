@@ -23,7 +23,6 @@ public class BankConnectionController {
     private final SecurityUtils securityUtils;
     private final EmailVerificationService emailVerificationService;
 
-    /** Token para o front abrir o widget de conexao do provedor. */
     @PostMapping("/connect-token")
     public BankConnectionService.ConnectToken connectToken() {
         var user = securityUtils.getAuthenticatedUser();
@@ -31,7 +30,6 @@ public class BankConnectionController {
         return connectionService.createConnectToken(user);
     }
 
-    /** Registra a conexao depois que o usuario autorizou o banco no widget. */
     @PostMapping("/connections")
     public ResponseEntity<BankConnectionResponse> connect(@Valid @RequestBody ConnectBankRequest request) {
         var user = securityUtils.getAuthenticatedUser();
@@ -40,7 +38,6 @@ public class BankConnectionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(BankConnectionResponse.from(connection));
     }
 
-    /** Token para reautorizar uma conexao existente (o banco pediu login de novo). */
     @PostMapping("/connections/{id}/update-token")
     public BankConnectionService.ReauthToken updateToken(@PathVariable UUID id) {
         return connectionService.createUpdateToken(securityUtils.getAuthenticatedUser(), id);
@@ -58,7 +55,6 @@ public class BankConnectionController {
         return syncService.syncForUser(id, securityUtils.getAuthenticatedUser());
     }
 
-    /** Com deleteImported=true apaga tambem as transacoes que vieram dessa conexao. */
     @DeleteMapping("/connections/{id}")
     public ResponseEntity<Void> disconnect(@PathVariable UUID id,
                                            @RequestParam(defaultValue = "false") boolean deleteImported) {

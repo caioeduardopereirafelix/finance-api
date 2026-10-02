@@ -11,14 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * Fila de sincronizacoes disparadas por webhook.
- *
- * O webhook precisa responder rapido, entao a sincronizacao roda aqui, em segundo plano.
- * Uma unica thread executa uma por vez: dois avisos seguidos da mesma conexao nao correm
- * em paralelo (o que poderia inserir a mesma transacao duas vezes), e avisos repetidos
- * enquanto um ja espera na fila viram uma sincronizacao so.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -40,7 +32,7 @@ public class BankSyncQueue {
     }
 
     private void run(UUID connectionId) {
-        waiting.remove(connectionId);   // aviso que chegar daqui em diante pede uma nova rodada
+        waiting.remove(connectionId);
         try {
             BankSyncService.Result result = syncService.syncById(connectionId);
             log.info("Conexao {} sincronizada por webhook: {} importadas, {} ignoradas",

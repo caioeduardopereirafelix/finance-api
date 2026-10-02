@@ -24,20 +24,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-/**
- * Chamadas HTTP a API da Pluggy.
- *
- * A Pluggy usa dois niveis de credencial: o clientId/clientSecret (nossos, ficam
- * so no servidor) trocam por uma apiKey de curta duracao, que e o que vai no
- * header X-API-KEY das demais chamadas. A apiKey fica em cache e e renovada
- * antes de vencer, ou uma vez se a Pluggy responder 401/403.
- */
 public class PluggyClient {
 
-    /** A apiKey vale 2h na Pluggy; renovamos com folga. [confirmar na documentacao] */
     static final Duration API_KEY_TTL = Duration.ofMinutes(100);
 
-    private static final int MAX_PAGES = 200;   // trava de seguranca contra paginacao infinita
+    private static final int MAX_PAGES = 200;
     private static final String TRANSACTIONS_PATH = "/v2/transactions";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -56,7 +47,6 @@ public class PluggyClient {
         this(http, baseUrl, null, clientId, clientSecret, clock);
     }
 
-    /** @param webhookUrl para onde a Pluggy avisa de mudancas nos itens criados com o token; nulo = sem webhook */
     public PluggyClient(RestClient http, String baseUrl, String webhookUrl, String clientId, String clientSecret,
                         Clock clock) {
         if (clientId == null || clientId.isBlank() || clientSecret == null || clientSecret.isBlank()) {
@@ -71,15 +61,10 @@ public class PluggyClient {
         this.clock = clock;
     }
 
-    /** Token que o front entrega ao widget. {@code clientUserId} liga a conexao ao nosso usuario. */
     public String createConnectToken(String clientUserId) {
         return createConnectToken(clientUserId, null);
     }
 
-    /**
-     * @param itemId se informado, o token serve para reautorizar esse item em vez de criar um novo.
-     *               [confirmar no sandbox que o campo se chama "itemId" no corpo]
-     */
     public String createConnectToken(String clientUserId, String itemId) {
         Map<String, Object> options = new LinkedHashMap<>();
         options.put("clientUserId", clientUserId);
@@ -110,10 +95,6 @@ public class PluggyClient {
                 .body(JsonNode.class));
     }
 
-    /**
-     * Apaga o item na Pluggy, o que revoga a autorizacao e remove os dados la.
-     * Um item que ja nao existe (404) conta como sucesso, para poder repetir a operacao.
-     */
     public void deleteItem(String itemId) {
         try {
             authenticated(key -> http.delete()
@@ -138,15 +119,6 @@ public class PluggyClient {
         return results(response);
     }
 
-    /**
-     * Todas as movimentacoes da conta a partir de {@code from}, pela API v2 (a v1,
-     * GET /transactions, foi desativada e responde 410).
-     *
-     * A v2 pagina por cursor: cada resposta traz "next", uma query string pronta
-     * (?accountId=...&after=...) que se anexa como esta ao caminho do endpoint, ou
-     * null na ultima pagina. O "next" e usado sem recodificar, porque o cursor e
-     * base64 e recodifica-lo mudaria o valor.
-     */
     public List<JsonNode> transactions(String accountId, LocalDate from) {
         List<JsonNode> all = new ArrayList<>();
         String query = "?accountId=" + UriUtils.encodeQueryParam(accountId, StandardCharsets.UTF_8) + "&dateFrom=" + from;
@@ -163,20 +135,16 @@ public class PluggyClient {
 
             String next = response == null || response.path("next").isNull() ? null : response.path("next").asText(null);
             if (next == null || next.isBlank() || next.equals(previous)) {
-                break;   // ultima pagina (ou o cursor nao andou: nao deixa girar em circulo)
+                break;
             }
             if (!next.startsWith("?")) {
-                // Sem isso, um "next" estranho poderia mudar o caminho ou o servidor da chamada.
                 throw new IllegalStateException("Cursor de paginacao da Pluggy em formato inesperado");
             }
             previous = next;
-            // o filtro de data pode nao vir dentro do cursor; sem ele voltaria ate 12 meses
             query = next.contains("dateFrom=") ? next : next + "&dateFrom=" + from;
         }
         return all;
     }
-
-    // ---------- autenticacao ----------
 
     private <T> T authenticated(Function<String, T> call) {
         try {
@@ -196,11 +164,6 @@ public class PluggyClient {
         }
     }
 
-    /**
-     * O que a Pluggy disse, para quem usa a tela (e quem le o log) saber o motivo em
-     * vez de um "falhou" generico. So o campo "message" do erro, sem cabecalhos nem
-     * o que enviamos, entao nao carrega credencial.
-     */
     private static String detail(RestClientResponseException e) {
         String body = e.getResponseBodyAsString();
         if (body == null || body.isBlank()) {
@@ -213,7 +176,6 @@ public class PluggyClient {
                 message = parsed.path("message").asText();
             }
         } catch (JsonProcessingException notJson) {
-            // corpo que nao e JSON: usa o texto como veio
         }
         message = message.replaceAll("\\s+", " ").trim();
         if (message.length() > 200) {
@@ -240,12 +202,6 @@ public class PluggyClient {
         apiKey = null;
     }
 
-    // ---------- corpo e resposta ----------
-
-    /**
-     * Corpo como bytes, para a requisicao levar Content-Length. Com um objeto, o
-     * RestClient manda em "chunked", que nem todo servidor/proxy aceita bem.
-     */
     private static byte[] json(Object body) {
         try {
             return MAPPER.writeValueAsBytes(body);

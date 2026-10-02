@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/** Localiza o provedor pelo nome, e sabe qual deve ser usado em novas conexoes. */
 @Component
 public class BankProviders {
 

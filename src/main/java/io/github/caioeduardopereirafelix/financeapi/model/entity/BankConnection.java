@@ -10,12 +10,6 @@ import lombok.ToString;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * Vinculo entre um usuario e uma conta/instituicao no provedor bancario.
- *
- * Guardamos apenas o identificador que o provedor devolve. Credenciais do
- * banco nunca passam por esta aplicacao: quem as recebe e o provedor.
- */
 @Entity
 @Table(name = "bank_connections")
 @Getter

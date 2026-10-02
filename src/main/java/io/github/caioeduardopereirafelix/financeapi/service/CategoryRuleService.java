@@ -16,10 +16,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Categorias que o usuario escolheu para um estabelecimento. Valem nas proximas importacoes
- * do banco e, quando ele pede, nas transacoes parecidas que ja foram importadas.
- */
 @Service
 @RequiredArgsConstructor
 public class CategoryRuleService {
@@ -27,7 +23,6 @@ public class CategoryRuleService {
     private final CategoryRuleRepository rules;
     private final TransactionRepository transactions;
 
-    /** Regras do usuario, indexadas por {@link #lookupKey}. Uma consulta por sincronizacao. */
     @Transactional(readOnly = true)
     public Map<String, CategoryName> rulesOf(User user) {
         Map<String, CategoryName> byKey = new HashMap<>();
@@ -41,12 +36,6 @@ public class CategoryRuleService {
         return type + "|" + matchKey;
     }
 
-    /**
-     * Guarda a escolha e a aplica as transacoes importadas parecidas.
-     *
-     * @return quantas OUTRAS transacoes mudaram (a de origem o chamador ja tratou); 0 quando a
-     *         descricao nao identifica um estabelecimento e por isso nenhuma regra foi criada
-     */
     @Transactional
     public int remember(User user, Transaction origin, CategoryName category) {
         String key = DescriptionKey.of(origin.getDescription());
@@ -67,7 +56,7 @@ public class CategoryRuleService {
         rules.save(rule);
 
         int changed = 0;
-        for (Transaction other : transactions.findByUserAndSourceAndType(user, TransactionSource.BANK, origin.getType())) {
+        for (Transaction other : transactions.findByUserAndSourceNotAndType(user, TransactionSource.MANUAL, origin.getType())) {
             boolean sameSpot = !other.getId().equals(origin.getId())
                     && key.equals(DescriptionKey.of(other.getDescription()));
             if (sameSpot && other.getCategory() != category) {

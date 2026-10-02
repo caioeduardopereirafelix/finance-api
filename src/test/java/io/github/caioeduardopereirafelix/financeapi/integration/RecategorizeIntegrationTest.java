@@ -15,10 +15,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Recategorizar. O provedor de demonstracao sempre traz "Tarifa desconhecida" (que cai em
- * OTHER_EXPENSE), entao cada conexao nova importa mais uma dessas.
- */
 @TestPropertySource(properties = "bank.mock.enabled=true")
 class RecategorizeIntegrationTest extends ApiIntegrationTestSupport {
 
@@ -91,11 +87,10 @@ class RecategorizeIntegrationTest extends ApiIntegrationTestSupport {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"category\":\"BILLS\",\"applyToSimilar\":true}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.updated").value(2));   // a propria e a outra tarifa
+                .andExpect(jsonPath("$.updated").value(2));
 
         org.junit.jupiter.api.Assertions.assertEquals(2, quantasNaCategoria(a, "BILLS"));
 
-        // uma terceira conexao importa outra "Tarifa desconhecida": ja entra em BILLS
         conectarESincronizar(a);
         org.junit.jupiter.api.Assertions.assertEquals(3, quantasNaCategoria(a, "BILLS"));
         org.junit.jupiter.api.Assertions.assertEquals(0, quantasNaCategoria(a, "OTHER_EXPENSE"));
@@ -109,7 +104,7 @@ class RecategorizeIntegrationTest extends ApiIntegrationTestSupport {
         conectarESincronizar(b);
 
         recategorizar(a, idDaPrimeiraTarifa(a), "BILLS", true);
-        conectarESincronizar(b);   // b importa de novo: sem a regra de a
+        conectarESincronizar(b);
 
         org.junit.jupiter.api.Assertions.assertEquals(0, quantasNaCategoria(b, "BILLS"));
         org.junit.jupiter.api.Assertions.assertEquals(2, quantasNaCategoria(b, "OTHER_EXPENSE"));
@@ -194,9 +189,6 @@ class RecategorizeIntegrationTest extends ApiIntegrationTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.transaction.category").value("LEISURE"));
     }
-
-    // ---------- o PUT nao deixa mexer no que o banco informou ----------
-
 
     @Test
     void transacaoImportadaNaoAceitaMudarValorNemDescricaoPeloPut() throws Exception {

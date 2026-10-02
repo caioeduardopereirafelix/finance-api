@@ -14,7 +14,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -46,29 +45,21 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/v1/auth/**")
                         .permitAll()
 
-                        // Pagina de erro do Spring. Sem isso, um erro interno (500) era redirecionado para
-                        // /error, que exigia login, e chegava ao cliente como um 401 enganoso.
-                        .requestMatchers("/error")
+                        .requestMatchers("/error", "/ping")
                         .permitAll()
 
-                        // Webhook da Pluggy: sem login; a autenticidade e o segredo no caminho.
                         .requestMatchers(HttpMethod.POST, "/webhooks/pluggy/**")
                         .permitAll()
 
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
                         .permitAll()
 
-                        // O actuator nao e mais publicado na porta da API: ele roda
-                        // numa porta separada (management.server.port), que nao deve
-                        // ser exposta fora da rede interna.
                         .requestMatchers("/actuator/**")
                         .permitAll()
 
                         .requestMatchers(HttpMethod.POST,"/user","/user/**")
                         .hasRole("ADMIN")
 
-                        // GET/PUT/DELETE de usuario exigem autenticacao aqui e, no
-                        // UserService, que o solicitante seja o dono do cadastro ou ADMIN.
                         .requestMatchers(HttpMethod.GET, "/user", "/user/**")
                         .hasAnyRole("ADMIN", "USER")
 

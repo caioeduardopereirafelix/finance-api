@@ -14,9 +14,7 @@ public record ResponseTransactionDTO(
         BigDecimal amount,
         CategoryName category,
         TransactionalType type,
-        /** Quando o gasto ocorreu: a data que a tela deve mostrar. */
         Instant occurredAt,
         TransactionSource source,
-        /** Quando o registro entrou no sistema. */
         Instant createdDate) {
 }

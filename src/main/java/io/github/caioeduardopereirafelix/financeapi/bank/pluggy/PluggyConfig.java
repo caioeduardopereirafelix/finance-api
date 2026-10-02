@@ -11,10 +11,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.ZoneId;
 
-/**
- * Liga a Pluggy quando PLUGGY_CLIENT_ID esta definido. Sem ele, nada disto
- * existe e o restante da aplicacao nao percebe a diferenca.
- */
 @Configuration
 @ConditionalOnExpression("!'${bank.pluggy.client-id:}'.isBlank()")
 public class PluggyConfig {
@@ -26,7 +22,6 @@ public class PluggyConfig {
                               @Value("${bank.pluggy.client-secret:}") String clientSecret,
                               @Value("${bank.pluggy.webhook-secret:}") String webhookSecret,
                               @Value("${bank.pluggy.webhook-base-url:}") String webhookBaseUrl) {
-        // Sem timeout, uma Pluggy lenta seguraria a requisicao (e o agendador) indefinidamente.
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(5));
         factory.setReadTimeout(Duration.ofSeconds(30));
@@ -36,7 +31,6 @@ public class PluggyConfig {
                 Clock.systemUTC());
     }
 
-    /** URL publica que a Pluggy chama; so existe com a URL base e o segredo definidos. */
     static String webhookUrl(String baseUrl, String secret) {
         if (baseUrl == null || baseUrl.isBlank() || secret == null || secret.isBlank()) {
             return null;

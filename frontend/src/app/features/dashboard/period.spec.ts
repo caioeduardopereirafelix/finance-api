@@ -2,7 +2,7 @@ import { compare, daysIn, formatRange, isValidRange, previousRange, rangeFor } f
 
 describe('period', () => {
 
-  const today = new Date(2026, 8, 29);   // 29/09/2026
+  const today = new Date(2026, 8, 29);
 
   it('este mês vai do dia 1 até hoje', () => {
     expect(rangeFor('THIS_MONTH', today)).toEqual({ start: '2026-09-01', end: '2026-09-29' });

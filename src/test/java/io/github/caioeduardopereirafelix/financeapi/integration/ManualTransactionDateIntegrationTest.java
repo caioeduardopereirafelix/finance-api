@@ -20,7 +20,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** Data escolhida no lancamento manual. */
 @TestPropertySource(properties = "bank.mock.enabled=true")
 class ManualTransactionDateIntegrationTest extends ApiIntegrationTestSupport {
 
@@ -83,7 +82,6 @@ class ManualTransactionDateIntegrationTest extends ApiIntegrationTestSupport {
         var a = registerAndLogin();
         criar(a, corpo("Gasto antigo", "100", dia(10)));
 
-        // nos ultimos 5 dias nao entra; nos ultimos 15, entra
         mockMvc.perform(get("/transaction/summary").param("startDate", dia(5)).param("endDate", dia(0))
                         .header(HttpHeaders.AUTHORIZATION, a.bearer()))
                 .andExpect(jsonPath("$.expenses").value(0));
@@ -143,22 +141,18 @@ class ManualTransactionDateIntegrationTest extends ApiIntegrationTestSupport {
         JsonNode t = criar(a, corpo("Cafe", "8.5", dia(3)));
         String antes = t.get("occurredAt").asText();
 
-        // sem occurredOn: a data nao muda
         String semData = mockMvc.perform(put("/transaction/" + t.get("id").asText())
                         .header(HttpHeaders.AUTHORIZATION, a.bearer())
                         .contentType(MediaType.APPLICATION_JSON).content(corpo("Cafe com pao", "9.5", null)))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         assertEquals(antes, objectMapper.readTree(semData).get("occurredAt").asText());
 
-        // com o mesmo dia: tambem nao
         String mesmoDia = mockMvc.perform(put("/transaction/" + t.get("id").asText())
                         .header(HttpHeaders.AUTHORIZATION, a.bearer())
                         .contentType(MediaType.APPLICATION_JSON).content(corpo("Cafe com pao", "9.5", dia(3))))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         assertEquals(antes, objectMapper.readTree(mesmoDia).get("occurredAt").asText());
     }
-
-    // ---------- transacao importada: a data e a do banco ----------
 
     private JsonNode tarifaImportada(Account a) throws Exception {
         String body = mockMvc.perform(post("/bank/connections")

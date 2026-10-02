@@ -13,13 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
-/**
- * Recebe os webhooks da Pluggy.
- *
- * A rota e publica (a Pluggy nao tem login), entao a autenticidade vem de um segredo no
- * proprio caminho: /webhooks/pluggy/{segredo}. Segredo errado responde 404, como se a rota
- * nao existisse. Sem PLUGGY_WEBHOOK_SECRET a rota nem e criada.
- */
 @RestController
 @RequiredArgsConstructor
 @ConditionalOnExpression("!'${bank.pluggy.webhook-secret:}'.isBlank()")
@@ -32,7 +25,6 @@ public class PluggyWebhookController {
 
     @PostMapping("/webhooks/pluggy/{secret}")
     public ResponseEntity<Void> receive(@PathVariable("secret") String received, @RequestBody JsonNode payload) {
-        // comparacao em tempo constante, para o tempo de resposta nao denunciar o segredo
         boolean valid = MessageDigest.isEqual(
                 received.getBytes(StandardCharsets.UTF_8), secret.getBytes(StandardCharsets.UTF_8));
         if (!valid) {

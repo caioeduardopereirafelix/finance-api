@@ -4,7 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { messageOf } from '../../core/api-error';
 import {
   CATEGORIES_BY_TYPE, CATEGORY_LABEL, CategoryName,
-  PageResponse, Transaction, TransactionalType, TransactionPayload, TYPE_LABEL,
+  ImportResult, PageResponse, Transaction, TransactionalType, TransactionPayload, TYPE_LABEL,
 } from '../../core/models';
 import { NotificationService } from '../../core/notification.service';
 import { TransactionService } from '../../core/transaction.service';
@@ -14,6 +14,7 @@ import { toIso } from '../dashboard/period';
 
 const PAGE_SIZE = 10;
 const EARLIEST_DATE = '2000-01-01';
+const MAX_STATEMENT_BYTES = 2 * 1024 * 1024;
 
 @Component({
   selector: 'app-transactions',
@@ -32,6 +33,7 @@ export class TransactionsPage {
   private readonly categoryDialog = viewChild<ElementRef<HTMLDialogElement>>('categoryDialog');
   private readonly categorySelect = viewChild<ElementRef<HTMLSelectElement>>('categorySelect');
   private readonly descriptionInput = viewChild<ElementRef<HTMLInputElement>>('descriptionInput');
+  private readonly statementInput = viewChild<ElementRef<HTMLInputElement>>('statementInput');
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -45,6 +47,12 @@ export class TransactionsPage {
   readonly applyToSimilar = signal(true);
   readonly formSubmitted = signal(false);
   readonly formError = signal<string | null>(null);
+  readonly mode = signal<'manual' | 'import'>('manual');
+  readonly statementFile = signal<File | null>(null);
+  readonly invertSign = signal(false);
+  readonly importing = signal(false);
+  readonly importResult = signal<ImportResult | null>(null);
+  readonly importError = signal<string | null>(null);
 
   readonly typeLabel = TYPE_LABEL;
   readonly categoryLabel = CATEGORY_LABEL;
@@ -72,7 +80,6 @@ export class TransactionsPage {
   private originalDate = '';
 
   constructor() {
-    // Trocar o tipo troca as categorias validas; sem isso o backend recusaria.
     this.form.controls.type.valueChanges.subscribe(type => {
       const options = CATEGORIES_BY_TYPE[type];
       if (!options.includes(this.form.controls.category.value)) {
@@ -140,8 +147,9 @@ export class TransactionsPage {
     return `Mostrando ${from} a ${to} de ${page.totalElements} transações.`;
   }
 
-
   openCreate() {
+    this.resetImport();
+    this.mode.set('manual');
     this.editing.set(null);
     this.formSubmitted.set(false);
     this.formError.set(null);
@@ -151,6 +159,7 @@ export class TransactionsPage {
   }
 
   openEdit(transaction: Transaction) {
+    this.mode.set('manual');
     this.editing.set(transaction);
     this.formSubmitted.set(false);
     this.formError.set(null);
@@ -166,6 +175,71 @@ export class TransactionsPage {
   }
 
   closeForm() { this.formDialog()?.nativeElement.close(); }
+
+  chooseMode(mode: 'manual' | 'import') {
+    this.mode.set(mode);
+    this.resetImport();
+    this.formError.set(null);
+  }
+
+  onInvertChange(event: Event) {
+    this.invertSign.set((event.target as HTMLInputElement).checked);
+  }
+
+  onStatementChosen(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.item(0) ?? null;
+    this.importResult.set(null);
+    this.importError.set(null);
+
+    if (file && file.size > MAX_STATEMENT_BYTES) {
+      this.statementFile.set(null);
+      this.importError.set('O arquivo tem mais de 2 MB. Exporte um período menor e tente de novo.');
+      return;
+    }
+    this.statementFile.set(file);
+  }
+
+  importStatement() {
+    const file = this.statementFile();
+    if (!file) {
+      return;
+    }
+
+    this.importing.set(true);
+    this.importResult.set(null);
+    this.importError.set(null);
+
+    this.api.importStatement(file, this.invertSign()).subscribe({
+      next: (result) => {
+        this.importing.set(false);
+        this.importResult.set(result);
+        this.statementFile.set(null);
+        const input = this.statementInput()?.nativeElement;
+        if (input) {
+          input.value = '';
+        }
+        this.notifications.success(
+          result.imported === 1 ? '1 transação importada do arquivo.' : `${result.imported} transações importadas do arquivo.`);
+        this.load(0);
+      },
+      error: (err) => {
+        this.importing.set(false);
+        this.importError.set(messageOf(err, 'Não foi possível importar o arquivo.'));
+      },
+    });
+  }
+
+  private resetImport() {
+    this.statementFile.set(null);
+    this.invertSign.set(false);
+    this.importing.set(false);
+    this.importResult.set(null);
+    this.importError.set(null);
+    const input = this.statementInput()?.nativeElement;
+    if (input) {
+      input.value = '';
+    }
+  }
 
   today(): string { return toIso(new Date()); }
 
@@ -232,7 +306,6 @@ export class TransactionsPage {
       },
     });
   }
-
 
   categoryChoices(transaction: Transaction | null): CategoryName[] {
     return transaction ? CATEGORIES_BY_TYPE[transaction.type] : [];

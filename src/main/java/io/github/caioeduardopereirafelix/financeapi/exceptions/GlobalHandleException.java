@@ -9,19 +9,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalHandleException {
-
-    @ExceptionHandler(EmailAlreadyExistException.class)
-    public ResponseEntity<ResponseError> emailExcetionHandle(EmailAlreadyExistException exception){
-        var error=
-                new ResponseError(HttpStatus.CONFLICT.value(), exception.getMessage(), List.of());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-    }
 
     @ExceptionHandler(InvalidFieldException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
@@ -87,6 +81,12 @@ public class GlobalHandleException {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .header(HttpHeaders.RETRY_AFTER, String.valueOf(e.getRetryAfterSeconds()))
                 .body(new ResponseError(HttpStatus.TOO_MANY_REQUESTS.value(), e.getMessage(), List.of()));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    public ResponseError uploadTooLargeHandle(MaxUploadSizeExceededException e){
+        return new ResponseError(HttpStatus.PAYLOAD_TOO_LARGE.value(), "Arquivo muito grande. O limite e de 2 MB", List.of());
     }
 
     @ExceptionHandler(BankIntegrationException.class)

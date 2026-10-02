@@ -9,16 +9,6 @@ import org.testcontainers.utility.DockerImageName;
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-/**
- * Base dos testes que rodam contra um PostgreSQL de verdade, com as migrations do Flyway e
- * {@code ddl-auto=validate}, exatamente como em producao. Os demais testes usam H2, que aceita
- * o SQL mas nao prova que o schema real esta certo.
- *
- * <p>O banco vem de um container (Testcontainers, precisa de Docker). Sem Docker os testes sao
- * pulados, nao falham. Para usar um PostgreSQL ja existente (por exemplo, no CI), defina
- * {@code TEST_PG_URL}, {@code TEST_PG_USER} e {@code TEST_PG_PASSWORD}: use um banco vazio e
- * descartavel, porque o Flyway vai criar as tabelas nele.
- */
 abstract class PostgresIntegrationTestSupport extends ApiIntegrationTestSupport {
 
     private static final String EXTERNAL_URL = System.getenv("TEST_PG_URL");

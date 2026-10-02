@@ -1,5 +1,11 @@
 <a class="skip-link" href="#conteudo">Pular para o conteúdo principal</a>
 
+@if (server.waking()) {
+  <div class="server-banner" role="status">
+    <p>Acordando o servidor. Na primeira visita depois de um tempo parado isso pode levar alguns minutos; não feche a página.</p>
+  </div>
+}
+
 @if (auth.isLoggedIn()) {
   <header class="app-header">
     <div class="app-header-inner">

@@ -40,7 +40,6 @@ public class TransactionController {
     private final TransactionMapper transactionMapper;
     private final TransactionService service;
 
-    /** Fuso em que os filtros de data sao interpretados. */
     @Value("${app.zone:America/Sao_Paulo}")
     private ZoneId zone;
 
@@ -79,8 +78,6 @@ public class TransactionController {
         return ResponseEntity.ok(transactionMapper.toResponse(transactionUpdate));
     }
 
-
-    /** Troca so a categoria; com applyToSimilar, vale tambem para as parecidas e as proximas importacoes. */
     @PatchMapping("/{id}/category")
     public ResponseEntity<CategoryChangeResponseDTO> updateCategory(
             @PathVariable("id") UUID id,
@@ -132,7 +129,6 @@ public class TransactionController {
         return ResponseEntity.ok(response);
     }
 
-    /** Entradas, saidas e saldo. Sem datas, cobre tudo; com datas, so o periodo. */
     @GetMapping("/summary")
     public ResponseEntity<SummaryResponseDTO> summary(
             @RequestParam(required = false)
@@ -148,7 +144,6 @@ public class TransactionController {
         return ResponseEntity.ok(service.getSummary(startOf(startDate), endOfInclusive(endDate)));
     }
 
-    /** Total por categoria no periodo, do maior para o menor. */
     @GetMapping("/summary/by-category")
     public ResponseEntity<List<CategoryTotalDTO>> summaryByCategory(
             @RequestParam(required = false)
@@ -164,13 +159,10 @@ public class TransactionController {
         return ResponseEntity.ok(service.getTotalsByCategory(startOf(startDate), endOfInclusive(endDate)));
     }
 
-    // "De 01/09 ate 28/09" sao dias no fuso do usuario, nao em UTC: uma compra das 22h de
-    // Sao Paulo cai no dia 29 em UTC e sumiria de um filtro "ate 28".
     private Instant startOf(LocalDate date) {
         return date != null ? date.atStartOfDay(zone).toInstant() : null;
     }
 
-    /** O dia final entra inteiro: o limite e o comeco do dia seguinte, exclusivo. */
     private Instant endOfInclusive(LocalDate date) {
         return date != null ? date.plusDays(1).atStartOfDay(zone).toInstant() : null;
     }
