@@ -7,7 +7,6 @@ import io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 
 @Component
 public class TransactionValidator {
@@ -29,12 +28,6 @@ public class TransactionValidator {
         if (changed) {
             throw new InvalidFieldException("transaction",
                     "Transacao importada: so a categoria pode ser alterada");
-        }
-    }
-
-    public void validateAmount(BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidFieldException("amount", "Amount must be greater than zero");
         }
     }
 }

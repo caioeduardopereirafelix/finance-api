@@ -6,6 +6,7 @@ import io.github.caioeduardopereirafelix.financeapi.exceptions.TransactionNotFou
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CategoryTotalDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.CreateTransactionRequestDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.SummaryResponseDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.TransactionFilter;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
@@ -50,7 +51,6 @@ public class TransactionService {
     public Transaction create(CreateTransactionRequestDTO transaction){
 
         validator.validateCategoryByType(transaction.category(), transaction.type());
-        validator.validateAmount(transaction.amount());
 
         User user = securityUtils.getAuthenticatedUser();
 
@@ -90,8 +90,6 @@ public class TransactionService {
         User user = securityUtils.getAuthenticatedUser();
         var transaction = transactionRepository
                 .findByIdAndUser(id, user).orElseThrow(() -> new TransactionNotFound("Transaction not found"));
-
-        validator.validateAmount(transactionDTO.amount());
         validator.validateCategoryByType(transactionDTO.category(), transactionDTO.type());
         validator.validateImportedOnlyChangesCategory(transaction, transactionDTO);
         requireSameDayIfImported(transaction, transactionDTO);
@@ -164,27 +162,18 @@ public class TransactionService {
                 .toList();
     }
 
-    public Page<Transaction> findTransactionsWithFilters(
-            TransactionalType type,
-            CategoryName category,
-            String description,
-            BigDecimal minAmount,
-            BigDecimal maxAmount,
-            Instant occurredFrom,
-            Instant occurredBefore,
-            Pageable pageable
-    ) {
+    public Page<Transaction> findTransactionsWithFilters(TransactionFilter filter, Pageable pageable) {
         User user = securityUtils.getAuthenticatedUser();
 
         Specification<Transaction> specification = Specification
                 .where(TransactionSpecification.belongsToUser(user))
-                .and(TransactionSpecification.hasType(type))
-                .and(TransactionSpecification.hasCategory(category))
-                .and(TransactionSpecification.descriptionContains(description))
-                .and(TransactionSpecification.amountGreaterThanOrEqual(minAmount))
-                .and(TransactionSpecification.amountLessThanOrEqual(maxAmount))
-                .and(TransactionSpecification.occurredFrom(occurredFrom))
-                .and(TransactionSpecification.occurredBefore(occurredBefore));
+                .and(TransactionSpecification.hasType(filter.type()))
+                .and(TransactionSpecification.hasCategory(filter.category()))
+                .and(TransactionSpecification.descriptionContains(filter.description()))
+                .and(TransactionSpecification.amountGreaterThanOrEqual(filter.minAmount()))
+                .and(TransactionSpecification.amountLessThanOrEqual(filter.maxAmount()))
+                .and(TransactionSpecification.occurredFrom(filter.occurredFrom()))
+                .and(TransactionSpecification.occurredBefore(filter.occurredBefore()));
 
         return transactionRepository.findAll(specification, pageable);
     }

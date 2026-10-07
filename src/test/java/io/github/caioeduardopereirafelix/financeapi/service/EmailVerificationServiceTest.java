@@ -1,7 +1,7 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.exceptions.EmailNotVerifiedException;
-import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidEmailVerificationToken;
+import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidTokenException;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.VerificationResendTooSoonException;
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailDispatcher;
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailTemplates;
@@ -121,16 +121,16 @@ class EmailVerificationServiceTest {
     @Test
     void tokenDesconhecidoOuExpiradoOuJaConsumidoEhRecusado() {
         when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.empty());
-        assertThrows(InvalidEmailVerificationToken.class, () -> service.verify("x"));
+        assertThrows(InvalidTokenException.class, () -> service.verify("x"));
 
         var expired = stored(Instant.now().minusSeconds(100), Instant.now().minusSeconds(1));
         when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(expired));
-        assertThrows(InvalidEmailVerificationToken.class, () -> service.verify("x"));
+        assertThrows(InvalidTokenException.class, () -> service.verify("x"));
 
         var racing = stored(Instant.now(), Instant.now().plusSeconds(3600));
         when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(racing));
         when(tokenRepository.consume(racing.getId())).thenReturn(0);
-        assertThrows(InvalidEmailVerificationToken.class, () -> service.verify("x"));
+        assertThrows(InvalidTokenException.class, () -> service.verify("x"));
 
         verify(userRepository, never()).save(any());
     }

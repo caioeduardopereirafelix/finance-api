@@ -7,11 +7,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record LoginDTO(
-        @NotBlank(message = "email it cannot  be empty")
-        @Email(message = "invalid email format")
+        @NotBlank(message = "O e-mail não pode ficar vazio")
+        @Email(message = "E-mail inválido")
         String email,
-        @NotBlank(message = "password it cannot  be empty")
-        @Size(max = PasswordPolicy.MAX_LENGTH, message = "password is too long")
+        @NotBlank(message = "A senha não pode ficar vazia")
+        @Size(max = PasswordPolicy.MAX_LENGTH, message = "A senha é longa demais")
         String password
 ) {
 

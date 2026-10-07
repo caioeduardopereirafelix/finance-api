@@ -2,13 +2,14 @@ package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.config.SecurityUtils;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidFieldException;
+import io.github.caioeduardopereirafelix.financeapi.exceptions.RegistrationDuplicated;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.user.CreateUserDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.user.UpdateUserDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.RolesUser;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.RolesTypeEnum;
 import io.github.caioeduardopereirafelix.financeapi.model.mapper.UserMapper;
 import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
-import io.github.caioeduardopereirafelix.financeapi.service.validator.UserValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,8 +37,6 @@ class UserServiceTest {
     private UserMapper mapper;
     @Mock
     private PasswordEncoder encoder;
-    @Mock
-    private UserValidator userValidator;
     @Mock
     private SecurityUtils securityUtils;
     @Mock
@@ -255,5 +254,46 @@ class UserServiceTest {
         assertEquals("novo@test.com", dono.getEmail());
         assertEquals(null, dono.getEmailVerifiedAt());
         verify(emailVerificationService).sendInitial(dono);
+    }
+
+    @Test
+    void criarUsuarioComEmailJaCadastradoEhRecusado() {
+        var dto = new CreateUserDTO("Caio", "caio@test.com", "senha-segura-1");
+        var novo = User.builder().name("Caio").email("caio@test.com").build();
+        when(mapper.toUser(dto)).thenReturn(novo);
+        when(repository.findByEmail("caio@test.com"))
+                .thenReturn(Optional.of(User.builder().id(UUID.randomUUID()).email("caio@test.com").build()));
+
+        assertThrows(RegistrationDuplicated.class, () -> userService.createUser(dto));
+
+        verify(repository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void trocarParaEmailDeOutroUsuarioEhRecusado() {
+        var id = UUID.randomUUID();
+        var autenticado = userWith(id, RolesTypeEnum.ROLE_USER);
+        when(securityUtils.getAuthenticatedUser()).thenReturn(autenticado);
+        when(repository.findById(id)).thenReturn(Optional.of(autenticado));
+        when(repository.findByEmail("novo@test.com"))
+                .thenReturn(Optional.of(User.builder().id(UUID.randomUUID()).email("novo@test.com").build()));
+
+        assertThrows(RegistrationDuplicated.class, () -> userService.updateUser(id, anyUpdate()));
+
+        verify(repository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void manterOProprioEmailNaoContaComoDuplicado() {
+        var id = UUID.randomUUID();
+        var autenticado = userWith(id, RolesTypeEnum.ROLE_USER);
+        when(securityUtils.getAuthenticatedUser()).thenReturn(autenticado);
+        when(repository.findById(id)).thenReturn(Optional.of(autenticado));
+        when(repository.findByEmail("user@test.com")).thenReturn(Optional.of(autenticado));
+        when(repository.save(autenticado)).thenReturn(autenticado);
+
+        userService.updateUser(id, new UpdateUserDTO("Outro nome", "user@test.com", null, null));
+
+        verify(repository).save(autenticado);
     }
 }

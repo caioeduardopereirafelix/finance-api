@@ -4,6 +4,7 @@ import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidFieldExcep
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Locale;
 
 @Component
@@ -12,8 +13,7 @@ public class StatementParsers {
 
     private static final int SNIFF_CHARS = 4000;
 
-    private final OfxStatementParser ofx;
-    private final CsvStatementParser csv;
+    private final List<StatementParser> parsers;
 
     public ParsedStatement parse(byte[] content, boolean invertSign) {
         if (content == null || content.length == 0) {
@@ -25,9 +25,10 @@ public class StatementParsers {
         }
 
         String head = text.substring(0, Math.min(text.length(), SNIFF_CHARS)).toLowerCase(Locale.ROOT);
-        if (head.contains("<ofx") || head.contains("ofxheader")) {
-            return ofx.parse(text, invertSign);
-        }
-        return csv.parse(text, invertSign);
+        return parsers.stream()
+                .filter(parser -> parser.supports(head))
+                .findFirst()
+                .orElseThrow(() -> new InvalidFieldException("file", "Formato de arquivo nao reconhecido"))
+                .parse(text, invertSign);
     }
 }

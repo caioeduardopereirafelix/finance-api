@@ -1,22 +1,24 @@
 package io.github.caioeduardopereirafelix.financeapi.model.dto.user;
 
 import io.github.caioeduardopereirafelix.financeapi.config.EmailPolicy;
+import io.github.caioeduardopereirafelix.financeapi.config.NamePolicy;
 import io.github.caioeduardopereirafelix.financeapi.config.PasswordPolicy;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record CreateUserDTO(
-        @NotNull
-        @Size(max = 20, min = 1, message =  "Nome deve ter no máximo 100 caracteres e no minimo 1")
+        @NotBlank(message = "O nome não pode ficar vazio")
+        @Size(max = NamePolicy.MAX_LENGTH, message = "O nome deve ter no máximo {max} caracteres")
         String name,
-        @NotBlank(message = "Email nao pode ser vazio")
-        @Email(message = "Email invalido", regexp = EmailPolicy.PATTERN)
+
+        @NotBlank(message = "O e-mail não pode ficar vazio")
+        @Email(message = "E-mail inválido", regexp = EmailPolicy.PATTERN)
         String email,
-        @NotBlank(message = "Senha pode estar vazia")
+
+        @NotBlank(message = "A senha não pode ficar vazia")
         @Size(min = PasswordPolicy.MIN_LENGTH, max = PasswordPolicy.MAX_LENGTH,
-                message = "Senha deve ter no mínimo 8 caracteres")
+                message = "A senha deve ter entre {min} e {max} caracteres")
         String password) {
 
     public CreateUserDTO {

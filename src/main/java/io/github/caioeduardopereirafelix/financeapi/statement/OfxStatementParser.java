@@ -1,6 +1,7 @@
 package io.github.caioeduardopereirafelix.financeapi.statement;
 
 import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidFieldException;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -14,12 +15,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class OfxStatementParser {
+@Order(1)
+public class OfxStatementParser implements StatementParser {
 
     private static final int MAX_PROBLEMS = 10;
     private static final int MAX_DESCRIPTION = 250;
     private static final Pattern MARKER = Pattern.compile("(?i)<(ACCTID|STMTTRN)>");
 
+    @Override
+    public boolean supports(String head) {
+        return head.contains("<ofx") || head.contains("ofxheader");
+    }
+
+    @Override
     public ParsedStatement parse(String text, boolean invertSign) {
         List<StatementEntry> entries = new ArrayList<>();
         List<String> problems = new ArrayList<>();

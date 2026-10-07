@@ -7,14 +7,15 @@ import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.Create
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateCategoryRequestDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.ResponseTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.SummaryResponseDTO;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.TransactionFilter;
+import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.TransactionFilterRequest;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.transaction.UpdateTransactionDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.Transaction;
-import io.github.caioeduardopereirafelix.financeapi.model.enums.CategoryName;
-import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalType;
 import io.github.caioeduardopereirafelix.financeapi.model.mapper.TransactionMapper;
 import io.github.caioeduardopereirafelix.financeapi.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +26,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -91,39 +91,23 @@ public class TransactionController {
 
     @GetMapping
     public ResponseEntity<Page<ResponseTransactionDTO>> findAllTransactions(
-            @RequestParam(required = false) TransactionalType type,
-            @RequestParam(required = false) CategoryName category,
-            @RequestParam(required = false) String description,
-            @RequestParam(required = false) BigDecimal minAmount,
-            @RequestParam(required = false) BigDecimal maxAmount,
-
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate startDate,
-
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate endDate,
+            @ParameterObject TransactionFilterRequest request,
 
             @PageableDefault(size = 10,
                              sort = "occurredAt",
                              direction = Sort.Direction.DESC)Pageable pageable){
 
-        Instant occurredFrom = startOf(startDate);
-        Instant occurredBefore = endOfInclusive(endDate);
-
-        Page<Transaction> transactions = service.findTransactionsWithFilters(
-                type,
-                category,
-                description,
-                minAmount,
-                maxAmount,
-                occurredFrom,
-                occurredBefore,
-                pageable
+        TransactionFilter filter = new TransactionFilter(
+                request.type(),
+                request.category(),
+                request.description(),
+                request.minAmount(),
+                request.maxAmount(),
+                startOf(request.startDate()),
+                endOfInclusive(request.endDate())
         );
 
-        Page<ResponseTransactionDTO> response = transactions
+        Page<ResponseTransactionDTO> response = service.findTransactionsWithFilters(filter, pageable)
                 .map(transactionMapper::toResponse);
 
         return ResponseEntity.ok(response);

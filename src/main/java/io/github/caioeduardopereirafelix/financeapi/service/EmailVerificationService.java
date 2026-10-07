@@ -1,7 +1,7 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.exceptions.EmailNotVerifiedException;
-import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidEmailVerificationToken;
+import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidTokenException;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.VerificationResendTooSoonException;
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailDispatcher;
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailMessage;
@@ -82,6 +82,6 @@ public class EmailVerificationService extends OneTimeTokenService<EmailVerificat
 
     @Override
     protected RuntimeException invalidToken() {
-        return new InvalidEmailVerificationToken("Invalid or expired email verification link");
+        return new InvalidTokenException("Invalid or expired email verification link");
     }
 }

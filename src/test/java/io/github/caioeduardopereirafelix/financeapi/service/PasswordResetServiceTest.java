@@ -1,6 +1,6 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
-import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidPasswordResetToken;
+import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidTokenException;
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailDispatcher;
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailTemplates;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.PasswordResetToken;
@@ -125,7 +125,7 @@ class PasswordResetServiceTest {
     void tokenDesconhecidoEhRecusado() {
         when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.empty());
 
-        assertThrows(InvalidPasswordResetToken.class, () -> service.resetPassword("x", "nova-senha-1"));
+        assertThrows(InvalidTokenException.class, () -> service.resetPassword("x", "nova-senha-1"));
 
         verify(userRepository, never()).save(any());
     }
@@ -135,7 +135,7 @@ class PasswordResetServiceTest {
         when(tokenRepository.findByTokenHash(anyString()))
                 .thenReturn(Optional.of(stored(Instant.now().minus(1, ChronoUnit.MINUTES))));
 
-        assertThrows(InvalidPasswordResetToken.class, () -> service.resetPassword("x", "nova-senha-1"));
+        assertThrows(InvalidTokenException.class, () -> service.resetPassword("x", "nova-senha-1"));
 
         verify(tokenRepository, never()).consume(any());
         verify(userRepository, never()).save(any());
@@ -147,7 +147,7 @@ class PasswordResetServiceTest {
         when(tokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(token));
         when(tokenRepository.consume(token.getId())).thenReturn(0);
 
-        assertThrows(InvalidPasswordResetToken.class, () -> service.resetPassword("x", "nova-senha-1"));
+        assertThrows(InvalidTokenException.class, () -> service.resetPassword("x", "nova-senha-1"));
 
         verify(userRepository, never()).save(any());
     }

@@ -6,7 +6,6 @@ import io.github.caioeduardopereirafelix.financeapi.model.enums.TransactionalTyp
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -18,37 +17,6 @@ class TransactionValidatorTest {
     @BeforeEach
     void setUp() {
         validator = new TransactionValidator();
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoValorForNegativo() {
-        BigDecimal amount = new BigDecimal("-100");
-
-        assertThrows(
-                InvalidFieldException.class,
-                () -> validator.validateAmount(amount)
-        );
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoValorForZero() {
-        assertThrows(
-                InvalidFieldException.class,
-                () -> validator.validateAmount(BigDecimal.ZERO)
-        );
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoValorForNulo() {
-        assertThrows(
-                InvalidFieldException.class,
-                () -> validator.validateAmount(null)
-        );
-    }
-
-    @Test
-    void deveAceitarValorPositivo() {
-        assertDoesNotThrow(() -> validator.validateAmount(new BigDecimal("10.50")));
     }
 
     @Test

@@ -28,7 +28,7 @@ public class GlobalHandleException {
     public ResponseError handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
         List<ErrorField> listaDeErros = e.getFieldErrors()
                 .stream()
-                .map(fl -> new ErrorField(fl.getField(), fl.getDefaultMessage()))
+                .map(fl -> new ErrorField(fl.getField(), fl.isBindingFailure() ? "Valor invalido" : fl.getDefaultMessage()))
                 .collect(Collectors.toList());
         return new ResponseError(HttpStatus.UNPROCESSABLE_ENTITY.value(), "erro de validacao", listaDeErros);
     }
@@ -58,15 +58,9 @@ public class GlobalHandleException {
         return new ResponseError(HttpStatus.UNAUTHORIZED.value(), e.getMessage(), List.of());
     }
 
-    @ExceptionHandler(InvalidPasswordResetToken.class)
+    @ExceptionHandler(InvalidTokenException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseError invalidPasswordResetTokenHandle(InvalidPasswordResetToken e){
-        return new ResponseError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), List.of());
-    }
-
-    @ExceptionHandler(InvalidEmailVerificationToken.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseError invalidEmailVerificationTokenHandle(InvalidEmailVerificationToken e){
+    public ResponseError invalidTokenHandle(InvalidTokenException e){
         return new ResponseError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), List.of());
     }
 

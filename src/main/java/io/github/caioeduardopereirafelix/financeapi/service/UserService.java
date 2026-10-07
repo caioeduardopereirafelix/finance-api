@@ -3,6 +3,7 @@ package io.github.caioeduardopereirafelix.financeapi.service;
 import io.github.caioeduardopereirafelix.financeapi.bank.BankConnectionService;
 import io.github.caioeduardopereirafelix.financeapi.config.SecurityUtils;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidFieldException;
+import io.github.caioeduardopereirafelix.financeapi.exceptions.RegistrationDuplicated;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.UserNotFound;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.user.CreateUserDTO;
 import io.github.caioeduardopereirafelix.financeapi.model.dto.user.UpdateUserDTO;
@@ -10,7 +11,6 @@ import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import io.github.caioeduardopereirafelix.financeapi.model.enums.RolesTypeEnum;
 import io.github.caioeduardopereirafelix.financeapi.model.mapper.UserMapper;
 import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
-import io.github.caioeduardopereirafelix.financeapi.service.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,7 +27,6 @@ public class UserService {
     private final UserRepository repository;
     private final UserMapper mapper;
     private final PasswordEncoder encoder;
-    private final UserValidator userValidator;
     private final SecurityUtils securityUtils;
     private final BankConnectionService bankConnections;
     private final EmailVerificationService emailVerificationService;
@@ -40,7 +39,7 @@ public class UserService {
 
         userMap.setPassword(encoder.encode(dto.password()));
 
-        userValidator.validate(userMap);
+        requireEmailAvailable(userMap);
 
         userMap.setEmailVerifiedAt(Instant.now());
 
@@ -93,7 +92,7 @@ public class UserService {
             user.setPassword(encoder.encode(request.password()));
         }
 
-        userValidator.validate(user);
+        requireEmailAvailable(user);
 
         User saved = repository.save(user);
 
@@ -107,6 +106,14 @@ public class UserService {
         }
 
         return saved;
+    }
+
+    private void requireEmailAvailable(User user) {
+        repository.findByEmail(user.getEmail())
+                .filter(found -> user.getId() == null || !user.getId().equals(found.getId()))
+                .ifPresent(found -> {
+                    throw new RegistrationDuplicated("Email already registered for another user");
+                });
     }
 
     private void requireCurrentPassword(User user, String currentPassword) {

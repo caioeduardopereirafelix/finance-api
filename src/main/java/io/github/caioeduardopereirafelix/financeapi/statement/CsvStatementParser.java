@@ -1,6 +1,8 @@
 package io.github.caioeduardopereirafelix.financeapi.statement;
 
 import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidFieldException;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -13,7 +15,8 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class CsvStatementParser {
+@Order(Ordered.LOWEST_PRECEDENCE)
+public class CsvStatementParser implements StatementParser {
 
     private static final int MAX_PROBLEMS = 10;
     private static final int HEADER_SEARCH_ROWS = 30;
@@ -27,6 +30,12 @@ public class CsvStatementParser {
         }
     }
 
+    @Override
+    public boolean supports(String head) {
+        return true;
+    }
+
+    @Override
     public ParsedStatement parse(String text, boolean invertSign) {
         char delimiter = detectDelimiter(text);
         List<List<String>> rows = read(text, delimiter);

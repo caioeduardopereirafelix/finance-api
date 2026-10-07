@@ -1,7 +1,7 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.config.EmailPolicy;
-import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidPasswordResetToken;
+import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidTokenException;
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailDispatcher;
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailMessage;
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailTemplates;
@@ -77,7 +77,7 @@ public class PasswordResetService extends OneTimeTokenService<PasswordResetToken
 
     @Override
     protected RuntimeException invalidToken() {
-        return new InvalidPasswordResetToken("Invalid or expired password reset link");
+        return new InvalidTokenException("Invalid or expired password reset link");
     }
 
     private void afterCommit(Runnable action) {

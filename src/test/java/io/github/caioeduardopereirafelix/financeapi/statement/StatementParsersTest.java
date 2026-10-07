@@ -5,13 +5,14 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class StatementParsersTest {
 
-    private final StatementParsers parsers = new StatementParsers(new OfxStatementParser(), new CsvStatementParser());
+    private final StatementParsers parsers = new StatementParsers(List.of(new OfxStatementParser(), new CsvStatementParser()));
 
     @Test
     void reconhecePeloConteudoOfxECsv() {
@@ -50,5 +51,33 @@ class StatementParsersTest {
         assertThrows(InvalidFieldException.class, () -> parsers.parse(new byte[0], false));
         assertThrows(InvalidFieldException.class, () -> parsers.parse("   \n\n ".getBytes(StandardCharsets.UTF_8), false));
         assertThrows(InvalidFieldException.class, () -> parsers.parse(null, false));
+    }
+
+    @Test
+    void usaOPrimeiroParserQueReconheceOConteudoEOCsvEhOUltimoRecurso() {
+        StatementParser qif = new StatementParser() {
+            @Override
+            public boolean supports(String head) {
+                return head.startsWith("!type:");
+            }
+
+            @Override
+            public ParsedStatement parse(String text, boolean invertSign) {
+                return new ParsedStatement(List.of(), 0, List.of());
+            }
+        };
+        StatementParsers custom = new StatementParsers(List.of(qif, new CsvStatementParser()));
+
+        assertEquals(0, custom.parse("!Type:Bank\n".getBytes(StandardCharsets.UTF_8), false).entries().size());
+        assertEquals(1, custom.parse("Data;Descricao;Valor\n15/09/2026;X;-1,00\n".getBytes(StandardCharsets.UTF_8), false)
+                .entries().size());
+    }
+
+    @Test
+    void semParserQueReconheca_recusaOArquivo() {
+        StatementParsers none = new StatementParsers(List.of(new OfxStatementParser()));
+
+        assertThrows(InvalidFieldException.class,
+                () -> none.parse("Data;Valor\n".getBytes(StandardCharsets.UTF_8), false));
     }
 }
