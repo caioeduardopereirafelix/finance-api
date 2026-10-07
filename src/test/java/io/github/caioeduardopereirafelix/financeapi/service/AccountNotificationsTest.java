@@ -1,15 +1,15 @@
 package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailDispatcher;
+import io.github.caioeduardopereirafelix.financeapi.mail.EmailTemplates;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -23,13 +23,11 @@ class AccountNotificationsTest {
     @Mock
     private EmailDispatcher emailDispatcher;
 
+    @Spy
+    private EmailTemplates templates = new EmailTemplates("https://app.exemplo.com/");
+
     @InjectMocks
     private AccountNotifications notifications;
-
-    @BeforeEach
-    void setUp() {
-        ReflectionTestUtils.setField(notifications, "frontendUrl", "https://app.exemplo.com/");
-    }
 
     private User user(String email) {
         return User.builder().name("Caio").email(email).build();

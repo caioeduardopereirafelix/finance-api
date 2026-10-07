@@ -2,6 +2,7 @@ package io.github.caioeduardopereirafelix.financeapi.service;
 
 import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidPasswordResetToken;
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailDispatcher;
+import io.github.caioeduardopereirafelix.financeapi.mail.EmailTemplates;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.PasswordResetToken;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import io.github.caioeduardopereirafelix.financeapi.repository.PasswordResetTokenRepository;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -50,6 +52,9 @@ class PasswordResetServiceTest {
     @Mock
     private AccountNotifications accountNotifications;
 
+    @Spy
+    private EmailTemplates templates = new EmailTemplates("http://localhost:4200/");
+
     @InjectMocks
     private PasswordResetService service;
 
@@ -59,7 +64,6 @@ class PasswordResetServiceTest {
     void setUp() {
         ReflectionTestUtils.setField(service, "expirationMinutes", 30L);
         ReflectionTestUtils.setField(service, "cooldownSeconds", 60L);
-        ReflectionTestUtils.setField(service, "frontendUrl", "http://localhost:4200/");
         user = User.builder().id(UUID.randomUUID()).name("Caio").email("caio@test.com").password("antiga").build();
     }
 
@@ -85,7 +89,6 @@ class PasswordResetServiceTest {
     @Test
     void emailConhecidoGuardaSoOHashEMandaOLinkComOTokenNoFragmento() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-        when(tokenRepository.existsByUserAndCreatedAtAfter(any(), any())).thenReturn(false);
 
         service.requestReset(user.getEmail());
 
@@ -109,7 +112,8 @@ class PasswordResetServiceTest {
     @Test
     void pedidoDentroDoIntervaloNaoGeraOutroTokenNemEmail() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-        when(tokenRepository.existsByUserAndCreatedAtAfter(any(), any())).thenReturn(true);
+        when(tokenRepository.findFirstByUserOrderByCreatedAtDesc(user))
+                .thenReturn(Optional.of(stored(Instant.now().plusSeconds(1800))));
 
         service.requestReset(user.getEmail());
 

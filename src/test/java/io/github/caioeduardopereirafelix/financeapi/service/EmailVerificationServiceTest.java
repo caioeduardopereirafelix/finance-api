@@ -4,6 +4,7 @@ import io.github.caioeduardopereirafelix.financeapi.exceptions.EmailNotVerifiedE
 import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidEmailVerificationToken;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.VerificationResendTooSoonException;
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailDispatcher;
+import io.github.caioeduardopereirafelix.financeapi.mail.EmailTemplates;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.EmailVerificationToken;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
 import io.github.caioeduardopereirafelix.financeapi.repository.EmailVerificationTokenRepository;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -44,6 +46,9 @@ class EmailVerificationServiceTest {
     @Mock
     private EmailDispatcher emailDispatcher;
 
+    @Spy
+    private EmailTemplates templates = new EmailTemplates("http://localhost:4200/");
+
     @InjectMocks
     private EmailVerificationService service;
 
@@ -53,7 +58,6 @@ class EmailVerificationServiceTest {
     void setUp() {
         ReflectionTestUtils.setField(service, "expirationHours", 24L);
         ReflectionTestUtils.setField(service, "cooldownSeconds", 60L);
-        ReflectionTestUtils.setField(service, "frontendUrl", "http://localhost:4200/");
         user = User.builder().id(UUID.randomUUID()).name("Caio").email("caio@test.com").build();
     }
 

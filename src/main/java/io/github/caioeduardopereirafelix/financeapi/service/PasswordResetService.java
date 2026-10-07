@@ -3,8 +3,11 @@ package io.github.caioeduardopereirafelix.financeapi.service;
 import io.github.caioeduardopereirafelix.financeapi.config.EmailPolicy;
 import io.github.caioeduardopereirafelix.financeapi.exceptions.InvalidPasswordResetToken;
 import io.github.caioeduardopereirafelix.financeapi.mail.EmailDispatcher;
+import io.github.caioeduardopereirafelix.financeapi.mail.EmailMessage;
+import io.github.caioeduardopereirafelix.financeapi.mail.EmailTemplates;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.PasswordResetToken;
 import io.github.caioeduardopereirafelix.financeapi.model.entity.User;
+import io.github.caioeduardopereirafelix.financeapi.repository.OneTimeTokenRepository;
 import io.github.caioeduardopereirafelix.financeapi.repository.PasswordResetTokenRepository;
 import io.github.caioeduardopereirafelix.financeapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,11 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.time.Instant;
+import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
-public class PasswordResetService {
+public class PasswordResetService extends OneTimeTokenService<PasswordResetToken> {
 
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository tokenRepository;
@@ -28,6 +31,7 @@ public class PasswordResetService {
     private final LoginAttemptService loginAttempts;
     private final EmailDispatcher emailDispatcher;
     private final AccountNotifications accountNotifications;
+    private final EmailTemplates templates;
 
     @Value("${api.security.password-reset.expiration-minutes:30}")
     private long expirationMinutes;
@@ -35,23 +39,13 @@ public class PasswordResetService {
     @Value("${api.security.password-reset.cooldown-seconds:60}")
     private long cooldownSeconds;
 
-    @Value("${app.frontend-url:http://localhost:4200}")
-    private String frontendUrl;
-
     public void requestReset(String email) {
-        userRepository.findByEmail(EmailPolicy.normalize(email)).ifPresent(this::issueToken);
+        userRepository.findByEmail(EmailPolicy.normalize(email)).ifPresent(this::issueAndSend);
     }
 
     @Transactional
     public void resetPassword(String token, String newPassword) {
-        PasswordResetToken stored = tokenRepository.findByTokenHash(SecureTokens.sha256(token))
-                .orElseThrow(PasswordResetService::invalid);
-
-        if (stored.getExpiresAt().isBefore(Instant.now()) || tokenRepository.consume(stored.getId()) == 0) {
-            throw invalid();
-        }
-
-        User user = stored.getUser();
+        User user = redeem(token);
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
@@ -62,39 +56,27 @@ public class PasswordResetService {
         afterCommit(() -> accountNotifications.passwordChanged(user));
     }
 
-    private void issueToken(User user) {
-        Instant now = Instant.now();
-
-        tokenRepository.deleteExpiredBefore(now);
-        if (tokenRepository.existsByUserAndCreatedAtAfter(user, now.minusSeconds(cooldownSeconds))) {
+    private void issueAndSend(User user) {
+        if (cooldownLeft(user, Duration.ofSeconds(cooldownSeconds)).isPresent()) {
             return;
         }
-        tokenRepository.deleteByUser(user);
-
-        String token = SecureTokens.generate();
-        tokenRepository.save(PasswordResetToken.builder()
-                .tokenHash(SecureTokens.sha256(token))
-                .user(user)
-                .createdAt(now)
-                .expiresAt(now.plusSeconds(expirationMinutes * 60))
-                .build());
-
-        String link = frontendUrl.replaceAll("/+$", "") + "/redefinir-senha#token=" + token;
-
-        emailDispatcher.dispatch(user.getEmail(),
-                "Redefinição de senha",
-                """
-                Olá, %s.
-
-                Recebemos um pedido para redefinir a senha da sua conta no Finance. Para escolher uma nova senha, abra o link abaixo. Ele vale por %d minutos e só pode ser usado uma vez:
-
-                %s
-
-                Se você não pediu isso, ignore este e-mail: sua senha continua a mesma.
-                """.formatted(user.getName(), expirationMinutes, link));
+        String token = issue(user, Duration.ofMinutes(expirationMinutes));
+        EmailMessage message = templates.passwordReset(user, expirationMinutes, token);
+        emailDispatcher.dispatch(user.getEmail(), message.subject(), message.body());
     }
 
-    private static InvalidPasswordResetToken invalid() {
+    @Override
+    protected OneTimeTokenRepository<PasswordResetToken> tokens() {
+        return tokenRepository;
+    }
+
+    @Override
+    protected PasswordResetToken newToken() {
+        return new PasswordResetToken();
+    }
+
+    @Override
+    protected RuntimeException invalidToken() {
         return new InvalidPasswordResetToken("Invalid or expired password reset link");
     }
 
