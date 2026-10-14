@@ -52,7 +52,7 @@ public class PluggyWebhookService {
         switch (event) {
             case "transactions/created", "transactions/updated" -> syncQueue.enqueue(connection.getId());
             case "transactions/deleted" -> deleteTransactions(connection, payload.path("transactionIds"));
-            default -> log.debug("Webhook {} nao tratado", event);
+            default -> { }
         }
     }
 
