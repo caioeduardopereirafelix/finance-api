@@ -37,11 +37,9 @@ public class EmailDispatcher {
         this.maxAttempts = Math.max(1, maxAttempts);
         this.backoffMillis = Math.max(0, backoff.toMillis());
         this.metrics = metrics;
-        this.executor = async ? Executors.newScheduledThreadPool(2, runnable -> {
-            Thread thread = new Thread(runnable, "email-dispatcher");
-            thread.setDaemon(true);
-            return thread;
-        }) : null;
+        this.executor = async
+                ? Executors.newScheduledThreadPool(2, Thread.ofPlatform().name("email-dispatcher").daemon().factory())
+                : null;
     }
 
     public void dispatch(String to, String subject, String body) {
